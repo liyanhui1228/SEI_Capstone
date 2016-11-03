@@ -44,3 +44,33 @@ class ProjectExpense(models.Model):
 
 class Project(models.Model):
     pass
+
+class Employee(models.Model):
+    pass
+
+class SalaryHistory(models.Model):
+    salary_history_id=models.IntegerField(primary_key=True)
+    effective_from = models.DateField()
+    effective_until = models.DateField()
+    internal_salary = models.FloatField()
+    external_salary = models.FloatField()
+    employee_id = models.ForeignKey(Employee,on_delete=models.CASCADE)
+
+class System_user(models.Model):
+    user_id = models.IntegerField(primary_key=True)
+    user_role = models.CharField(max_length=20)
+    permission_description = models.CharField(max_length=50)
+    employee_id = models.ForeignKey(Employee,on_delete=models.CASCADE)
+
+class log(models.Model):
+    log_id = models.IntegerField(primary_key=True)
+    date_time = models.DateField()
+    change = models.CharField(max_length=500)
+    user_id = models.ForeignKey(System_user,on_delete=models.CASCADE)
+
+class employee_availability(models.Model):
+    emp_availability_id = models.IntegerField(primary_key=True)
+    month = models.IntegerField()
+    percentage_used = models.FloatField()
+    is_available = models.IntegerField()
+    employee_id = models.ForeignKey(Employee,on_delete=models.CASCADE)
