@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url,include
 from django.contrib import admin
-from SEI import views
+import SEI.views
 
 urlpatterns = [
-    url(r'^$', views.home,name='home'),
-    url(r'^SEI/',include('SEI.urls'))
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^SEI/', include('SEI.urls')),
+    url(r'^$', SEI.views.home),
 ]
