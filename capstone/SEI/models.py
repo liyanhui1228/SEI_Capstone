@@ -1,15 +1,5 @@
 from django.db import models
-
-
-class System_user(models.Model):
-    #need to restrict enumeration type
-    SYSTEM_USER_ROLE=(
-        ('ADMIN','Administrator'),
-        ('NM','NormalUser')
-    )
-    user_role = models.CharField(max_length=20,choices=SYSTEM_USER_ROLE)
-    permission_description = models.CharField(max_length=200)
-    employee = models.ForeignKey(Employee,on_delete=models.CASCADE)
+from django.contrib.auth.models import User
 
 class Category(models.Model):
     category=models.CharField(max_length=100)
@@ -40,52 +30,57 @@ class SalaryHistory(models.Model):
     effective_until = models.DateField(null=True)
     internal_salary = models.FloatField()
     external_salary = models.FloatField()
-    employee = models.ForeignKey(Employee,on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
 class Log(models.Model):
     date_time = models.DateField(auto_now_add=True)
     change = models.CharField(max_length=500)
-    user = models.ForeignKey(System_user,on_delete=models.CASCADE)
+    user = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
-class employee_availability(models.Model):
+class EmployeeAvailability(models.Model):
     year=models.CharField(max_length=4)
     month = models.CharField(max_length=2)
     percentage_used = models.FloatField()
     is_available = models.BooleanField()
     employee = models.ForeignKey(Employee,on_delete=models.CASCADE)
 
-class charge_string(models.Model):
+class ChargeString(models.Model):
     charge=models.FloatField()
     date=models.DateField()
     project=models.ForeignKey(Project, on_delete=models.CASCADE)
 
-class project(models.Model):
+class Project(models.Model):
     PWP_num=models.IntegerField()
-    project_description=models.CharField(max_length=200)
+    project_description=models.CharField(max_length=200, default="", blank=True)
     project_budget=models.FloatField()
-    is_internal=models.BooleanField()
-    team = models.ForeignKey(Employee,on_delete=models.CASCADE)
-    client=models.ForeignKey(Client,on_delete=models.CASCADE)
+    is_internal=models.BooleanField(default=True)
+    #team = models.ForeignKey(Employee,on_delete=models.CASCADE)
+    #client=models.ForeignKey(Client,on_delete=models.CASCADE)
     start_date=models.DateField()
     end_date=models.DateField()
 
-class team(models.Model):
+class Team(models.Model):
     team_name=models.CharField(max_length=50)
     manager=models.ForeignKey(Employee,on_delete=models.CASCADE)
     directorate=models.ForeignKey(Employee,on_delete=models.CASCADE)
     division=models.CharField(max_length=50)
 
 class Employee(models.Model):
-    first_name=models.CharField(max_length=200)
-    last_name=models.CharField(max_length=200)
-    position=models.CharField(max_length=100)
-    title=models.CharField(max_length=100)
-    internal_salary=models.FloatField()
-    external_salary=models.FloatField()
-    team=models.ForeignKey(team)
-    isActive=models.BooleanField()
+    SYSTEM_USER_ROLE = (
+        ('ADMIN', 'Administrator'),
+        ('NM', 'NormalUser')
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    position=models.CharField(max_length=100,default="", blank=True)
+    title=models.CharField(max_length=100,default="", blank=True)
+    internal_salary=models.FloatField(default=0, blank=True)
+    external_salary=models.FloatField(default=0, blank=True)
+    #team=models.ForeignKey(Team)
+    isActive=models.BooleanField(default=True)
+    user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE)
+    permission_description = models.CharField(max_length=200, default="", blank=True)
 
-class employee_list(models.Model):
+class EmployeeList(models.Model):
     month=models.FloatField()
     time_use=models.FloatField()
     month_cost=models.FloatField()
