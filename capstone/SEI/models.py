@@ -38,7 +38,7 @@ class ProjectExpense(models.Model):
 class Employee(models.Model):
     SYSTEM_USER_ROLE = (
         ('ADMIN', 'Administrator'),
-        ('NM', 'NormalUser')
+        ('NM', 'NormalUser'),
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     activation_key = models.CharField(max_length=255)

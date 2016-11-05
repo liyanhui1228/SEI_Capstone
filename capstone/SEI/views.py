@@ -93,6 +93,7 @@ def profile(request, user_name):
     return render(request, 'SEI/employee.html', context)
 
 ##still need to check whether normal user can edit his/her own file, should have one more parameter
+##can add a if tag in the template to hide salary and role from normal user
 @login_required
 @transaction.atomic
 def update_profile(request):
