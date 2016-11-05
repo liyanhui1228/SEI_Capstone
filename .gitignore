@@ -1,0 +1,4 @@
+#ignore python compile file
+*.pyc
+#ignore mac .DS_Store file
+.DS_Store
