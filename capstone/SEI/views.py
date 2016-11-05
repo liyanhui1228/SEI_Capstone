@@ -28,6 +28,7 @@ def projectview(request, PWP_num):
     return render(request, 'SEI/projectview.html', context)
 
 @login_required
+@transaction.atomic
 def add_project(request):
     context = {}
 
@@ -52,6 +53,7 @@ def add_project(request):
 
 ##not working
 @login_required
+@transaction.atomic
 def edit_project(request, PWP_num):
     context = {}
 
