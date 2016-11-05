@@ -5,6 +5,7 @@ import SEI.views
 urlpatterns = [
     url(r'^$', SEI.views.home, name='home'),
     url(r'^login$', django.contrib.auth.views.login, {'template_name':'SEI/login.html'}, name='login'),
+    url(r'^login2$', django.contrib.auth.views.login, {'template_name':'SEI/login2.html'}),
     url(r'^logout$', django.contrib.auth.views.logout_then_login, name='logout'),
     url(r'^register$', SEI.views.register, name='register'),
     url(r'^profile/(?P<user_name>\w+)$', SEI.views.profile, name='profile'),
