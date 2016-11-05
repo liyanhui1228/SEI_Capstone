@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Registration</title>
+</head>
+<body>
+    <div class="container">
+      <form class="form-signin" action="{% url 'register' %}" method="POST"> {% csrf_token %}
+        <h2 class="form-signin-heading">Register here</h2>
+        <label for="first_name" class="sr-only">First Name</label>
+        <input type="text" name="first_name" class="form-control" placeholder="First Name" value="{{ first_name }}" required autofocus />
+        <label for="last_name" class="sr-only">Last Name</label>
+        <input type="text" name="last_name" class="form-control" placeholder="Last Name" value="{{ last_name }}" required />
+        <br>
+        <label for="user_name" class="sr-only">User Name</label>
+        <input type="text" name="user_name" class="form-control" placeholder="User Name" value="{{ user_name }}" required />
+        <br>
+		<label for="email" class="sr-only">Email</label>
+        <input type="text" name="email" class="form-control" placeholder="Email" value="{{ email }}" required />
+		<br>
+        <label for="password1" class="sr-only">Password</label>
+        <input type="password" name="password1" class="form-control" placeholder="Password" required />
+        <label for="password2" class="sr-only">Confirm Password</label>
+        <input type="password" name="password2" class="form-control" placeholder="Password" required />
+        <br>
+		<ul>
+		{% for item in errors %}
+		<li> {{ item }} </li>
+		{% endfor %}
+		</ul>
+        <input type="submit" class="btn btn-lg btn-primary btn-block" value="Create">
+      </form>
+    </div> 
+  </body>
+</html>

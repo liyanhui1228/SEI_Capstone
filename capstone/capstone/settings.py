@@ -29,6 +29,16 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+ROOT_URLCONF = 'capstone.urls'
+
+# URL to use if the authentication system requires a user to log in.
+LOGIN_URL = '/SEI/login'
+
+# Default URL to redirect to after a user logs in.
+LOGIN_REDIRECT_URL = '/SEI/'
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',

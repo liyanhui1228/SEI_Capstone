@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from grumblr.models import *
+from SEI.models import *
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
@@ -8,7 +8,6 @@ class RegistrationForm(forms.Form):
     first_name = forms.CharField(max_length=40)
     last_name = forms.CharField(max_length=40)
     user_name = forms.CharField(max_length=40)
-    role = forms.CharField(max_length=40)
     email = forms.EmailField(max_length=40, label="Email", widget=forms.EmailInput())
     password1 = forms.CharField(max_length=40, label="Password", widget=forms.PasswordInput())
     password2 = forms.CharField(max_length=40, label="Comfirm Password", widget=forms.PasswordInput())
@@ -46,12 +45,12 @@ class UserForm(forms.ModelForm):
         cleaned_data = super(UserForm, self).clean()
         return cleaned_data
 
-class ProfileForm(forms.ModelForm):
+class EmployeeForm(forms.ModelForm):
     class Meta:
-        model = Profile
+        model = Employee
         exclude = ('user', 'activation_key',)
 
     def clean(self):
-        cleaned_data = super(ProfileForm, self).clean()
+        cleaned_data = super(EmployeeForm, self).clean()
         return cleaned_data
 

@@ -1,12 +1,21 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 import django.contrib.auth.views
 import SEI.views
 
 urlpatterns = [
     url(r'^$', SEI.views.home, name='home'),
-    # Route for built-in authentication with our own custom login page
     url(r'^login$', django.contrib.auth.views.login, {'template_name':'SEI/login.html'}, name='login'),
-    # Route to logout a user and send them back to the login page
     url(r'^logout$', django.contrib.auth.views.logout_then_login, name='logout'),
-    #url(r'^register$', SEI.views.register, name='register'),
+    url(r'^register$', SEI.views.register, name='register'),
+    url(r'^profile/(?P<user_name>\w+)$', SEI.views.profile, name='profile'),
+    url(r'^confirm-registeration/(?P<user_name>\w+)/(?P<token>[\w.-]+)$', SEI.views.confirm_register, name='confirm'),
+    url(r'^edit_profile$', SEI.views.update_profile, name='edit'),
+    url(r'^password_reset$', django.contrib.auth.views.password_reset,
+        {'template_name':'SEI/reset.html'}, name='reset'),
+    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        django.contrib.auth.views.password_reset_confirm, name='password_reset_confirm'),
+    url(r'^password_reset_done$', django.contrib.auth.views.password_reset_done, name='password_reset_done'),
+    url(r'^password_reset_complete$', django.contrib.auth.views.password_reset_complete, name='password_reset_complete'),
+    url(r'^password_change', django.contrib.auth.views.password_change, {'post_change_redirect': '/'}, name='password_change'),
+    url(r'^password_change_done', django.contrib.auth.views.password_change_done, name='password_change_done'),
 ]

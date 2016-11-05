@@ -13,13 +13,51 @@ from django.contrib.auth import login, authenticate
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 
-from SEI import *
 from SEI.models import *
 from SEI.forms import *
 
-#@login_required
+@login_required
 def home(request):
-    return render(request,'home.html', {})
+    return render(request,'SEI/home.html', {})
+
+@login_required
+def profile(request, user_name):
+    context = {}
+    user_item = get_object_or_404(User, username=user_name)
+    try:
+        user_profile = Employee.objects.get(user=user_item)
+    except:
+        user_profile = Employee(user=user_item)
+    context['employee'] = user_profile
+
+    return render(request, 'SEI/employee.html', context)
+
+@login_required
+@transaction.atomic
+def update_profile(request):
+    context = {}
+    try:
+        user_profile = Employee.objects.get(user=request.user)
+    except:
+        user_profile = Employee(user=request.user)
+    if request.method == 'POST':
+        user_form = UserForm(request.POST, instance=request.user)
+        profile_form = EmployeeForm(request.POST, instance=user_profile)
+        context['form'] = profile_form
+        context['sub_form'] = user_form
+        if all([user_form.is_valid(), profile_form.is_valid()]):
+            user_form.save()
+            profile_form.save()
+            return redirect('profile', user_name=request.user.username)
+        else:
+            return render(request, 'SEI/edit_profile.html', context)
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form = EmployeeForm(instance=user_profile)
+    return render(request, 'SEI/edit_profile.html', {
+        'sub_form': user_form,
+        'form': profile_form
+    })
 
 @transaction.atomic
 def register(request):
@@ -46,11 +84,11 @@ def register(request):
 
     token = default_token_generator.make_token(new_user)
 
-    user_profile = Profile(user=new_user, activation_key=token)
+    user_profile = Employee(user=new_user, activation_key=token)
     user_profile.save()
 
     email_body = """
-Welcome to SEI! Please click the link below to verify your email address and complete the registration of your account:
+Welcome to ! Please click the link below to verify your email address and complete the registration of your account:
 http://%s%s
     """ % (request.get_host(),
            reverse('confirm', args=(new_user.username, token)))
@@ -67,11 +105,11 @@ http://%s%s
 def confirm_register(request, user_name, token):
     try:
         user_item = User.objects.get(username=user_name)
-        user_profile = Profile.objects.get(user=user_item)
+        user_profile = Employee.objects.get(user=user_item)
         if user_profile.activation_key == token:
             user_item.is_active = True
             user_item.save()
-            # Logs in the new user and redirects to his/her profile page
+            # Logs in the new user and redirects to his/her Employee page
             new_user = authenticate(username=user_item.username, \
                             password=user_item.password)
             login(request, new_user)

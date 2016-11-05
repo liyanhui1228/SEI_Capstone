@@ -4,6 +4,16 @@ from django.contrib.auth.models import User
 class Category(models.Model):
     category=models.CharField(max_length=100)
 
+class Project(models.Model):
+    PWP_num=models.IntegerField()
+    project_description=models.CharField(max_length=200, default="", blank=True)
+    project_budget=models.FloatField()
+    is_internal=models.BooleanField(default=True)
+    #team = models.ForeignKey(Employee,on_delete=models.CASCADE)
+    #client=models.ForeignKey(Client,on_delete=models.CASCADE)
+    start_date=models.DateField()
+    end_date=models.DateField()
+
 class Client(models.Model):
     organization_name=models.CharField(max_length=100)
     contact_name=models.CharField(max_length=100)
@@ -24,6 +34,30 @@ class ProjectExpense(models.Model):
     expense_description=models.CharField(max_length=200)
     category=models.ForeignKey(Category, on_delete=models.CASCADE)
     project_month=models.ForeignKey(ProjectMonth, on_delete=models.CASCADE)
+
+class Employee(models.Model):
+    SYSTEM_USER_ROLE = (
+        ('ADMIN', 'Administrator'),
+        ('NM', 'NormalUser')
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    activation_key = models.CharField(max_length=255)
+    position=models.CharField(max_length=100,default="", blank=True)
+    title=models.CharField(max_length=100,default="", blank=True)
+    internal_salary=models.FloatField(default=0, blank=True)
+    external_salary=models.FloatField(default=0, blank=True)
+    #team=models.ForeignKey(Team)
+    isActive=models.BooleanField(default=True)
+    user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE)
+    permission_description = models.CharField(max_length=200, default="", blank=True)
+
+class EmployeeList(models.Model):
+    month=models.FloatField()
+    time_use=models.FloatField()
+    month_cost=models.FloatField()
+    employee=models.ForeignKey(Employee)
+    project_month=models.ForeignKey(ProjectMonth)
+    isExternal=models.BooleanField()
 
 class SalaryHistory(models.Model):
     effective_from = models.DateField()
@@ -49,42 +83,11 @@ class ChargeString(models.Model):
     date=models.DateField()
     project=models.ForeignKey(Project, on_delete=models.CASCADE)
 
-class Project(models.Model):
-    PWP_num=models.IntegerField()
-    project_description=models.CharField(max_length=200, default="", blank=True)
-    project_budget=models.FloatField()
-    is_internal=models.BooleanField(default=True)
-    #team = models.ForeignKey(Employee,on_delete=models.CASCADE)
-    #client=models.ForeignKey(Client,on_delete=models.CASCADE)
-    start_date=models.DateField()
-    end_date=models.DateField()
-
 class Team(models.Model):
     team_name=models.CharField(max_length=50)
-    manager=models.ForeignKey(Employee,on_delete=models.CASCADE)
-    directorate=models.ForeignKey(Employee,on_delete=models.CASCADE)
+    manager=models.ForeignKey(Employee, related_name="manageer", on_delete=models.CASCADE)
+    directorate=models.ForeignKey(Employee, related_name="directorate", on_delete=models.CASCADE)
     division=models.CharField(max_length=50)
 
-class Employee(models.Model):
-    SYSTEM_USER_ROLE = (
-        ('ADMIN', 'Administrator'),
-        ('NM', 'NormalUser')
-    )
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    position=models.CharField(max_length=100,default="", blank=True)
-    title=models.CharField(max_length=100,default="", blank=True)
-    internal_salary=models.FloatField(default=0, blank=True)
-    external_salary=models.FloatField(default=0, blank=True)
-    #team=models.ForeignKey(Team)
-    isActive=models.BooleanField(default=True)
-    user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE)
-    permission_description = models.CharField(max_length=200, default="", blank=True)
 
-class EmployeeList(models.Model):
-    month=models.FloatField()
-    time_use=models.FloatField()
-    month_cost=models.FloatField()
-    employee=models.ForeignKey(Employee)
-    project_month=models.ForeignKey(ProjectMonth)
-    isExternal=models.BooleanField()
 
