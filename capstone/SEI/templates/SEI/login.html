@@ -1,43 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <meta name="description" content="">
-  <meta name="author" content="">
-
-  <title>Registration</title>
-</head>
-<body>
-    <div class="container">
-	{% if form.errors %}
-	<p class="errors">
-	Incorrect user name and password.
-	</p>
-	{% endif %}
-      <form class="form-signin" method="post" action="{% url 'login' %}">
-        <h2 class="form-signin-heading">Log in here</h2>
-		<table>
-		<tr>
-			<td>{{ form.username.label_tag }}</td>
-			<td>{{ form.username }}</td>
-		</tr>
-		<tr>
-			<td>{{ form.password.label_tag }}</td>
-			<td>{{ form.password }}</td>
-		</tr>
-		</table>
-        <input type="submit" class="btn btn-lg btn-primary btn-block" value="Log in"><br>
-		{% csrf_token %}
-      </form>
-    </div> 
-    <div class="container">
-      <form class="form-signin" action="{% url 'register' %}" >
-      	<h4 class="form-signin-heading">New to SEI?</h4>
-      	<input type="submit" class="btn btn-lg btn-primary btn-block" value="Create a new account">
-      </form>
-    </div>
-  </body>
+   <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      {% load static %}
+      <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
+      <title>Login</title>
+   </head>
+   <body>
+      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+         <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+               <a class="navbar-brand" href="#">SEIRM</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+               <ul class="nav navbar-nav">
+                  <li>
+                     <a href="#">Project</a>
+                  </li>
+                  <li>
+                     <a href="#">Team</a>
+                  </li>
+                  <li>
+                     <a href="#">Employee</a>
+                  </li>
+               </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+         </div>
+      </nav>
+      <div class="container">
+          <div class="col-md-4 col-md-offset-4">
+               <form class="form-field" action="#" method="post">
+                    {% csrf_token %}
+                    <h2 class="form-signin-heading">Login</h2>
+                    {% for field in form.visible_fields %}
+                    <div class = "">
+                       {{field}}
+                    </div>
+                    {% endfor %}
+                    <br>
+                    <input class="btn btn-lg btn-primary btn-block" type="submit" value="Login">
+              </form>
+              {% for error in form.non_field_errors %}
+              <p class="error">
+                 {{error}}
+              </p>
+              {% endfor %}
+          </div>
+      </div>
+   </body>
 </html>

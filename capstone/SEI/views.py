@@ -173,16 +173,23 @@ def confirm_register(request, user_name, token):
     try:
         user_item = User.objects.get(username=user_name)
         user_profile = Employee.objects.get(user=user_item)
+        print(user_profile.activation_key)
+        print(token)
         if user_profile.activation_key == token:
             user_item.is_active = True
             user_item.save()
             # Logs in the new user and redirects to his/her Employee page
-            new_user = authenticate(username=user_item.username, \
-                            password=user_item.password)
-            login(request, new_user)
-        return redirect('home')
-    except:
-        return redirect('home')
+            # this doesn't work because we need to put raw password here rather than the hashed password
+            # maybe because the authentication backend have some mechanism to hash the password.
+            # new_user = authenticate(username=user_name, password='123')
+            # login(request, new_user)
+            # print("in here")
+            return redirect(reverse('home'))
+        else:
+            print("sorry")
+    except Exception as e: 
+        print(e)
+        return redirect(reverse('home'))
 
 
 
