@@ -21,6 +21,64 @@ def home(request):
     return render(request,'SEI/home.html', {})
 
 @login_required
+def projectview(request, PWP_num):
+    context = {}
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    context['project'] = project_item
+    return render(request, 'SEI/projectview.html', context)
+
+@login_required
+def add_project(request):
+    context = {}
+
+    employee_item = get_object_or_404(Employee, user=request.user)
+    if employee_item.user_role == 'NM':
+        return render(request, 'SEI/permission.html', context)
+
+    form = ProjectForm(request.POST)
+    context['form'] = form
+
+    if not form.is_valid():
+        return render(request, 'SEI/project.html', context)
+
+    new_project = Project(PWP_num=form.cleaned_data['PWP_num'], \
+                            project_description=form.cleaned_data['project_description'],\
+                            project_budget=form.cleaned_data['project_budget'], \
+                            is_internal=form.cleaned_data['is_internal'], \
+                            start_date=form.cleaned_data['start_date'], \
+                            end_date=form.cleaned_data['end_date'])
+    new_project.save()
+    return redirect('projectview', PWP_num=form.cleaned_data['PWP_num'])
+
+##not working
+@login_required
+def edit_project(request, PWP_num):
+    context = {}
+
+    employee_item = get_object_or_404(Employee, user=request.user)
+    if employee_item.user_role == 'NM':
+        return render(request, 'SEI/permission.html', context)
+
+    try:
+        project_item = Project.objects.get(PWP_num=PWP_num)
+    except:
+        project_item = Project(PWP_num=PWP_num)
+    if request.method == 'POST':
+        project_form = ProjectForm(request.POST, instance=project_item)
+        context['form'] = profile_form
+        if project_form.is_valid():
+            project_form.save()
+            return redirect('projectview', PWP_num=PWP_num)
+        else:
+            return render(request, 'SEI/edit_project.html', context)
+    else:
+        project_form = ProjectForm(instance=project_item)
+        return render(request, 'SEI/edit_project.html', {
+            'form': project_form
+        })
+
+
+@login_required
 def profile(request, user_name):
     context = {}
     user_item = get_object_or_404(User, username=user_name)
@@ -32,10 +90,16 @@ def profile(request, user_name):
 
     return render(request, 'SEI/employee.html', context)
 
+##still need to check whether normal user can edit his/her own file, should have one more parameter
 @login_required
 @transaction.atomic
 def update_profile(request):
     context = {}
+
+    employee_item = get_object_or_404(Employee, user=request.user)
+    if employee_item.user_role == 'NM':
+        return render(request, 'SEI/permission.html', context)
+
     try:
         user_profile = Employee.objects.get(user=request.user)
     except:

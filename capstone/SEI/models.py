@@ -5,7 +5,7 @@ class Category(models.Model):
     category=models.CharField(max_length=100)
 
 class Project(models.Model):
-    PWP_num=models.IntegerField()
+    PWP_num=models.CharField(max_length=20)
     project_description=models.CharField(max_length=200, default="", blank=True)
     project_budget=models.FloatField()
     is_internal=models.BooleanField(default=True)

@@ -54,3 +54,24 @@ class EmployeeForm(forms.ModelForm):
         cleaned_data = super(EmployeeForm, self).clean()
         return cleaned_data
 
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = '__all__'
+        widgets = {
+            'start_date': forms.SelectDateWidget(),
+            'end_date': forms.SelectDateWidget(),
+        }
+
+    def clean(self):
+        cleaned_data = super(ProjectForm, self).clean()
+        return cleaned_data
+
+    def clean_PWP_num(self):
+        PWP_num = self.cleaned_data.get('PWP_num')
+        if Project.objects.filter(PWP_num__exact=PWP_num):
+            raise forms.ValidationError("Project PWP_num has already taken")
+        return PWP_num
+
+
+
