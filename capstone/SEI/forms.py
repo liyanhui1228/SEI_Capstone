@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from SEI.models import *
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.contrib.humanize.templatetags.humanize import intcomma
 
 class RegistrationForm(forms.Form):
     first_name = forms.CharField(max_length=40)
@@ -55,13 +56,19 @@ class EmployeeForm(forms.ModelForm):
         return cleaned_data
 
 class ProjectForm(forms.ModelForm):
+    error_css_class = 'error'
+    required_css_class = 'required'
+    start_date = forms.DateField()
+    end_date = forms.DateField()
+
     class Meta:
         model = Project
         fields = '__all__'
         widgets = {
-            'start_date': forms.SelectDateWidget(),
-            'end_date': forms.SelectDateWidget(),
-        }
+            #'start_date': forms.SelectDateWidget(),
+            #'end_date': forms.SelectDateWidget(),
+            'project_budget': forms.NumberInput(attrs={'min': 0, 'step':1000}),
+         }
 
     def clean(self):
         cleaned_data = super(ProjectForm, self).clean()
@@ -73,5 +80,10 @@ class ProjectForm(forms.ModelForm):
             raise forms.ValidationError("Project PWP_num has already taken")
         return PWP_num
 
-
+    def clean_end_date(self):
+        start_date = self.cleaned_data.get('start_date')
+        end_date = self.cleaned_data.get('end_date')
+        if end_date < start_date:
+            raise forms.ValidationError("End date must occur after start date")
+        return end_date
 

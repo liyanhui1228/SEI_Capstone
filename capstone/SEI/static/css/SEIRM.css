@@ -11,3 +11,13 @@ body {
 .form-field h2{
     text-align: center;
 }
+	
+
+.errorlist {
+    font-weight: bold;
+    color: red;
+}
+
+.btn.btn-lg.btn-primary.btn-block.project{
+    width:100px;
+}
