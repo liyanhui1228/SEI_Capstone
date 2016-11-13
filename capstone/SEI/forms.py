@@ -5,6 +5,21 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.humanize.templatetags.humanize import intcomma
 
+# MonthCategory = (
+#     ('January', 'January'),
+#     ('February', 'February'),
+#     ('March', 'March'),
+#     ('April', 'April'),
+#     ('May', 'May'),
+#     ('June', 'June'),
+#     ('July', 'July'),
+#     ('August', 'August'),
+#     ('September', 'September'),
+#     ('October', 'October'),
+#     ('November', 'November'),
+#     ('December', 'December'),
+# )
+
 class RegistrationForm(forms.Form):
     first_name = forms.CharField(max_length=40)
     last_name = forms.CharField(max_length=40)
@@ -86,4 +101,23 @@ class ProjectForm(forms.ModelForm):
         if end_date < start_date:
             raise forms.ValidationError("End date must occur after start date")
         return end_date
+
+class ResourceForm(forms.ModelForm):
+    month = forms.CharField(max_length=30)
+    class Meta:
+        model = ProjectExpense
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super(ResourceForm, self).clean()
+        return cleaned_data
+
+class AddEmployeeForm(forms.Form):
+    employee_name = forms.CharField(max_length=30)
+    month = forms.CharField(max_length=30)
+    is_internal = forms.BooleanField()
+
+    def clean(self):
+        cleaned_data = super(AddEmployeeForm, self).clean()
+        return cleaned_data
 

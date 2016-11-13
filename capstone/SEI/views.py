@@ -250,3 +250,86 @@ def budget_view(request, PWP_num):
     context['projected_expense'] = total_expense - total_expense_till_now
     context['projected_remain'] = context['total_budget'] - total_expense
     return HttpResponse(json.dumps(context), content_type="application/json")
+
+@login_required
+def view_employee_list(request):
+    context = {}
+    message = []
+    context['message'] = message
+    if 'employee' in request.GET and request.GET['employee']:
+        employee = request.GET['employee']
+    if 'project_month' in request.GET and request.GET['project_month']:
+        project_month = request.GET['project_month']
+    if employee and project_month:
+        employee_list = get_object_or_404(EmployeeList, project_month=project_month, employee=employee)
+        context['employee_list'] = employee_list
+    else:
+        message.append("Input is not valid")
+
+    return render(request, 'cmumc/employeelist.html', context)
+
+@login_required
+def add_employee(request, project_id):
+    context = {}
+    message = []
+    context['message'] = message
+    project_item = get_object_or_404(Project, project_id=project_id)
+    if request.method == 'GET':
+        form = AddEmployeeForm()
+        context['form'] = form
+        return render(request, 'cmumc/addemployee.html', context)
+
+    form = AddEmployeeForm(request.POST)
+    if not form.is_valid:
+        message.append("Form contains invalid data")
+        return render(request, 'cmumc/addemployee.html', context)
+
+    user_item = get_object_or_404(User, username=form.cleaned_data['employee_name'])
+    employee_item = get_object_or_404(Employee, user=user_item)
+    is_internal = form.cleaned_data['is_internal']
+    employee_item.is_internal = is_internal
+    employee_item.save()
+    month = form.cleaned_data['month']
+    project_month_item = get_object_or_404(ProjectMonth, month=month, project=project_item)
+    project_month_item.team.add(employee_item)
+    project_month_item.save()
+    project_item.team.add(employee_item)
+    project_item.save()
+    message.append("Employee has been successfully added")
+    return render(request, 'cmumc/addemployee.html', context)
+
+@login_required
+def add_resources(request, project_id):
+    context = {}
+    messages = []
+    context['messages'] = messages
+    project_item = get_object_or_404(Project, project_id=project_id)
+    if request.method == 'GET':
+        form = ResourceForm()
+        context['form'] = form
+        return render(request, 'cmumc/resource.html', context)
+
+    form = ResourceForm(request.POST)
+    if not form.is_valid():
+        messages.append("Form contains invalid data")
+        return render(request, 'cmumc/resource.html', context)
+
+    context['form'] = form
+    month = form.cleaned_data['month']
+    project_month_item = get_object_or_404(ProjectMonth, project=project_item, month=month)
+    new_project_expense = ProjectExpense(project_month = project_month_item,
+                                         cost=form.cleaned_data['cost'],
+                                         expense_description=form.cleaned_data['expense_description'],
+                                         category=form.cleaned_data['category'])
+    new_project_expense.save()
+    project_month_item.add(new_project_expense)
+    project_month_item.save()
+    messages.append("Expense has been saved")
+    return render(request, 'cmumc/resource.html', context)
+
+
+
+
+    
+
+

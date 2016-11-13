@@ -21,4 +21,7 @@ urlpatterns = [
     url(r'^add_project', SEI.views.add_project, name='addProject'),
     #url(r'^edit_project/(?P<PWP_num>\w+)$', SEI.views.edit_project, name='editProject'),
     url(r'^project/(?P<PWP_num>\w+)$', SEI.views.projectview, name='projectview'),
+    url(r'^add_resources/(?P<project_id>\d+)$', SEI.views.add_resources, name='addResources'),
+    url(r'^add_employee/(?P<project_id>\d+)$', SEI.views.add_employee, name='addEmployee'),
+    url(r'^view_employee_list$', SEI.views.view_employee_list, name='viewEmployeeList'),
 ]
