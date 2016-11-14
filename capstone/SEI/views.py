@@ -159,7 +159,7 @@ def register(request):
 
     token = default_token_generator.make_token(new_user)
 
-    user_profile = Employee(user=new_user, activation_key=token)
+    user_profile = Profile(user=new_user, activation_key=token)
     user_profile.save()
 
     email_body = """
@@ -181,9 +181,7 @@ http://%s%s
 def confirm_register(request, user_name, token):
     try:
         user_item = User.objects.get(username=user_name)
-        user_profile = Employee.objects.get(user=user_item)
-        print(user_profile.activation_key)
-        print(token)
+        user_profile = Profile.objects.get(user=user_item)
         if user_profile.activation_key == token:
             user_item.is_active = True
             user_item.save()
@@ -215,7 +213,7 @@ def project_overview(request, PWP_num):
     context['start_date'] = project_item.start_date
     context['end_date'] = project_item.end_date
     context['charge_string'] = charge_string
-    return HttpResponse(json.dumps(context), content_type="application/json")
+    return render(request,'overview.json',context)
 
 
 @login_required

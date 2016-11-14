@@ -1,34 +1,37 @@
-{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    {% load static %}
-    <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
-	<title>Profile</title>
-  </head>
-<body>
-<div class="container">
-          <div class="col-md-4">
-            <div class="panel panel-primary">
-              <div class="panel-heading">
-                <h3 class="panel-title">Project View</h3>
-              </div>
-              <div class="panel-body">
-                <div>
-                  <ul class="list-group">
-                  <li class="list-group-item">PWP Number: {{ project.PWP_num }}</li>
-                  <li class="list-group-item">Description: {{  project.project_description }}</li>
-                  <li class="list-group-item">Budget: ${{  project.project_budget|intcomma }}</li>
-				          <li class="list-group-item">Start Date: {{  project.start_date }}</li>
-				          <li class="list-group-item">End Date: {{  project.end_date }}</li>
-				          <li class="list-group-item">Internal Project: {{  project.is_internal }}</li>
-                  </ul>
-                </div>
-              </div>
+   <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      {% load static %}
+      <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
+      <title>Login</title>
+   </head>
+   <body>
+      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+         <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+               <a class="navbar-brand" href="#">SEIRM</a>
             </div>
-          </div>
-</div>
-</body>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+               <ul class="nav navbar-nav">
+                  <li>
+                     <a href="#">Project</a>
+                  </li>
+                  <li>
+                     <a href="#">Team</a>
+                  </li>
+                  <li>
+                     <a href="#">Employee</a>
+                  </li>
+               </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+         </div>
+      </nav>
+      
+   </body>
 </html>

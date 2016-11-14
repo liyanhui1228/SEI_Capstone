@@ -60,13 +60,17 @@ class Employee(models.Model):
     user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE)
     permission_description = models.CharField(max_length=200, default="", blank=True)
 
+class Profile(models.Model):
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    activation_key=models.CharField(max_length=300)
+
 class Project(models.Model):
     project_id = models.IntegerField(max_length=20, primary_key=True)
     PWP_num = models.CharField(max_length=20)
     project_description = models.CharField(max_length=200, default="", blank=True)
     project_budget = models.DecimalField(max_digits=8, decimal_places=2)
     is_internal = models.BooleanField(default=True)
-    team = models.ForeignKey(Employee,on_delete=models.CASCADE)
+    team = models.ForeignKey(Team,on_delete=models.CASCADE)
     client = models.ForeignKey(Client,on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -77,7 +81,7 @@ class ProjectMonth(models.Model):
     month = models.CharField(max_length=30)
     budget = models.DecimalField(max_digits=8, decimal_places=2)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    team = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
 
 class ProjectExpense(models.Model):
     cost = models.DecimalField(max_digits=8, decimal_places=2)
