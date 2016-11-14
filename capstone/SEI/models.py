@@ -13,6 +13,10 @@ ExpenseCategory = (
     ('O', 'Others'),
 )
 
+SYSTEM_USER_ROLE = (
+    ('ADMIN', 'Administrator'),
+    ('NM', 'NormalUser'),
+)
 # MonthCategory = (
 #     ('January', 'January'),
 #     ('February', 'February'),
@@ -44,10 +48,6 @@ class Team(models.Model):
     division = models.CharField(max_length=50)
 
 class Employee(models.Model):
-    SYSTEM_USER_ROLE = (
-        ('ADMIN', 'Administrator'),
-        ('NM', 'NormalUser'),
-    )
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     position = models.CharField(max_length=100,default="", blank=True)
     title = models.CharField(max_length=100,default="", blank=True)
