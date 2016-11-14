@@ -49,15 +49,17 @@ class Employee(models.Model):
         ('NM', 'NormalUser'),
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    activation_key = models.CharField(max_length=255)
     position = models.CharField(max_length=100,default="", blank=True)
     title = models.CharField(max_length=100,default="", blank=True)
     internal_salary = models.DecimalField(max_digits=8, decimal_places=2)
     external_salary = models.DecimalField(max_digits=8, decimal_places=2)
     team = models.ForeignKey(Team)
-    isActive = models.BooleanField(default=True)
     user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE)
     permission_description = models.CharField(max_length=200, default="", blank=True)
+
+class Profile(models.Model):
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    activation_key=models.CharField(max_length=300)
 
 class Project(models.Model):
     project_id = models.IntegerField(primary_key=True)
@@ -65,8 +67,8 @@ class Project(models.Model):
     project_description = models.CharField(max_length=200, default="", blank=True)
     project_budget = models.DecimalField(max_digits=8, decimal_places=2)
     is_internal = models.BooleanField(default=True)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team,on_delete=models.CASCADE)
+    client = models.ForeignKey(Client,on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     business_manager = models.CharField(max_length=30)
