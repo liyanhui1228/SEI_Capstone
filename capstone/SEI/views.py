@@ -325,6 +325,51 @@ def add_resources(request, project_id):
     messages.append("Expense has been saved")
     return render(request, 'cmumc/resource.html', context)
 
+@login_required
+def resource_allocation_view(request, PWP_num):
+    context = {}
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    project_month = get_object_or_404(ProjectMonth, project=project_item)
+
+    resource_allocation = {}
+
+    for pm in project_month:
+        monthly_cost = {}
+        resource_allocation['project_date'] = pm.project_date
+        project_expense = get_object_or_404(ProjectExpense, project=project_item, project_date=pm.project_date)
+        employee_month = get_object_or_404(EmployeeMonth, project=project_item, project_date=pm.project_date)
+
+        # Get the total Person cost in this month for this project
+        person_cost = 0
+        for em in employee_month:
+            person_cost += em.month_cost
+        monthly_cost['person'] = person_cost
+
+        # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
+        travel_cost = 0
+        subcontractor_cost = 0
+        equipment_cost = 0
+        other_cost = 0
+        for pe in project_expense:
+            if pe.category is 'T':
+                travel_cost += pe.cost
+            if pe.category is 'S':
+                subcontractor_cost += pe.cost
+            if pe.category is 'E':
+                equipment_cost += pe.cost
+            if pe.category is 'O':
+                other_cost += pe.cost
+        monthly_cost['travel'] = travel_cost
+        monthly_cost['subcontractor'] = subcontractor_cost
+        monthly_cost['equipment'] = equipment_cost
+        monthly_cost['other'] = other_cost
+
+        # Store all the 5 kinds of cost in JSON, the key is project_date
+        resource_allocation[pm.project_date] = monthly_cost
+
+    context['resource_allocation'] = resource_allocation
+    return HttpResponse(json.dumps(context), content_type="application/json")
+
 
 
 
