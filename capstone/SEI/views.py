@@ -342,18 +342,17 @@ def add_resources(request, project_id):
     return render(request, 'cmumc/resource.html', context)
 
 @login_required
-def resource_allocation_view(request, PWP_num):
+def view_resource_allocation(request, PWP_num):
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
-    project_month = get_object_or_404(ProjectMonth, project=project_item)
+    project_month = ProjectMonth.objects.filter(project=project_item)
 
     resource_allocation = {}
 
     for pm in project_month:
         monthly_cost = {}
-        resource_allocation['project_date'] = pm.project_date
-        project_expense = get_object_or_404(ProjectExpense, project=project_item, project_date=pm.project_date)
-        employee_month = get_object_or_404(EmployeeMonth, project=project_item, project_date=pm.project_date)
+        project_expense = ProjectExpense.objects.filter(project=project_item, project_date=pm.project_date)
+        employee_month = EmployeeMonth.objects.filter(project=project_item, project_date=pm.project_date)
 
         # Get the total Person cost in this month for this project
         person_cost = 0
@@ -384,7 +383,7 @@ def resource_allocation_view(request, PWP_num):
         resource_allocation[pm.project_date] = monthly_cost
 
     context['resource_allocation'] = resource_allocation
-    return HttpResponse(json.dumps(context), content_type="application/json")
+    return render(request, "SEI/resource_allocation.json", context)
 
 
 
