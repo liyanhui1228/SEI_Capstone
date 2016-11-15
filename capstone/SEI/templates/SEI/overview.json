@@ -1,0 +1,16 @@
+{
+  "PWP_num": "{{PWP_num}}",
+  "project_description": "{{project_description}}",
+  "project_budget": {{project_budget}},
+  "isExternal": "{{isExternal}}",
+  "start_date": "{{start_date}}",
+  "end_date": "{{end_date}}",
+  "organization_name": "{{organization_name}}",
+  "team_name": "{{team_name}}",
+  "charge_string": [
+    {% for charges in charge_string %}
+    {"charge":{{charges.charge}}, "date":"{{charges.date}}"}
+    {% endfor %}
+    ]
+
+}
