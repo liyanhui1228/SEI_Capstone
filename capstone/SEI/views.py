@@ -201,7 +201,7 @@ def confirm_register(request, user_name, token):
         return redirect(reverse('home'))
 
 
-# @login_required
+@login_required
 def project_overview(request, PWP_num):
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
@@ -218,7 +218,7 @@ def project_overview(request, PWP_num):
     return render(request,'SEI/overview.json',context)
 
 
-# @login_required
+@login_required
 def budget_view(request, PWP_num):
     print("here at start "+PWP_num)
     now = datetime.datetime.now()
