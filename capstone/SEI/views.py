@@ -18,6 +18,8 @@ import datetime
 from SEI.models import *
 from SEI.forms import *
 
+from SEI.models import ProjectMonth
+
 
 @login_required
 def home(request):
@@ -199,55 +201,69 @@ def confirm_register(request, user_name, token):
         return redirect(reverse('home'))
 
 
-@login_required
+# @login_required
 def project_overview(request, PWP_num):
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
-    charge_string = get_object_or_404(ChargeString, project=project_item)
+    charge_string = ChargeString.objects.filter(project=project_item)
     context['PWP_num'] = project_item.PWP_num
     context['project_description'] = project_item.project_description
     context['project_budget'] = project_item.project_budget
-    context['isExternal'] = project_item.isExternal
+    context['isExternal'] = project_item.is_internal
     context['team_name'] = project_item.team.team_name
     context['organization_name'] = project_item.client.organization_name
     context['start_date'] = project_item.start_date
     context['end_date'] = project_item.end_date
     context['charge_string'] = charge_string
-    return render(request,'overview.json',context)
+    return render(request,'SEI/overview.json',context)
 
 
-@login_required
+# @login_required
 def budget_view(request, PWP_num):
+    print("here at start "+PWP_num)
     now = datetime.datetime.now()
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
-    project_month = get_object_or_404(ProjectMonth, project=project_item)
+    project_month_list = ProjectMonth.objects.filter(project=project_item)
     context['total_budget'] = project_item.project_budget
     total_expense = 0
     total_expense_till_now = 0
     monthly_expense = {}
 
-    for single_project_month in project_month:
+    for single_project_month in project_month_list:
+        print(single_project_month.budget)
         budget_detail = {}
-        budget_detail['year'] = single_project_month.year
-        budget_detail['month'] = single_project_month.month
+        budget_detail['year'] = single_project_month.project_date.year
+        budget_detail['month'] = single_project_month.project_date.month
         budget_detail['budget'] = single_project_month.budget
-        project_month_expense = get_object_or_404(ProjectExpense, project_month=single_project_month)
-        month_total_expense = 0
-        for month_expense_detail in project_month_expense:
-            month_total_expense += month_expense_detail.cost
-            total_expense += month_expense_detail.cost
-            if single_project_month.year < now.year or \
-                    (single_project_month.year == now.year and single_project_month.month <= now.month):
-                total_expense_till_now += month_expense_detail.cost
-        budget_detail['expense'] = month_total_expense
-        monthly_expense[str(single_project_month.year) + '.' + str(single_project_month.month)] = budget_detail
+        budget_detail['expense'] = 0
+        monthly_expense[str(budget_detail['year']) + '.' + str(budget_detail['month'])]= budget_detail
+
+    project_month_expense = ProjectExpense.objects.filter(project=project_item)
+    print("here third 404")
+    for month_expense_detail in project_month_expense:
+        year = month_expense_detail.project_date.year
+        month = month_expense_detail.project_date.month
+        monthly_expense[str(year) + '.' + str(month)]['expense'] += month_expense_detail.cost
+        total_expense += month_expense_detail.cost
+        if month_expense_detail.project_date < now:
+            total_expense_till_now += month_expense_detail.cost
+
+    Employee_Month = EmployeeMonth.objects.filter(project=project_item)
+    for Employee_Month_detail in Employee_Month:
+        year = Employee_Month_detail.project_date.year
+        month = Employee_Month_detail.project_date.month
+        monthly_expense[str(year) + '.' + str(month)]['expense'] += Employee_Month_detail.month_cost
+        total_expense += Employee_Month_detail.month_cost
+        if Employee_Month_detail.project_date < now:
+            total_expense_till_now += Employee_Month_detail.month_cost
+
 
     context['monthly_expense'] = monthly_expense
     context['budget_balance'] = context['total_budget'] - total_expense_till_now
     context['projected_expense'] = total_expense - total_expense_till_now
-    context['projected_remain'] = context['total_budget'] - total_expense
-    return HttpResponse(json.dumps(context), content_type="application/json")
+    context['projected_remaining'] = context['total_budget'] - total_expense
+    return render(request, "SEI/budget_view.json",context)
 
 @login_required
 def view_employee_list(request):

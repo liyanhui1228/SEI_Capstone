@@ -1,0 +1,17 @@
+{
+
+    "project_budget":{{total_budget}},
+    "budget_balance":{{budget_balance}},
+    "projected_spend":{{projected_expense}},
+    "projected_remaining":{{projected_remaining}},
+    "monthly_expense":{
+       {% for item in monthly_expense.items %}
+        "{{item.0}}":{
+          "year":{{item.1.year}},
+          "month":{{item.1.month}},
+          "budget":{{item.1.budget}},
+          "expense":{{item.1.expense}}
+        }
+      {% endfor %}
+    }
+}
