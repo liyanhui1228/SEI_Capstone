@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^add_resources/(?P<project_id>\d+)$', SEI.views.add_resources, name='addResources'),
     url(r'^add_employee/(?P<project_id>\d+)$', SEI.views.add_employee, name='addEmployee'),
     url(r'^view_employee_list$', SEI.views.view_employee_list, name='viewEmployeeList'),
+    url(r'^view_resource_allocation/(?P<PWP_num>\d+)$', SEI.views.view_resource_allocation, name='viewResourceAllocation'),
 ]
