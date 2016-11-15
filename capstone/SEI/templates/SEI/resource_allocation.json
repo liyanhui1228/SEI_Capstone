@@ -1,0 +1,13 @@
+{
+    "resource_allocation":{
+       {% for ra in resource_allocation.items %}
+        "{{ra.0}}":{
+          "person":{{ra.1.person}},
+          "travel":{{ra.1.travel}},
+          "subcontractor":{{ra.1.subcontractor}},
+          "equipment":{{ra.1.equipment}},
+          "other":{{ra.1.other}}
+        }
+      {% endfor %}
+    }
+}
