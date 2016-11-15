@@ -366,13 +366,13 @@ def view_resource_allocation(request, PWP_num):
         equipment_cost = 0
         other_cost = 0
         for pe in project_expense:
-            if pe.category is 'T':
+            if pe.category == 'T':
                 travel_cost += pe.cost
-            if pe.category is 'S':
+            if pe.category == 'S':
                 subcontractor_cost += pe.cost
-            if pe.category is 'E':
+            if pe.category == 'E':
                 equipment_cost += pe.cost
-            if pe.category is 'O':
+            if pe.category == 'O':
                 other_cost += pe.cost
         monthly_cost['travel'] = travel_cost
         monthly_cost['subcontractor'] = subcontractor_cost
