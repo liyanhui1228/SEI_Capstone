@@ -201,7 +201,7 @@ def confirm_register(request, user_name, token):
         return redirect(reverse('home'))
 
 
-@login_required
+# @login_required
 def project_overview(request, PWP_num):
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
@@ -218,7 +218,7 @@ def project_overview(request, PWP_num):
     return render(request,'SEI/overview.json',context)
 
 
-@login_required
+# @login_required
 def budget_view(request, PWP_num):
     print("here at start "+PWP_num)
     now = datetime.datetime.now()
@@ -231,33 +231,36 @@ def budget_view(request, PWP_num):
     monthly_expense = {}
 
     for single_project_month in project_month_list:
-        print(single_project_month.budget)
         budget_detail = {}
-        budget_detail['year'] = single_project_month.project_date.year
-        budget_detail['month'] = single_project_month.project_date.month
+        project_date = single_project_month.project_date
+        if project_date:
+            budget_detail['year'] = single_project_month.project_date.year
+            budget_detail['month'] = single_project_month.project_date.month
+            monthly_expense[str(budget_detail['year']) + '.' + str(budget_detail['month'])]= budget_detail
         budget_detail['budget'] = single_project_month.budget
         budget_detail['expense'] = 0
-        monthly_expense[str(budget_detail['year']) + '.' + str(budget_detail['month'])]= budget_detail
 
     project_month_expense = ProjectExpense.objects.filter(project=project_item)
-    print("here third 404")
     for month_expense_detail in project_month_expense:
-        year = month_expense_detail.project_date.year
-        month = month_expense_detail.project_date.month
-        monthly_expense[str(year) + '.' + str(month)]['expense'] += month_expense_detail.cost
+        project_date = month_expense_detail.project_date
+        if project_date:
+            year = project_date.year
+            month = project_date.month
+            monthly_expense[str(year) + '.' + str(month)]['expense'] += month_expense_detail.cost
+            if project_date < now:
+                total_expense_till_now += month_expense_detail.cost
         total_expense += month_expense_detail.cost
-        if month_expense_detail.project_date < now:
-            total_expense_till_now += month_expense_detail.cost
 
     Employee_Month = EmployeeMonth.objects.filter(project=project_item)
     for Employee_Month_detail in Employee_Month:
-        year = Employee_Month_detail.project_date.year
-        month = Employee_Month_detail.project_date.month
-        monthly_expense[str(year) + '.' + str(month)]['expense'] += Employee_Month_detail.month_cost
+        project_date = Employee_Month_detail.project_date
+        if project_date:
+            year = Employee_Month_detail.project_date.year
+            month = Employee_Month_detail.project_date.month
+            monthly_expense[str(year) + '.' + str(month)]['expense'] += Employee_Month_detail.month_cost
+            if Employee_Month_detail.project_date < now:
+                total_expense_till_now += Employee_Month_detail.month_cost
         total_expense += Employee_Month_detail.month_cost
-        if Employee_Month_detail.project_date < now:
-            total_expense_till_now += Employee_Month_detail.month_cost
-
 
     context['monthly_expense'] = monthly_expense
     context['budget_balance'] = context['total_budget'] - total_expense_till_now
