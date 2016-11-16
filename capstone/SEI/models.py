@@ -17,7 +17,8 @@ ExpenseCategory = (
 SYSTEM_USER_ROLE = (
     ('ADMIN', 'Administrator'),
     ('NM', 'NormalUser'),
-)
+    ('ITADMIN', 'ITAdministrator'),
+    )
 # MonthCategory = (
 #     ('January', 'January'),
 #     ('February', 'February'),
@@ -55,12 +56,12 @@ class Employee(models.Model):
     internal_salary = models.DecimalField(max_digits=8, decimal_places=2)
     external_salary = models.DecimalField(max_digits=8, decimal_places=2)
     team = models.ForeignKey(Team)
-    user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE)
-    permission_description = models.CharField(max_length=200, default="", blank=True)
 
 class Profile(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     activation_key=models.CharField(max_length=300)
+    user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE)
+    permission_description = models.CharField(max_length=200, default="", blank=True)
 
 class Project(models.Model):
     project_id = models.IntegerField(primary_key=True)
@@ -114,8 +115,7 @@ class EmployeeAvailability(models.Model):
     employee = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class ChargeString(models.Model):
-    charge = models.DecimalField(max_digits=8, decimal_places=2)
-    date = models.DateField()
+    charge = models.CharField(max_length=100, default="", blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
 
