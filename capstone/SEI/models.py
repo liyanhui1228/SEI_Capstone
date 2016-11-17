@@ -37,7 +37,7 @@ SYSTEM_USER_ROLE = (
 class Client(models.Model):
     organization_name = models.CharField(max_length=100)
     contact_name = models.CharField(max_length=100)
-    #phone = PhoneNumberField()
+    phone = PhoneNumberField()
     address = models.CharField(max_length=200)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=2)
@@ -45,12 +45,14 @@ class Client(models.Model):
 
 class Team(models.Model):
     team_name = models.CharField(max_length=50)
-    manager = models.ForeignKey(User, related_name="manageer", on_delete=models.CASCADE)
-    directorate = models.ForeignKey(User, related_name="directorate", on_delete=models.CASCADE)
+    manager = models.ForeignKey('Employee', related_name="manageer", on_delete=models.CASCADE, blank=True, null=True)
+    directorate = models.ForeignKey('Employee', related_name="directorate", on_delete=models.CASCADE, blank=True, null=True)
     division = models.CharField(max_length=50)
 
 class Employee(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    #user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    first_name = models.CharField(max_length=200, default="", blank=True)
+    last_name = models.CharField(max_length=200, default="", blank=True)
     position = models.CharField(max_length=100,default="", blank=True)
     title = models.CharField(max_length=100,default="", blank=True)
     internal_salary = models.DecimalField(max_digits=8, decimal_places=2)
@@ -58,13 +60,13 @@ class Employee(models.Model):
     team = models.ForeignKey(Team)
 
 class Profile(models.Model):
-    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    user=models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     activation_key=models.CharField(max_length=300)
-    user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE)
+    user_role = models.CharField(max_length=20, choices=SYSTEM_USER_ROLE, default='NM')
     permission_description = models.CharField(max_length=200, default="", blank=True)
 
 class Project(models.Model):
-    project_id = models.IntegerField(primary_key=True)
+    #project_id = models.IntegerField(primary_key=True)
     PWP_num = models.CharField(max_length=20)
     project_description = models.CharField(max_length=200, default="", blank=True)
     project_budget = models.DecimalField(max_digits=8, decimal_places=2)
@@ -73,25 +75,25 @@ class Project(models.Model):
     client = models.ForeignKey(Client,on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
-    business_manager = models.CharField(max_length=30)
+    business_manager = models.CharField(max_length=100, default="", blank=True)
 
 class ProjectMonth(models.Model):
     project_date = models.DateField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    employee_list = models.ForeignKey(User, on_delete=models.CASCADE)
-    budget = models.DecimalField(max_digits=8, decimal_places=2)
+    employee_list = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    budget = models.DecimalField(max_digits=18, decimal_places=2)
 
 class EmployeeMonth(models.Model):
     project_date = models.DateField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    employee = models.ForeignKey(User, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     time_use = models.IntegerField()
     isExternal = models.BooleanField()
     month_cost = models.DecimalField(max_digits=8, decimal_places=2)
 
 class ProjectExpense(models.Model):
     project_date = models.DateField()
-    cost = models.DecimalField(max_digits=8, decimal_places=2)
+    cost = models.DecimalField(max_digits=18, decimal_places=2)
     expense_description = models.CharField(max_length=200, default="", blank=True)
     category = models.CharField(max_length=50, choices=ExpenseCategory)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -101,7 +103,7 @@ class SalaryHistory(models.Model):
     effective_until = models.DateField(null=True)
     internal_salary = models.DecimalField(max_digits=8, decimal_places=2)
     external_salary = models.DecimalField(max_digits=8, decimal_places=2)
-    employee = models.ForeignKey(User, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
 class Log(models.Model):
     date_time = models.DateField(auto_now_add=True)
@@ -112,12 +114,8 @@ class EmployeeAvailability(models.Model):
     date = models.DateField()
     percentage_used = models.DecimalField(max_digits=8, decimal_places=2)
     is_available = models.BooleanField()
-    employee = models.ForeignKey(User, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
 class ChargeString(models.Model):
     charge = models.CharField(max_length=100, default="", blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-
-
-
-
