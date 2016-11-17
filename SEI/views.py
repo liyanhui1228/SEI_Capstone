@@ -14,12 +14,22 @@ from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 import json
 import datetime
+import decimal
 
 from SEI.models import *
 from SEI.forms import *
 
 from SEI.models import ProjectMonth
 
+# Reset the percentage_used in employee availability table to 0 at the beginning of every month
+def reset_employee_availability_at_begin_of_month():
+    pass
+
+# For solving the decimal is not serializable error when dumping json
+def decimal_default(obj):
+    if isinstance(obj, decimal.Decimal):
+        return float(obj)
+    raise TypeError
 
 @login_required
 def home(request):
@@ -220,7 +230,6 @@ def project_overview(request, PWP_num):
 
 @login_required
 def budget_view(request, PWP_num):
-    print("here at start "+PWP_num)
     now = datetime.datetime.now()
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
@@ -231,33 +240,36 @@ def budget_view(request, PWP_num):
     monthly_expense = {}
 
     for single_project_month in project_month_list:
-        print(single_project_month.budget)
         budget_detail = {}
-        budget_detail['year'] = single_project_month.project_date.year
-        budget_detail['month'] = single_project_month.project_date.month
+        project_date = single_project_month.project_date
+        if project_date:
+            budget_detail['year'] = single_project_month.project_date.year
+            budget_detail['month'] = single_project_month.project_date.month
+            monthly_expense[str(budget_detail['year']) + '.' + str(budget_detail['month'])]= budget_detail
         budget_detail['budget'] = single_project_month.budget
         budget_detail['expense'] = 0
-        monthly_expense[str(budget_detail['year']) + '.' + str(budget_detail['month'])]= budget_detail
 
     project_month_expense = ProjectExpense.objects.filter(project=project_item)
-    print("here third 404")
     for month_expense_detail in project_month_expense:
-        year = month_expense_detail.project_date.year
-        month = month_expense_detail.project_date.month
-        monthly_expense[str(year) + '.' + str(month)]['expense'] += month_expense_detail.cost
+        project_date = month_expense_detail.project_date
+        if project_date:
+            year = project_date.year
+            month = project_date.month
+            monthly_expense[str(year) + '.' + str(month)]['expense'] += month_expense_detail.cost
+            if project_date < now:
+                total_expense_till_now += month_expense_detail.cost
         total_expense += month_expense_detail.cost
-        if month_expense_detail.project_date < now:
-            total_expense_till_now += month_expense_detail.cost
 
     Employee_Month = EmployeeMonth.objects.filter(project=project_item)
     for Employee_Month_detail in Employee_Month:
-        year = Employee_Month_detail.project_date.year
-        month = Employee_Month_detail.project_date.month
-        monthly_expense[str(year) + '.' + str(month)]['expense'] += Employee_Month_detail.month_cost
+        project_date = Employee_Month_detail.project_date
+        if project_date:
+            year = Employee_Month_detail.project_date.year
+            month = Employee_Month_detail.project_date.month
+            monthly_expense[str(year) + '.' + str(month)]['expense'] += Employee_Month_detail.month_cost
+            if Employee_Month_detail.project_date < now:
+                total_expense_till_now += Employee_Month_detail.month_cost
         total_expense += Employee_Month_detail.month_cost
-        if Employee_Month_detail.project_date < now:
-            total_expense_till_now += Employee_Month_detail.month_cost
-
 
     context['monthly_expense'] = monthly_expense
     context['budget_balance'] = context['total_budget'] - total_expense_till_now
@@ -266,51 +278,83 @@ def budget_view(request, PWP_num):
     return render(request, "SEI/budget_view.json",context)
 
 @login_required
-def view_employee_list(request):
+def view_employee_list(request, PWP_num):
     context = {}
-    message = []
-    context['message'] = message
-    if 'employee' in request.GET and request.GET['employee']:
-        employee = request.GET['employee']
-    if 'project_month' in request.GET and request.GET['project_month']:
-        project_month = request.GET['project_month']
-    if employee and project_month:
-        employee_list = get_object_or_404(EmployeeList, project_month=project_month, employee=employee)
-        context['employee_list'] = employee_list
-    else:
-        message.append("Input is not valid")
+    now_date = datetime.datetime.now()
+    now_year_month = str(now_date.year) + '-' + str(now_date.month) + '-01'
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    project_month = ProjectMonth.objects.filter(project=project_item, project_date=now_year_month)
+    employee_list_all = Employee.objects.filter()
 
-    return render(request, 'cmumc/employeelist.html', context)
+    employee_list_projectmonth = project_month[0].employee_list.all()
+
+    employee_in_this_project = {}
+    employee_not_available = []
+    employee_available = {}
+
+    # Get the employee already doing this project in this month, which is to be excluded
+    for el in employee_list_projectmonth:
+        employee_in_this_project[el.id] = el.first_name + ' ' + el.last_name
+        employee_not_available.append(el.id)
+
+    # Get the employee available for choosing, and show their availability
+    for emp in employee_list_all:
+        if(emp.id not in employee_not_available):
+            employee_availability = EmployeeAvailability.objects.filter(employee=emp.id, date=now_year_month)
+            percentage_used = employee_availability[0].percentage_used
+            emp_detail = {}
+            emp_detail['name'] = emp.first_name + ' ' + emp.last_name
+            emp_detail['percentage_used'] = percentage_used
+            employee_available[emp.id] = emp_detail
+
+    emp_list_result = {}
+    emp_list_result['employee_in_this_project'] = employee_in_this_project
+    emp_list_result['employee_available'] = employee_available
+    emp_list_result = json.dumps(emp_list_result, default=decimal_default)
+
+    context['employee_list'] = emp_list_result
+    return render(request, "SEI/employee_list.json", context)
 
 @login_required
-def add_employee(request, project_id):
+def add_employee(request, employee_chosen):
+    employee_chosen_json = json.loads(employee_chosen)
     context = {}
-    message = []
-    context['message'] = message
-    project_item = get_object_or_404(Project, project_id=project_id)
-    if request.method == 'GET':
-        form = AddEmployeeForm()
-        context['form'] = form
-        return render(request, 'cmumc/addemployee.html', context)
+    PWP_num = employee_chosen_json['PWP_num']
+    emp_chosen_list = employee_chosen_json['emp_chosen_list']
+    project_date = employee_chosen_json['project_date']
 
-    form = AddEmployeeForm(request.POST)
-    if not form.is_valid:
-        message.append("Form contains invalid data")
-        return render(request, 'cmumc/addemployee.html', context)
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    project_month = ProjectMonth.objects.filter(project=project_item, project_date=project_date)
 
-    user_item = get_object_or_404(User, username=form.cleaned_data['employee_name'])
-    employee_item = get_object_or_404(Employee, user=user_item)
-    is_internal = form.cleaned_data['is_internal']
-    employee_item.is_internal = is_internal
-    employee_item.save()
-    month = form.cleaned_data['month']
-    project_month_item = get_object_or_404(ProjectMonth, month=month, project=project_item)
-    project_month_item.team.add(employee_item)
-    project_month_item.save()
-    project_item.team.add(employee_item)
-    project_item.save()
-    message.append("Employee has been successfully added")
-    return render(request, 'cmumc/addemployee.html', context)
+    # The key of emp_chosen_list is the employee id
+    for ec in emp_chosen_list:
+        emp_id = ec
+        emp_detail = emp_chosen_list[ec]
+        time_to_use = emp_detail['time_to_use']
+        is_external = emp_detail['is_external']
+        month_cost = emp_detail['month_cost']
+        emp = Employee.objects.filter(id=ec)
+
+        # Insert a new record to EmployeeMonth
+        employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
+        employee_month.time_use=time_to_use
+        employee_month.isExternal=is_external
+        employee_month.month_cost=month_cost
+        employee_month.save()
+
+        # Add this employee to employee_list in ProjectMonth
+        project_month[0].employee_list.add(emp[0])
+
+        # Update the percentage_used in EmployeeAvailability
+        emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp[0], date=project_date)
+        emp_availability.percentage_used += time_to_use
+        if(emp_availability.percentage_used >= 100):
+            emp_availability.is_available = 0
+        emp_availability.save()
+        print emp_availability.percentage_used
+
+    context['message'] = 'success!'
+    return render(request, "SEI/add_employee.html", context)
 
 @login_required
 def add_resources(request, project_id):
