@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import datetime
-#from phonenumber_field.modelfields import PhoneNumberField
+# from phonenumber_field.modelfields import PhoneNumberField
 
 # YEAR_CHOICES = []
 # for r in range(1980, (datetime.datetime.now().year+1)):
@@ -37,7 +37,7 @@ SYSTEM_USER_ROLE = (
 class Client(models.Model):
     organization_name = models.CharField(max_length=100)
     contact_name = models.CharField(max_length=100)
-    phone = PhoneNumberField()
+    # phone = PhoneNumberField()
     address = models.CharField(max_length=200)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=2)
