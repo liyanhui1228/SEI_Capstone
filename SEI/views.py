@@ -211,7 +211,7 @@ def confirm_register(request, user_name, token):
         return redirect(reverse('home'))
 
 
-@login_required
+# @login_required
 def project_overview(request, PWP_num):
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
@@ -237,41 +237,49 @@ def budget_view(request, PWP_num):
     context['total_budget'] = project_item.project_budget
     total_expense = 0
     total_expense_till_now = 0
-    monthly_expense = {}
 
-    for single_project_month in project_month_list:
-        budget_detail = {}
-        project_date = single_project_month.project_date
-        if project_date:
-            budget_detail['year'] = single_project_month.project_date.year
-            budget_detail['month'] = single_project_month.project_date.month
-            monthly_expense[str(budget_detail['year']) + '.' + str(budget_detail['month'])]= budget_detail
-        budget_detail['budget'] = single_project_month.budget
-        budget_detail['expense'] = 0
+    resource_allocation = {}
 
-    project_month_expense = ProjectExpense.objects.filter(project=project_item)
-    for month_expense_detail in project_month_expense:
-        project_date = month_expense_detail.project_date
-        if project_date:
-            year = project_date.year
-            month = project_date.month
-            monthly_expense[str(year) + '.' + str(month)]['expense'] += month_expense_detail.cost
-            if project_date < now:
-                total_expense_till_now += month_expense_detail.cost
-        total_expense += month_expense_detail.cost
+    for pm in project_month_list:
+        monthly_cost = {}
+        project_expense = ProjectExpense.objects.filter(project=project_item, project_date=pm.project_date)
+        employee_month = EmployeeMonth.objects.filter(project=project_item, project_date=pm.project_date)
 
-    Employee_Month = EmployeeMonth.objects.filter(project=project_item)
-    for Employee_Month_detail in Employee_Month:
-        project_date = Employee_Month_detail.project_date
-        if project_date:
-            year = Employee_Month_detail.project_date.year
-            month = Employee_Month_detail.project_date.month
-            monthly_expense[str(year) + '.' + str(month)]['expense'] += Employee_Month_detail.month_cost
-            if Employee_Month_detail.project_date < now:
-                total_expense_till_now += Employee_Month_detail.month_cost
-        total_expense += Employee_Month_detail.month_cost
+        # Get the total Person cost in this month for this project
+        person_cost = 0
+        for em in employee_month:
+            person_cost += em.month_cost
 
-    context['monthly_expense'] = monthly_expense
+        monthly_cost['person'] = person_cost
+
+        # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
+        travel_cost = 0
+        subcontractor_cost = 0
+        equipment_cost = 0
+        other_cost = 0
+        for pe in project_expense:
+            if pe.category == "('T', 'Travel')":
+                travel_cost += pe.cost
+            if pe.category == "('S', 'Subcontractor')":
+                subcontractor_cost += pe.cost
+            if pe.category == "('E', 'Equipment')":
+                equipment_cost += pe.cost
+            if pe.category == "('O', 'Others')":
+                other_cost += pe.cost
+        monthly_cost['travel'] = travel_cost
+        monthly_cost['subcontractor'] = subcontractor_cost
+        monthly_cost['equipment'] = equipment_cost
+        monthly_cost['other'] = other_cost
+        monthly_total_cost = travel_cost + subcontractor_cost + equipment_cost + other_cost + person_cost
+        monthly_cost['monthly_total_expense'] = monthly_total_cost
+        total_expense += monthly_total_cost
+        if now.date() > pm.project_date:
+            total_expense_till_now += monthly_total_cost
+        monthly_cost['monthly_budget'] = pm.budget
+        # Store all the 5 kinds of cost in JSON, the key is project_date
+        resource_allocation[pm.project_date] = monthly_cost
+
+    context['resource_allocation'] = resource_allocation
     context['budget_balance'] = context['total_budget'] - total_expense_till_now
     context['projected_expense'] = total_expense - total_expense_till_now
     context['projected_remaining'] = context['total_budget'] - total_expense
@@ -384,50 +392,6 @@ def add_resources(request, project_id):
     project_month_item.save()
     messages.append("Expense has been saved")
     return render(request, 'cmumc/resource.html', context)
-
-@login_required
-def view_resource_allocation(request, PWP_num):
-    context = {}
-    project_item = get_object_or_404(Project, PWP_num=PWP_num)
-    project_month = ProjectMonth.objects.filter(project=project_item)
-
-    resource_allocation = {}
-
-    for pm in project_month:
-        monthly_cost = {}
-        project_expense = ProjectExpense.objects.filter(project=project_item, project_date=pm.project_date)
-        employee_month = EmployeeMonth.objects.filter(project=project_item, project_date=pm.project_date)
-
-        # Get the total Person cost in this month for this project
-        person_cost = 0
-        for em in employee_month:
-            person_cost += em.month_cost
-        monthly_cost['person'] = person_cost
-
-        # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
-        travel_cost = 0
-        subcontractor_cost = 0
-        equipment_cost = 0
-        other_cost = 0
-        for pe in project_expense:
-            if pe.category == 'T':
-                travel_cost += pe.cost
-            if pe.category == 'S':
-                subcontractor_cost += pe.cost
-            if pe.category == 'E':
-                equipment_cost += pe.cost
-            if pe.category == 'O':
-                other_cost += pe.cost
-        monthly_cost['travel'] = travel_cost
-        monthly_cost['subcontractor'] = subcontractor_cost
-        monthly_cost['equipment'] = equipment_cost
-        monthly_cost['other'] = other_cost
-
-        # Store all the 5 kinds of cost in JSON, the key is project_date
-        resource_allocation[pm.project_date] = monthly_cost
-
-    context['resource_allocation'] = resource_allocation
-    return render(request, "SEI/resource_allocation.json", context)
 
 
 

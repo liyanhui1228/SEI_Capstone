@@ -9,7 +9,7 @@
   "team_name": "{{team_name}}",
   "charge_string": [
     {% for charges in charge_string %}
-    {"charge":{{charges.charge}}, "date":"{{charges.date}}"}
+    {"charge":{{charges.charge}}}
     {% endfor %}
     ]
 
