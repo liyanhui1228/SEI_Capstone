@@ -1,6 +1,6 @@
 # SEI_Capstone
 
-JSON required from the front end for add_employee:
+(1) JSON required from the front end for add_employee:
 
 ```
 {  
@@ -15,3 +15,23 @@ JSON required from the front end for add_employee:
    }
 }
 ```
+(2) JSON returned from view_employee_list:
+```
+{
+   "employee_available":{
+      "3":{
+         "name":"jamie stein",
+         "percentage_used":30.0
+      },
+      "4":{
+         "name":"sakir yucel",
+         "percentage_used":60.0
+      }
+   },
+   "employee_in_this_project":{
+      "1":"xiaowei li",
+      "2":"dawei li"
+   }
+}
+```
+
