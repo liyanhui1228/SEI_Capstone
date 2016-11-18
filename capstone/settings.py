@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'SEI'
+    'SEI',
+    'phonenumber_field'
 ]
 
 MIDDLEWARE = [
