@@ -211,8 +211,14 @@ def confirm_register(request, user_name, token):
         return redirect(reverse('home'))
 
 
-# @login_required
+@login_required
 def project_overview(request, PWP_num):
+    """
+    get the JSON for overall project model information plus client and team information
+    :param request: Request
+    :param PWP_num: PWP_num,unique identifier for a project
+    :return: JSON format of project overview
+    """
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
     charge_string = ChargeString.objects.filter(project=project_item)
@@ -230,6 +236,13 @@ def project_overview(request, PWP_num):
 
 @login_required
 def budget_view(request, PWP_num):
+    """
+    view the overall and monthly budget and expense information for a specific project
+    including employee salary and other categories expense
+    :param request: Request
+    :param PWP_num: PWP_num,unique identifier for a project
+    :return: JSON format of budget
+    """
     now = datetime.datetime.now()
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
@@ -397,5 +410,22 @@ def add_resources(request, project_id):
 
 
     
-
-
+@login_required
+def add_expense(request,expense_detail):
+    """
+    add expense_detail for a specific project in category: travel, subcontractor, etc
+    :param request: Request
+    :param expense_detail: Expense detail in JSON format
+    :return: confirmation page?
+    """
+    expense_detail_json = json.load(expense_detail)
+    PWP_num = expense_detail_json['PWP_num']
+    project_date = expense_detail_json['project_date']
+    cost=expense_detail_json['cost']
+    expense_description = expense_detail_json['expense_description']
+    category=expense_detail_json['category']
+    project=get_object_or_404(Project,PWP_num = PWP_num)
+    new_expense_detail=ProjectExpense(project_date=project_date,cost=cost,\
+                                      expense_description=expense_description,category=category,\
+                                      project=project)
+    new_expense_detail.save()
