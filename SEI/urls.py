@@ -22,14 +22,8 @@ urlpatterns = [
     #url(r'^edit_project/(?P<PWP_num>\w+)$', SEI.views.edit_project, name='editProject'),
     url(r'^project/(?P<PWP_num>\w+)$', SEI.views.projectview, name='projectview'),
     url(r'^add_resources/(?P<PWP_num>\d+)$', SEI.views.add_resources, name='addResources'),
-<<<<<<< HEAD:SEI/urls.py
     url(r'^add_employee/(?P<employee_chosen>.*?)$', SEI.views.add_employee, name='addEmployee'),
-    url(r'^view_employee_list/(?P<PWP_num>\d+)$', SEI.views.view_employee_list, name='viewEmployeeList'),
-=======
-    url(r'^add_employee/(?P<PWP_num>\d+)$', SEI.views.add_employee, name='addEmployee'),
-    url(r'^view_employee_list$', SEI.views.view_employee_list, name='viewEmployeeList'),
->>>>>>> d690aa93a3f96ba1521f011dd679a7d256fb9af8:capstone/SEI/urls.py
+    url(r'^view_employee_list/(?P<PWP_num>\d+)/(?P<project_date_year>\d+)/(?P<project_date_month>\d+)$', SEI.views.view_employee_list, name='viewEmployeeList'),
     url(r'^budget/(?P<PWP_num>\w+)$', SEI.views.budget_view, name='viewBudget'),
-    url(r'^overview/(?P<PWP_num>\w+)$', SEI.views.project_overview, name='viewProject'),
-    url(r'^view_resource_allocation/(?P<PWP_num>\d+)$', SEI.views.view_resource_allocation, name='viewResourceAllocation')
+    url(r'^overview/(?P<PWP_num>\w+)$', SEI.views.project_overview, name='viewProject')
 ]

@@ -81,8 +81,8 @@ class Project(models.Model):
 class ProjectMonth(models.Model):
     project_date = models.CharField(max_length=200)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    employee_list = models.ManyToManyField(Employee, related_name='do_project_this_month', symmetrical=False)
-    budget = models.DecimalField(max_digits=18, decimal_places=2)
+    employee_list = models.ManyToManyField(Employee, related_name='do_project_this_month', symmetrical=False, null=True)
+    budget = models.DecimalField(max_digits=18, decimal_places=2, null=True)
 
 class EmployeeMonth(models.Model):
     project_date = models.DateField()
@@ -113,8 +113,8 @@ class Log(models.Model):
 
 class EmployeeAvailability(models.Model):
     date = models.DateField()
-    percentage_used = models.DecimalField(max_digits=8, decimal_places=2)
-    is_available = models.BooleanField()
+    percentage_used = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    is_available = models.BooleanField(default=1)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
 class ChargeString(models.Model):

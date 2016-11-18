@@ -286,12 +286,11 @@ def budget_view(request, PWP_num):
     return render(request, "SEI/budget_view.json",context)
 
 @login_required
-def view_employee_list(request, PWP_num):
+def view_employee_list(request, PWP_num, project_date_year, project_date_month):
     context = {}
-    now_date = datetime.datetime.now()
-    now_year_month = str(now_date.year) + '-' + str(now_date.month) + '-01'
+    project_year_month = str(project_date_year) + '-' + str(project_date_month) + '-01'
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
-    project_month = ProjectMonth.objects.filter(project=project_item, project_date=now_year_month)
+    project_month = ProjectMonth.objects.get_or_create(project=project_item, project_date=project_year_month)
     employee_list_all = Employee.objects.filter()
 
     employee_list_projectmonth = project_month[0].employee_list.all()
@@ -308,7 +307,7 @@ def view_employee_list(request, PWP_num):
     # Get the employee available for choosing, and show their availability
     for emp in employee_list_all:
         if(emp.id not in employee_not_available):
-            employee_availability = EmployeeAvailability.objects.filter(employee=emp.id, date=now_year_month)
+            employee_availability = EmployeeAvailability.objects.get_or_create(employee=emp, date=project_year_month)
             percentage_used = employee_availability[0].percentage_used
             emp_detail = {}
             emp_detail['name'] = emp.first_name + ' ' + emp.last_name
