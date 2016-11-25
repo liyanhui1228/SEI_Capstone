@@ -1,6 +1,7 @@
 # SEI_Capstone
 
 ## Project Directory Structure (please not make any changes on structure)
+```
 capstone/
 ├── capstone/
 │   ├── __init__.py
@@ -13,6 +14,7 @@ capstone/
 README.md
 .gitignore
 .git
+```
 
 
 (1) JSON required from the front end for add_employee:
