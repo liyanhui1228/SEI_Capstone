@@ -483,7 +483,7 @@ def employeeview(request, employee_id):
 
 # @login_required
 # @transaction.atomic
-def add_team(request):
+def admin_team(request):
     user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
     messages = []
@@ -494,17 +494,17 @@ def add_team(request):
     if request.method == 'GET':
         form = TeamForm()
         context['form'] = form
-        return render(request, 'SEI/addTeam.html', context)
+        return render(request, 'SEI/admin_team.html', context)
 
     form = TeamForm(request.POST)
     if not form.is_valid():
         context['form'] = form
         messages.append("Form contained invalid data")
-        return render(request, 'SEI/addTeam.html', context)
+        return render(request, 'SEI/admin_team.html', context)
 
     form.save()
     messages.append("A new team has been added")
-    return render(request, 'SEI/addTeam.html', context)
+    return render(request, 'SEI/admin_team.html', context)
 
 ##@login_required
 def view_team(request, team_id):
@@ -528,3 +528,8 @@ def view_team(request, team_id):
     context['employees'] = employee_set
 
     return render(request, 'SEI/teamview.html', context)
+
+
+def admin_employee(request):
+    context = {}
+    return render(request, 'SEI/admin_employee.html', context)

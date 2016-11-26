@@ -1,0 +1,13 @@
+{{% extends 'SEI/base.html' %}
+{% block title %}<title>Modify Team</title>{% endblock %}
+{% block head %}{% endblock %}
+
+{% block content %}
+	<form action="{% url 'adminTeam' %}" method="post">
+		{{ form.as_p }}
+	<input type="submit" value="Create">
+	{% csrf_token %}
+	</form>
+{% endblock %}
+{% block scripts %}
+{% endblock %}
