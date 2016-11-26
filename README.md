@@ -1,5 +1,22 @@
 # SEI_Capstone
 
+## Project Directory Structure (please not make any changes on structure)
+```
+capstone/
+├── capstone/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+|── manage.py
+|── db.sqlite3
+|── SEI/
+README.md
+.gitignore
+.git
+```
+
+
 (1) JSON required from the front end for add_employee:
 
 ```
