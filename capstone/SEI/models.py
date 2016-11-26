@@ -52,6 +52,7 @@ class Team(models.Model):
 
 class Employee(models.Model):
     #user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    employee_id = models.CharField(max_length=200, default="", blank=True) 
     first_name = models.CharField(max_length=200, default="", blank=True)
     last_name = models.CharField(max_length=200, default="", blank=True)
     position = models.CharField(max_length=100,default="", blank=True)

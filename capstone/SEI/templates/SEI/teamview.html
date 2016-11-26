@@ -36,6 +36,7 @@
                                     <table class="table">
                                       <tr>
                                         <th>PWP Number</th>
+                                        <th>Project Description</th>
                                         <!-- Project Burn is the Budget Overview Variance -->
                                         <th>Projected Burn(Over/Under)</th>
                                       </tr>
@@ -43,6 +44,7 @@
                                       <tr>
                                         <td><a href="{% url 'employeeview' project.PWP_num %}">
                                         {{ project.PWP_num }}</a></td>
+                                        <td>{{ project.project_description }}</td>
                                         <td>{{ project.projected_remaining }}</td>
                                     </tr>
                                     {% endfor %}
@@ -58,7 +60,8 @@
                             <div class="panel-body">
                                     <table class="table">
                                       <tr>
-                                        <th>Employee</th>
+                                        <th>Employee Name</th>
+                                        <th>Employee ID</th>
                                         <!-- Project Burn is the Budget Overview Variance -->
                                         <th>Current Month Allocation</th>
                                       </tr>
@@ -66,6 +69,7 @@
                                       <tr>
                                         <td><a href="{% url 'projectview' employee.id %}">
                                         {{ employee.name }}</a></td>
+                                        <td>{{ employee.userid }}%</td>
                                         <td>{{ employee.allocation }}%</td>
                                     </tr>
                                     {% endfor %}
