@@ -75,14 +75,14 @@ class ProjectForm(forms.ModelForm):
     required_css_class = 'required'
     start_date = forms.DateField()
     end_date = forms.DateField()
-
+    
     class Meta:
         model = Project
         fields = '__all__'
         widgets = {
             #'start_date': forms.SelectDateWidget(),
             #'end_date': forms.SelectDateWidget(),
-            'project_budget': forms.NumberInput(attrs={'min': 0, 'step':1000}),
+            'project_budget': forms.NumberInput(attrs={'min': 0, 'step':1}),
          }
 
     def clean(self):
@@ -102,6 +102,15 @@ class ProjectForm(forms.ModelForm):
             raise forms.ValidationError("End date must occur after start date")
         return end_date
 
+class ChargeStringForm(forms.ModelForm):
+    class Meta:
+        model = ChargeString
+        fields = ['charge_string']
+
+    def clean(self):
+        cleaned_data = super(ChargeStringForm, self).clean()
+        return cleaned_data
+
 class ResourceForm(forms.ModelForm):
     month = forms.CharField(max_length=30)
     class Meta:
@@ -120,4 +129,3 @@ class AddEmployeeForm(forms.Form):
     def clean(self):
         cleaned_data = super(AddEmployeeForm, self).clean()
         return cleaned_data
-

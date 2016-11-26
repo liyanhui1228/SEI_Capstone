@@ -38,7 +38,12 @@ class Team(models.Model):
     division = models.CharField(max_length=50)
 
 class Employee(models.Model):
+<<<<<<< HEAD
+    #user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    employee_id = models.CharField(max_length=200, default="", blank=True) 
+=======
     employee_id = models.IntegerField(primary_key=True)
+>>>>>>> 8859e203ed0b17b59cdd164690bc3a6d70e65a91
     first_name = models.CharField(max_length=200, default="", blank=True)
     last_name = models.CharField(max_length=200, default="", blank=True)
     position = models.CharField(max_length=100,default="", blank=True)
@@ -57,11 +62,18 @@ class Project(models.Model):
     #project_id = models.IntegerField(primary_key=True)
     PWP_num = models.CharField(max_length=20)
     project_description = models.CharField(max_length=200, default="", blank=True)
+<<<<<<< HEAD
+    project_budget = models.DecimalField(max_digits=18, decimal_places=2)
+    is_internal = models.BooleanField(default=True)
+    team = models.ForeignKey(Team,on_delete=models.CASCADE, null=True, blank=True)
+    client = models.ForeignKey(Client,on_delete=models.CASCADE, null=True, blank=True)
+=======
     project_budget = models.DecimalField(max_digits=8, decimal_places=2)
     project_spending = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     is_internal = models.BooleanField(default=True)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
+>>>>>>> 8859e203ed0b17b59cdd164690bc3a6d70e65a91
     start_date = models.DateField()
     end_date = models.DateField()
     business_manager = models.CharField(max_length=100, default="", blank=True)
@@ -106,5 +118,5 @@ class EmployeeAvailability(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
 class ChargeString(models.Model):
-    charge = models.CharField(max_length=100, default="", blank=True)
+    charge_string = models.CharField(max_length=100, default="")
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
