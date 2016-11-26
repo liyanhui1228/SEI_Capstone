@@ -132,7 +132,7 @@ class AddEmployeeForm(forms.Form):
 
 class TeamForm(forms.ModelForm):
     class Meta:
-        model = team
+        model = Team
         exclude = ('team_id', )
 
     def clean(self):

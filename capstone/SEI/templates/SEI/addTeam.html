@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>SEI</title>
+</head>
+
+<body>
+	<form action="{% url 'addTeam' %}" method="post">
+		{{ form.as_p }}
+	{% csrf_token %}
+	</form>
+</body>
+
+</html>
