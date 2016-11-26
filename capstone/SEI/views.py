@@ -88,7 +88,6 @@ def add_project(request):
     new_project = form.save()
 
     #save charge strings
-    #project_id = new_project.id
     if formset.is_valid():
         for cs_form in formset:
             if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
@@ -506,7 +505,8 @@ def view_team(request, team_id):
     if user_profile.user_role == 'ITADMIN':
         return render(request, 'SEI/permission.html', context)
 
-    team = get_object_or_404(Team, team_id = team_id)
+    if team_id != None:
+        team = get_object_or_404(Team, team_id = team_id)
 
     project_set = Project.objects.filter(team = team)
     employee_set = Employee.objects.filter(team = team)
@@ -522,7 +522,30 @@ def view_team(request, team_id):
 
     return render(request, 'SEI/teamview.html', context)
 
-
 def admin_employee(request):
     context = {}
     return render(request, 'SEI/admin_employee.html', context)
+
+@login_required
+def search_team(request):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    if user_profile.user_role == 'ITADMIN':
+        return render(request, 'SEI/permission.html')
+
+    return render(request, 'SEI/teamview.html')
+
+@login_required
+def search_employee(request):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    if user_profile.user_role == 'ITADMIN':
+        return render(request, 'SEI/permission.html')
+
+    return render(request, 'SEI/employeeview.html')    
+
+@login_required
+def search_project(request):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    if user_profile.user_role == 'ITADMIN':
+        return render(request, 'SEI/permission.html')
+
+    return render(request, 'SEI/projectview.html')    
