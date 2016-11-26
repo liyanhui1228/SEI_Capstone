@@ -1,37 +1,205 @@
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-      {% load static %}
-      <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
-      <title>Login</title>
-   </head>
-   <body>
-      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-         <div class="container">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-               <a class="navbar-brand" href="#">SEIRM</a>
-            </div>
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-               <ul class="nav navbar-nav">
-                  <li>
-                     <a href="#">Project</a>
-                  </li>
-                  <li>
-                     <a href="#">Team</a>
-                  </li>
-                  <li>
-                     <a href="#">Employee</a>
-                  </li>
-               </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-         </div>
-      </nav>
-      
-   </body>
-</html>
+{% extends 'SEI/base.html' %}
+{% block title %}<title>Project Overview</title>{% endblock %}
+{% block head %}
+{% load static %}
+<link href="{% static "css/visavail.css" %}" rel="stylesheet" type="text/css">
+<script type="text/javascript">
+    
+
+function getProjectInfo(){
+    var PWP_num=d3.select(".custom-search-input").value
+    var url="project/"+PWP_num
+    d3.json(url, function(error, json) {
+       if (error) return console.warn(error);
+       d3.select("#PWP_num").text(json['PWP_num'])Y
+       d3.select("#project_description").text(json['project_description'])
+       d3.select("#project_budget_overview").text(json['project_budget'])
+       d3.select("#isExternal").text(json['isExternal'])
+       d3.select("#start_date").text(json['start_date'])
+       d3.select("#end_date").text(json['end_date'])
+       d3.select("#organization_name").text(json['organization_name'])
+       d3.select("#team_name").text(json['team_name'])
+       for(var i=0;i<json.charge_string.length;i++){
+           d3.select("#charge_string_list").select("p")
+             .data(json.charge_string)
+             .enter()
+             .append("p")
+             .text(function(d){
+                return "charge:"+d.charge+"  date:"+d.date
+             })
+       }
+    });
+}
+
+function getBudgetInfo(){
+    var PWP_num=d3.select(".custom-search-input").value
+    var url="budget/"+PWP_num
+    d3.json(url, function(error, json) {
+       if (error) return console.warn(error);
+       d3.select("#project_budget_balance").text(json['project_budget'])
+       d3.select("#budget_balance").text(json['project_description'])
+       d3.select("#project_spend").text(json['project_budget'])
+       d3.select("#project_remain").text(json['isExternal'])
+       for(var i=0;i<json.monthly_expense.length;i++){
+           d3.select("#monthly_expense_list").select("p")
+             .data(json.monthly_expense)
+             .enter()
+             .append("p")
+             .text(function(d){
+                return "Year:"+d.year+"  Month:"+d.month+" Budget:"+d.budget+" Expense:"+d.expense
+             })
+       }
+    });
+}
+
+
+$(document).ready(function(){
+    d3.select("#search_btn").on("click",function(){
+        getProjectInfo();
+        getBudgetInfo();
+    })
+})
+
+</script>
+{% endblock %}
+
+{% block content %}
+                <div class="row">
+           <div id="custom-search-input">
+                            <div class="input-group col-md-12">
+                                <input type="text" class="search-query form-control" placeholder="Search with PWP Number" />
+                                <span class="input-group-btn">
+                                    <button id="search_btn" class="btn btn-danger" type="button">
+                                        <span class=" glyphicon glyphicon-search"></span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+    </div>
+                <!-- Page Heading -->
+                <div id="page">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">
+                            Project <small>Overview</small>
+                        </h1>
+                        <!-- <ol class="breadcrumb">
+                            <li class="active">
+                                <i class="fa fa-info-circle"></i> Project Detail
+                            </li>
+                        </ol> -->
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i> Project Detail</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div class="list-group">
+                                    <a href="#" class="list-group-item">
+                                        <span class="badge">PWP Number</span>
+                                        <span id="PWP_num">{{ PWP_num }}</span>
+                                    </a>
+                                    <a href="#" class="list-group-item">
+                                        <span class="badge">Project Description</span>
+                                        <span id="project_description">{{ project_description }}</span>
+                                    </a>
+                                    <a href="#" class="list-group-item">
+                                        <span class="badge">Project Budget</span>
+                                        <span id="project_budget_overview">$100,000,000</span>
+                                    </a>
+                                    <a href="#" class="list-group-item">
+                                        <span class="badge">External?</span>
+                                        <span id="isExternal">{{isExternal}}</span> 
+                                    </a>
+                                    <a href="#" class="list-group-item">
+                                        <span class="badge">Start Date</span>
+                                        <span id="start_date">11/1/2016</span> 
+                                    </a>
+                                    <a href="#" class="list-group-item">
+                                        <span class="badge">End Date</span>
+                                        <span id="end_date">11/1/2017</span> 
+                                    </a>
+                                    <a href="#" class="list-group-item">
+                                        <span class="badge">Organization Name</span>
+                                        <span id="organization_name">Test Client</span> 
+                                    </a>
+                                    <a href="#" class="list-group-item">
+                                        <span class="badge">Team Name</span>
+                                        <span id="team_name">Team 1</span> 
+                                    </a>
+                                    <a  href="#" class="list-group-item">
+                                        <span class="badge">Charge String</span>
+                                        <div id="charge_string_list">
+                                        <p>1000-10000-1000001-000</p>
+                                        <p>20000-23-23423520-3223</p>
+                                    </div>
+                                    </a>
+                                </div>                                
+                        </div>
+                            </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-usd fa-fw"></i>Budget Outlook</h3>
+                            </div>
+                            <div class="panel-body">
+                            <div class="list-group">
+                                    <p class="list-group-item">
+                                        <span class="field-label">Project Budget:</span>
+                                        <span id="project_budget_balance">{{Budget}}</span>
+                                    </p>
+                                    <p class="list-group-item">
+                                        <span>Balance Remaining:</span>
+                                        <span id="budget_balance">{{Balance}}</span>
+                                    </p>
+                                    <p class="list-group-item">
+                                        <span>Future Budget:</span>
+                                        <span id="project_spend">{{Future}}</span>
+                                    </p>
+                                    <p class="list-group-item">
+                                        <span>Variance:</span>
+                                        <span class="field-value" id="project_remain">{{Variance}}</span> 
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-bar-chart-o fa-fw"></i>Resources Allocation</h3>
+                            </div>
+                            <div class="panel-body">
+  <div id="visavailchart"></div>
+                  </div>
+
+<script src="{% static "vendors/moment/moment-with-locales.min.js" %}" type="text/javascript"></script>
+<script src="{% static "vendors/d3/d3.min.js" %}" charset="utf-8"></script>
+<script src="{% static "js/visavail.js" %}" charset="utf-8"></script>
+<script>
+    // draw Visavail.js chart
+    var chart = visavailChart().width(800);
+    d3.select("#visavailchart")
+            .datum(dataset)
+            .call(chart);
+</script>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+{% endblock %}
+
+
+        {% block scripts %}
+
+        {% endblock %}    

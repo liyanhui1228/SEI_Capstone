@@ -20,8 +20,12 @@ from SEI.models import *
 from SEI.forms import *
 
 from SEI.models import ProjectMonth
+<<<<<<< HEAD
 from django.core import serializers
 from django.forms.models import model_to_dict
+=======
+from django.forms.formsets import formset_factory
+>>>>>>> 4fa5a4b158101c6003b8df57f4cd9281ef4fd502
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
 def reset_employee_availability_at_begin_of_month():
@@ -35,11 +39,29 @@ def decimal_default(obj):
 
 @login_required
 def home(request):
+<<<<<<< HEAD
     return render(request, 'SEI/home.html', {"role":})
+=======
+    ####TO DO
+    #If IT Admin will redirect to add users page
+
+    #Else Need to check for team record
+    #If person is manager or direcorate show their team view
+
+    #elif show their employee view
+
+    #otherwise show project search 
+
+    return render(request, 'SEI/home.html', {})
+>>>>>>> 4fa5a4b158101c6003b8df57f4cd9281ef4fd502
 
 
 @login_required
 def projectview(request, PWP_num):
+    #if no project passed in, show search bar only
+    if PWP_num == '':
+        return render(request, 'SEI/projectview.html')
+
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
     context['project'] = project_item
@@ -51,12 +73,20 @@ def projectview(request, PWP_num):
 def add_project(request):
     context = {}
 
-    employee_item = get_object_or_404(Employee, user=request.user)
-    if employee_item.user_role == 'NM':
-        return render(request, 'SEI/permission.html', context)
+    profile_item = get_object_or_404(Profile, user=request.user)
+    #TO DO uncomment once user admin is working
+    #if profile_item.user_role == 'NM':
+    #    return render(request, 'SEI/permission.html', context)
 
-    form = ProjectForm(request.POST)
+    ChargeStringFormSet = formset_factory(ChargeStringForm)
+    if request.method == "POST":    
+        form = ProjectForm(request.POST)
+        formset = ChargeStringFormSet(data=request.POST)
+    else:
+        form = ProjectForm()
+        formset = ChargeStringFormSet()
     context['form'] = form
+    context['chargestring_formset'] = formset
 
     if not form.is_valid():
         return render(request, 'SEI/project.html', context)
@@ -68,6 +98,16 @@ def add_project(request):
                           start_date=form.cleaned_data['start_date'], \
                           end_date=form.cleaned_data['end_date'])
     new_project.save()
+
+    #save charge strings
+    #project_id = new_project.id
+    if formset.is_valid():
+        for cs_form in formset:
+            if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
+                new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
+                    project = new_project)
+                new_charge_string.save()
+
     return redirect('projectview', PWP_num=form.cleaned_data['PWP_num'])
 
 
@@ -98,7 +138,6 @@ def edit_project(request, PWP_num):
         return render(request, 'SEI/edit_project.html', {
             'form': project_form
         })
-
 
 @login_required
 def profile(request, user_name):
@@ -222,7 +261,7 @@ def project_overview(request, PWP_num):
     :return: JSON format of project overview
     """
     context = {}
-    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    project_item = get_object_or_404(Project, PWP_num=PWP_num) 
     charge_string = ChargeString.objects.filter(project=project_item)
     context['PWP_num'] = project_item.PWP_num
     context['project_description'] = project_item.project_description
@@ -337,50 +376,50 @@ def view_employee_list(request, PWP_num, project_date_year, project_date_month):
     context['employee_list'] = emp_list_result
     return render(request, "SEI/employee_list.json", context)
 
-# @login_required
-# def add_employee(request, employee_chosen):
-#     employee_chosen_json = json.loads(employee_chosen)
-#     context = {}
-#     alert = {}
-#     detail = {} # The alert details
-#     PWP_num = employee_chosen_json['PWP_num']
-#     emp_chosen_list = employee_chosen_json['emp_chosen_list']
-#     project_date = employee_chosen_json['project_date']
+@login_required
+def add_employee(request, employee_chosen):
+    employee_chosen_json = json.loads(employee_chosen)
+    context = {}
+    alert = {}
+    detail = {} # The alert details
+    PWP_num = employee_chosen_json['PWP_num']
+    emp_chosen_list = employee_chosen_json['emp_chosen_list']
+    project_date = employee_chosen_json['project_date']
 
-#     project_item = get_object_or_404(Project, PWP_num=PWP_num)
-#     project_month = ProjectMonth.objects.filter(project=project_item, project_date=project_date)
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    project_month = ProjectMonth.objects.filter(project=project_item, project_date=project_date)
 
-#     # The key of emp_chosen_list is the employee id
-#     for ec in emp_chosen_list:
-#         emp_id = ec
-#         emp_detail = emp_chosen_list[ec]
-#         time_to_use = emp_detail['time_to_use']
-#         is_external = emp_detail['is_external']
-#         month_cost = emp_detail['month_cost']
-#         emp = Employee.objects.filter(id=ec)
+    # The key of emp_chosen_list is the employee id
+    for ec in emp_chosen_list:
+        emp_id = ec
+        emp_detail = emp_chosen_list[ec]
+        time_to_use = emp_detail['time_to_use']
+        is_external = emp_detail['is_external']
+        month_cost = emp_detail['month_cost']
+        emp = Employee.objects.filter(id=ec)
 
-#         # Insert a new record to EmployeeMonth
-#         employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
-#         employee_month.time_use=time_to_use
-#         employee_month.isExternal=is_external
-#         employee_month.month_cost=month_cost
-#         employee_month.save()
+        # Insert a new record to EmployeeMonth
+        employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
+        employee_month.time_use=time_to_use
+        employee_month.isExternal=is_external
+        employee_month.month_cost=month_cost
+        employee_month.save()
 
-#         # Add this employee to employee_list in ProjectMonth
-#         project_month[0].employee_list.add(emp[0])
+        # Add this employee to employee_list in ProjectMonth
+        project_month[0].employee_list.add(emp[0])
 
-#         # Update the percentage_used in EmployeeAvailability, if over 100%, send back the alert, alert is null means no alert
-#         emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp[0], date=project_date)
-#         emp_availability.percentage_used += time_to_use
-#         if(emp_availability.percentage_used >= 100):
-#             emp_availability.is_available = 0
-#             detail[emp[0].id] = emp_availability.percentage_used
-#         emp_availability.save()
-#         print emp_availability.percentage_used
-#     alert['alert'] = detail
-#     alert = json.dumps(alert, default=decimal_default)
-#     context['alert'] = alert
-#     return render(request, "SEI/add_employee_alert.json", context)
+        # Update the percentage_used in EmployeeAvailability, if over 100%, send back the alert, alert is null means no alert
+        emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp[0], date=project_date)
+        emp_availability.percentage_used += time_to_use
+        if(emp_availability.percentage_used >= 100):
+            emp_availability.is_available = 0
+            detail[emp[0].id] = emp_availability.percentage_used
+        emp_availability.save()
+        print emp_availability.percentage_used
+    alert['alert'] = detail
+    alert = json.dumps(alert, default=decimal_default)
+    context['alert'] = alert
+    return render(request, "SEI/add_employee_alert.json", context)
 
 #@login_required
 def get_employee(request,first_name, last_name):
@@ -427,20 +466,20 @@ def get_employee_project(request,employee_id):
     return HttpResponse(json.dumps(projects))
 
 @login_required
-def add_resources(request, project_id):
+def add_resources(request, PWP_num):
     context = {}
     messages = []
     context['messages'] = messages
-    project_item = get_object_or_404(Project, project_id=project_id)
+    project_item = get_object_or_404(Project, PWP_num = PWP_num)
     if request.method == 'GET':
         form = ResourceForm()
         context['form'] = form
-        return render(request, 'cmumc/resource.html', context)
+        return render(request, 'SEI/resource.html', context)
 
     form = ResourceForm(request.POST)
     if not form.is_valid():
         messages.append("Form contains invalid data")
-        return render(request, 'cmumc/resource.html', context)
+        return render(request, 'SEI/resource.html', context)
 
     context['form'] = form
     month = form.cleaned_data['month']
@@ -453,8 +492,8 @@ def add_resources(request, project_id):
     project_month_item.add(new_project_expense)
     project_month_item.save()
     messages.append("Expense has been saved")
-    return render(request, 'cmumc/resource.html', context)
-    
+    return render(request, 'SEI/resource.html', context)
+
 @login_required
 def add_expense(request,expense_detail):
     """
@@ -474,3 +513,67 @@ def add_expense(request,expense_detail):
                                       expense_description=expense_description,category=category,\
                                       project=project)
     new_expense_detail.save()
+
+@login_required
+def employeeview(request, employee_id):
+    #if no project passed in, show search bar only
+
+    if employee_id == '' or employee_id == None:
+        #add call to get system user information by default
+        #user = request.user
+        #employee_item = get_object_or_404(Employee, first_name=user.first_name and )
+        return render(request, 'SEI/employeeview.html')
+
+    context = {}
+    employee_item = get_object_or_404(Employee, id=employee_id)
+    context['employee'] = employee_item
+
+    return render(request, 'SEI/employeeview.html', context)
+
+# @login_required
+# @transaction.atomic
+def add_team(request):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    context = {}
+    messages = []
+    context['messages'] = messages
+    if user_profile.user_role == 'ITADMIN' or user_profile.user_role == 'ADMIN':
+        return render(request, 'SEI/permission.html', context)
+
+    if request.method == 'GET':
+        form = TeamForm()
+        context['form'] = form
+        return render(request, 'SEI/addTeam.html', context)
+
+    form = TeamForm(request.POST)
+    if not form.is_valid():
+        context['form'] = form
+        messages.append("Form contained invalid data")
+        return render(request, 'SEI/addTeam.html', context)
+
+    form.save()
+    messages.append("A new team has been added")
+    return render(request, 'SEI/addTeam.html', context)
+
+##@login_required
+def view_team(request, team_id):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    context = {}
+    if user_profile.user_role == 'ITADMIN':
+        return render(request, 'SEI/permission.html', context)
+
+    team = get_object_or_404(Team, team_id = team_id)
+
+    project_set = Project.objects.filter(team = team)
+    employee_set = Employee.objects.filter(team = team)
+
+    ##show team info
+    context['team'] = team
+
+    ##show project
+    context['projects'] = project_set
+
+    ##show employee
+    context['employees'] = employee_set
+
+    return render(request, 'SEI/teamview.html', context)
