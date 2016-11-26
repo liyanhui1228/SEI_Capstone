@@ -15,11 +15,13 @@ ExpenseCategory = (
     ('O', 'Others'),
 )
 
+
 SYSTEM_USER_ROLE = (
     ('ADMIN', 'Administrator'),
     ('NM', 'NormalUser'),
     ('ITADMIN', 'ITAdministrator'),
     )
+
 # MonthCategory = (
 #     ('January', 'January'),
 #     ('February', 'February'),
