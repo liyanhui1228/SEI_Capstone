@@ -29,3 +29,4 @@ urlpatterns = [
     url(r'^employee/(?P<employee_id>\w*)$', SEI.views.employeeview, name='employeeview'),
     url(r'^team/(?P<team_id>\d*)$', SEI.views.view_team, name='teamview'),
     url(r'^add_team$', SEI.views.add_team, name='addTeam'),
+]

@@ -70,25 +70,22 @@ def add_project(request):
     #    return render(request, 'SEI/permission.html', context)
 
     ChargeStringFormSet = formset_factory(ChargeStringForm)
-    if request.method == "POST":    
-        form = ProjectForm(request.POST)
-        formset = ChargeStringFormSet(data=request.POST)
-    else:
+    if request.method == "GET":
         form = ProjectForm()
         formset = ChargeStringFormSet()
-    context['form'] = form
-    context['chargestring_formset'] = formset
+        context['form'] = form
+        context['chargestring_formset'] = formset
+        return render(request, 'SEI/project.html', context)
+    ##should pass in team and client or select??
+    #new_project = Project(team=team, client=client)
+    #form = ProjectForm(request.POST, instance=new_project)
+    form = ProjectForm(request.POST)
+    formset = ChargeStringFormSet(data=request.POST)
 
     if not form.is_valid():
         return render(request, 'SEI/project.html', context)
 
-    new_project = Project(PWP_num=form.cleaned_data['PWP_num'], \
-                          project_description=form.cleaned_data['project_description'], \
-                          project_budget=form.cleaned_data['project_budget'], \
-                          is_internal=form.cleaned_data['is_internal'], \
-                          start_date=form.cleaned_data['start_date'], \
-                          end_date=form.cleaned_data['end_date'])
-    new_project.save()
+    new_project = form.save()
 
     #save charge strings
     #project_id = new_project.id
