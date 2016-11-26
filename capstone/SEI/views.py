@@ -388,6 +388,10 @@ def add_employee(request, employee_chosen):
         is_external = emp_detail['is_external']
         month_cost = emp_detail['month_cost']
         emp = Employee.objects.filter(id=ec)
+        
+        # Update the project_spending in Project
+        project_item.project_spending += month_cost
+        project_item.save(update_fields=["project_spending"])
 
         # Insert a new record to EmployeeMonth
         employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
