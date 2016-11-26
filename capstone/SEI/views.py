@@ -504,7 +504,7 @@ def add_team(request):
 
     form.save()
     messages.append("A new team has been added")
-    return render(request, 'SET/addTeam.html', context)
+    return render(request, 'SEI/addTeam.html', context)
 
 ##@login_required
 def view_team(request, team_id):

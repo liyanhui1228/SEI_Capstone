@@ -68,7 +68,7 @@
                                       </tr>
                                     {% for project in projects  %}
                                       <tr>
-                                        <td><a href="{% url 'employeeview' project.PWP_num %}">
+                                        <td>
                                         {{ project.PWP_num }}</a></td>
                                         <td>{{ project.project_description }}</td>
                                         <td>{{ project.project_budget }} - {{ project.project_spending }}</td>
@@ -93,7 +93,7 @@
                                       </tr>
                                       {% for employee in employees  %}
                                       <tr>
-                                        <td><a href="{% url 'employee' employee.employee_id %}">{{ employee.employee_id }}</a></td>
+                                        <td>{{ employee.employee_id }}</a></td>
                                         <td>{{ employee.first_name }}  {{ employee.last_name }}</td>
 										{% comment %}
                                         <td>{{ employee.allocation }}</td>
