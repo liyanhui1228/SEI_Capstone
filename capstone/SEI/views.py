@@ -408,10 +408,6 @@ def add_resources(request, project_id):
     messages.append("Expense has been saved")
     return render(request, 'cmumc/resource.html', context)
 
-
-
-
-    
 @login_required
 def add_expense(request,expense_detail):
     """
