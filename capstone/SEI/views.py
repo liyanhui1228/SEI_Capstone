@@ -501,4 +501,4 @@ def view_team(request, team_id):
     ##show employee
     context['employees'] = employee_set
 
-    return render(request, 'SEI/team.html', context)
+    return render(request, 'SEI/teamview.html', context)
