@@ -20,6 +20,8 @@ from SEI.models import *
 from SEI.forms import *
 
 from SEI.models import ProjectMonth
+from django.core import serializers
+from django.forms.models import model_to_dict
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
 def reset_employee_availability_at_begin_of_month():
@@ -33,7 +35,7 @@ def decimal_default(obj):
 
 @login_required
 def home(request):
-    return render(request, 'SEI/home.html', {})
+    return render(request, 'SEI/home.html', {"role":})
 
 
 @login_required
@@ -335,50 +337,94 @@ def view_employee_list(request, PWP_num, project_date_year, project_date_month):
     context['employee_list'] = emp_list_result
     return render(request, "SEI/employee_list.json", context)
 
-@login_required
-def add_employee(request, employee_chosen):
-    employee_chosen_json = json.loads(employee_chosen)
-    context = {}
-    alert = {}
-    detail = {} # The alert details
-    PWP_num = employee_chosen_json['PWP_num']
-    emp_chosen_list = employee_chosen_json['emp_chosen_list']
-    project_date = employee_chosen_json['project_date']
+# @login_required
+# def add_employee(request, employee_chosen):
+#     employee_chosen_json = json.loads(employee_chosen)
+#     context = {}
+#     alert = {}
+#     detail = {} # The alert details
+#     PWP_num = employee_chosen_json['PWP_num']
+#     emp_chosen_list = employee_chosen_json['emp_chosen_list']
+#     project_date = employee_chosen_json['project_date']
 
-    project_item = get_object_or_404(Project, PWP_num=PWP_num)
-    project_month = ProjectMonth.objects.filter(project=project_item, project_date=project_date)
+#     project_item = get_object_or_404(Project, PWP_num=PWP_num)
+#     project_month = ProjectMonth.objects.filter(project=project_item, project_date=project_date)
 
-    # The key of emp_chosen_list is the employee id
-    for ec in emp_chosen_list:
-        emp_id = ec
-        emp_detail = emp_chosen_list[ec]
-        time_to_use = emp_detail['time_to_use']
-        is_external = emp_detail['is_external']
-        month_cost = emp_detail['month_cost']
-        emp = Employee.objects.filter(id=ec)
+#     # The key of emp_chosen_list is the employee id
+#     for ec in emp_chosen_list:
+#         emp_id = ec
+#         emp_detail = emp_chosen_list[ec]
+#         time_to_use = emp_detail['time_to_use']
+#         is_external = emp_detail['is_external']
+#         month_cost = emp_detail['month_cost']
+#         emp = Employee.objects.filter(id=ec)
 
-        # Insert a new record to EmployeeMonth
-        employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
-        employee_month.time_use=time_to_use
-        employee_month.isExternal=is_external
-        employee_month.month_cost=month_cost
-        employee_month.save()
+#         # Insert a new record to EmployeeMonth
+#         employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
+#         employee_month.time_use=time_to_use
+#         employee_month.isExternal=is_external
+#         employee_month.month_cost=month_cost
+#         employee_month.save()
 
-        # Add this employee to employee_list in ProjectMonth
-        project_month[0].employee_list.add(emp[0])
+#         # Add this employee to employee_list in ProjectMonth
+#         project_month[0].employee_list.add(emp[0])
 
-        # Update the percentage_used in EmployeeAvailability, if over 100%, send back the alert, alert is null means no alert
-        emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp[0], date=project_date)
-        emp_availability.percentage_used += time_to_use
-        if(emp_availability.percentage_used >= 100):
-            emp_availability.is_available = 0
-            detail[emp[0].id] = emp_availability.percentage_used
-        emp_availability.save()
-        print emp_availability.percentage_used
-    alert['alert'] = detail
-    alert = json.dumps(alert, default=decimal_default)
-    context['alert'] = alert
-    return render(request, "SEI/add_employee_alert.json", context)
+#         # Update the percentage_used in EmployeeAvailability, if over 100%, send back the alert, alert is null means no alert
+#         emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp[0], date=project_date)
+#         emp_availability.percentage_used += time_to_use
+#         if(emp_availability.percentage_used >= 100):
+#             emp_availability.is_available = 0
+#             detail[emp[0].id] = emp_availability.percentage_used
+#         emp_availability.save()
+#         print emp_availability.percentage_used
+#     alert['alert'] = detail
+#     alert = json.dumps(alert, default=decimal_default)
+#     context['alert'] = alert
+#     return render(request, "SEI/add_employee_alert.json", context)
+
+#@login_required
+def get_employee(request,first_name, last_name):
+    employees=Employee.objects.filter(first_name=first_name, last_name=last_name)
+    employee_list = {}
+    i = 1
+    for emp in employees:
+        emp_detail = model_to_dict(emp)
+        emp_detail['team_name'] = emp.team.team_name
+        employee_list[i] = emp_detail
+        i = i + 1
+    emp_list_result = json.dumps(employee_list, default=decimal_default)
+    return render(request,'SEI/employee_list.json',{"employee_list":emp_list_result})
+
+def get_employee_project(request,employee_id):
+    today = datetime.datetime.today()
+    employee=get_object_or_404(Employee,id=employee_id)
+    five_month_before_date= today - datetime.timedelta(5*365/12)
+    five_month_before = str(five_month_before_date.year) + '-' + str(five_month_before_date.month) + '-01'
+    current_month = str(today.year) + '-' + str(today.month) + '-01'
+
+    Tasks=EmployeeMonth.objects.filter(employee=employee,project_date__gt=five_month_before,project_date__lte=current_month )
+    time_sum={}
+    projects={}
+    for task in Tasks:
+        dateKey=task.project_date
+        project={}
+        project['PWP_num']=task.project.PWP_num
+        project['time_use']=task.time_use
+        time_sum[str(dateKey)]= time_sum.get(str(dateKey),0) + task.time_use
+        if str(dateKey) in projects:
+            projects[str(dateKey)].append(project)
+        else:
+            project_list=[]
+            project_list.append(project)
+            projects[str(dateKey)]=project_list
+
+    for date in projects:
+        total_time=time_sum.get(str(date),0)
+        if total_time != 0:
+            for project in projects[str(date)]:
+                project['percentage']="%.2f" %  (project['time_use']*100.0/total_time)
+
+    return HttpResponse(json.dumps(projects))
 
 @login_required
 def add_resources(request, project_id):
@@ -408,10 +454,6 @@ def add_resources(request, project_id):
     project_month_item.save()
     messages.append("Expense has been saved")
     return render(request, 'cmumc/resource.html', context)
-
-
-
-
     
 @login_required
 def add_expense(request,expense_detail):

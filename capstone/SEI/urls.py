@@ -22,8 +22,10 @@ urlpatterns = [
     #url(r'^edit_project/(?P<PWP_num>\w+)$', SEI.views.edit_project, name='editProject'),
     url(r'^project/(?P<PWP_num>\w+)$', SEI.views.projectview, name='projectview'),
     url(r'^add_resources/(?P<PWP_num>\d+)$', SEI.views.add_resources, name='addResources'),
-    url(r'^add_employee/(?P<employee_chosen>.*?)$', SEI.views.add_employee, name='addEmployee'),
+    #url(r'^add_employee/(?P<employee_chosen>.*?)$', SEI.views.add_employee, name='addEmployee'),
     url(r'^view_employee_list/(?P<PWP_num>\d+)/(?P<project_date_year>\d+)/(?P<project_date_month>\d+)$', SEI.views.view_employee_list, name='viewEmployeeList'),
     url(r'^budget/(?P<PWP_num>\w+)$', SEI.views.budget_view, name='viewBudget'),
-    url(r'^overview/(?P<PWP_num>\w+)$', SEI.views.project_overview, name='viewProject')
+    url(r'^overview/(?P<PWP_num>\w+)$', SEI.views.project_overview, name='viewProject'),
+    url(r'^get_employee/(?P<first_name>.*?)/(?P<last_name>.*?)$',SEI.views.get_employee),
+    url(r'^get_employee_project/(?P<employee_id>\d+)$',SEI.views.get_employee_project)
 ]
