@@ -129,3 +129,12 @@ class AddEmployeeForm(forms.Form):
     def clean(self):
         cleaned_data = super(AddEmployeeForm, self).clean()
         return cleaned_data
+
+class TeamForm(forms.ModelForm):
+    class Meta:
+        model = team
+        exclude = ('team_id', )
+
+    def clean(self):
+        cleaned_data = super(TeamForm, self).clean()
+        return cleaned_data

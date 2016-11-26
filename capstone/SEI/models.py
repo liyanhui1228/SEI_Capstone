@@ -1,12 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 import datetime
-
 from phonenumber_field.modelfields import PhoneNumberField
 
-# YEAR_CHOICES = []
-# for r in range(1980, (datetime.datetime.now().year+1)):
-#     YEAR_CHOICES.append((r,r))
 
 ExpenseCategory = (
     ('T', 'Travel'),
