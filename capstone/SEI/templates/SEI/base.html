@@ -106,6 +106,20 @@
                     <li>
                         <a href="{% url 'employeeview' '' %}"><i class="fa fa-fw fa-sitemap"></i> Employee</a>
                     </li>
+                    <li>
+                        <a href="javascript:;" data-toggle="collapse" data-target="#demo"><i class="fa fa-fw fa-cubes"></i> Admin <i class="fa fa-fw fa-caret-down"></i></a>
+                        <ul id="demo" class="collapse">
+                            <li>
+                                <a href="{% url 'addProject' %}">Add Team</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'projectview' '' %}">Add Employee</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'addResources' 'PWP_num' %}" onclick="return popup(this, 'addresource')">Allocate Resource</a>
+                            </li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
