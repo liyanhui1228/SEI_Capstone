@@ -1,0 +1,84 @@
+{% extends 'SEI/base.html' %}
+{% block title %}<title>Team Allocation Overview</title>{% endblock %}
+{% block head %}
+    <!-- scripts go here when we add the chart -->
+{% endblock %}
+
+{% block content %}
+                <div class="row">
+           <div id="custom-search-input">
+                            <div class="input-group col-md-12">
+                                <input type="text" class="search-query form-control" placeholder="Search with Team Name" />
+                                <span class="input-group-btn">
+                                    <button id="search_btn" class="btn btn-danger" type="button">
+                                        <span class=" glyphicon glyphicon-search"></span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+    </div>
+                <!-- Page Heading -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">
+                            Team <small>Overview</small>
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Projects</h3>
+                            </div>
+                            <div class="panel-body">
+                                    <table class="table">
+                                      <tr>
+                                        <th>PWP Number</th>
+                                        <!-- Project Burn is the Budget Overview Variance -->
+                                        <th>Projected Burn(Over/Under)</th>
+                                      </tr>
+                                      {% for project in team_projects  %}
+                                      <tr>
+                                        <td><a href="{% url 'employeeview' project.PWP_num %}">
+                                        {{ project.PWP_num }}</a></td>
+                                        <td>{{ project.projected_remaining }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    </table>
+                            </div>
+                            </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Employees</h3>
+                            </div>
+                            <div class="panel-body">
+                                    <table class="table">
+                                      <tr>
+                                        <th>Employee</th>
+                                        <!-- Project Burn is the Budget Overview Variance -->
+                                        <th>Current Month Allocation</th>
+                                      </tr>
+                                      {% for employee in team_employees  %}
+                                      <tr>
+                                        <td><a href="{% url 'projectview' employee.id %}">
+                                        {{ employee.name }}</a></td>
+                                        <td>{{ employee.allocation }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock %}
+
+
+        {% block scripts %}
+
+        {% endblock %}
