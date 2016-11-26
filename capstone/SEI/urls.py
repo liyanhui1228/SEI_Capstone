@@ -27,5 +27,5 @@ urlpatterns = [
     url(r'^budget/(?P<PWP_num>\w+)$', SEI.views.budget_view, name='viewBudget'),
     url(r'^overview/(?P<PWP_num>\w+)$', SEI.views.project_overview, name='viewProject'),
     url(r'^employee/(?P<employee_id>\w*)$', SEI.views.employeeview, name='employeeview'),
-    url(r'^view_team/(?P<team_id>\d+)$', SEI.views.team_view, name='viewTeam'),
+    url(r'^view_team/(?P<team_id>\d+)$', SEI.views.view_team, name='viewTeam'),
 ]
