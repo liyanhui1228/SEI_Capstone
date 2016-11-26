@@ -481,7 +481,32 @@ def employeeview(request, employee_id):
 
     return render(request, 'SEI/employeeview.html', context)
 
-@login_required
+# @login_required
+# @transaction.atomic
+def add_team(request):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    context = {}
+    messages = []
+    context['messages'] = messages
+    if user_profile.user_role == 'ITADMIN' or user_profile.user_role == 'ADMIN':
+        return render(request, 'SEI/permission.html', context)
+
+    if request.method == 'GET':
+        form = TeamForm()
+        context['form'] = form
+        return render(request, 'SEI/addTeam.html', context)
+
+    form = TeamForm(request.POST)
+    if not form.is_valid():
+        context['form'] = form
+        messages.append("Form contained invalid data")
+        return render(request, 'SEI/addTeam.html', context)
+
+    form.save()
+    messages.append("A new team has been added")
+    return render(request, 'SET/addTeam.html', context)
+
+##@login_required
 def view_team(request, team_id):
     user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
@@ -492,6 +517,7 @@ def view_team(request, team_id):
 
     project_set = Project.objects.filter(team = team)
     employee_set = Employee.objects.filter(team = team)
+
     ##show team info
     context['team'] = team
 
