@@ -517,6 +517,7 @@ def view_team(request, team_id):
 
     project_set = Project.objects.filter(team = team)
     employee_set = Employee.objects.filter(team = team)
+
     ##show team info
     context['team'] = team
 
@@ -526,4 +527,4 @@ def view_team(request, team_id):
     ##show employee
     context['employees'] = employee_set
 
-    return render(request, 'SEI/team.html', context)
+    return render(request, 'SEI/teamview.html', context)
