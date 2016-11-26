@@ -462,7 +462,6 @@ def add_expense(request,expense_detail):
     new_expense_detail.save()
 
 @login_required
-<<<<<<< HEAD
 def employeeview(request, employee_id):
     #if no project passed in, show search bar only
 
@@ -479,21 +478,6 @@ def employeeview(request, employee_id):
     return render(request, 'SEI/employeeview.html', context)
 
 @login_required
-def teamview(request, team_id):
-    #if no project passed in, show search bar only
-
-    if team_id == '' or team_id == None:
-        #add call to get system user information by default
-        #user = request.user
-        #employee_item = get_object_or_404(Employee, first_name=user.first_name and )
-        return render(request, 'SEI/teamview.html')
-
-    context = {}
-    team_item = get_object_or_404(Team, id=team_id)
-    context['team'] = team_item
-
-    return render(request, 'SEI/teamview.html', context)
-=======
 def view_team(request, team_id):
     user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
@@ -513,5 +497,4 @@ def view_team(request, team_id):
     ##show employee
     context['employees'] = employee_set
 
-    return render(request, 'SEI/team.html', context)
->>>>>>> 8859e203ed0b17b59cdd164690bc3a6d70e65a91
+    return render(request, 'SEI/team.html', context

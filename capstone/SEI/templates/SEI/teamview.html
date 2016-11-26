@@ -49,14 +49,14 @@
                                         <!-- Project Burn is the Budget Overview Variance -->
                                         <th>Projected Burn(Over/Under)</th>
                                       </tr>
-                                      {% for project in team_projects  %}
+                                    {% for project in projects  %}
                                       <tr>
                                         <td><a href="{% url 'employeeview' project.PWP_num %}">
                                         {{ project.PWP_num }}</a></td>
                                         <td>{{ project.project_description }}</td>
-                                        <td>{{ project.projected_remaining }}</td>
-                                    </tr>
-                                    {% endfor %}
+                                        <td>{{ project.project_budget }} - {{ project.project_spending }}</td>
+										</tr>
+									{% endfor %}
                                     </table>
                             </div>
                             </div>
@@ -74,12 +74,13 @@
                                         <!-- Project Burn is the Budget Overview Variance -->
                                         <th>Current Month Allocation</th>
                                       </tr>
-                                      {% for employee in team_employees  %}
+                                      {% for employee in employees  %}
                                       <tr>
-                                        <td><a href="{% url 'projectview' employee.id %}">
-                                        {{ employee.name }}</a></td>
-                                        <td>{{ employee.userid }}%</td>
-                                        <td>{{ employee.allocation }}%</td>
+                                        <td><a href="{% url 'employee' employee.employee_id %}">{{ employee.employee_id }}</a></td>
+                                        <td>{{ employee.first_name }}  {{ employee.last_name }}</td>
+										{% comment %}
+                                        <td>{{ employee.allocation }}</td>
+										{% endcomment %}
                                     </tr>
                                     {% endfor %}
                                     </table>
