@@ -97,7 +97,6 @@ def edit_project(request, PWP_num):
             'form': project_form
         })
 
-
 @login_required
 def profile(request, user_name):
     context = {}
@@ -432,3 +431,25 @@ def add_expense(request,expense_detail):
                                       expense_description=expense_description,category=category,\
                                       project=project)
     new_expense_detail.save()
+
+@login_required
+def view_team(request, team_id):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    context = {}
+    if user_profile.user_role == 'ITADMIN':
+        return render(request, 'SEI/permission.html', context)
+
+    team = get_object_or_404(Team, team_id = team_id)
+
+    project_set = Project.objects.filter(team = team)
+    employee_set = Employee.objects.filter(team = team)
+    ##show team info
+    context['team'] = team
+
+    ##show project
+    context['projects'] = project_set
+
+    ##show employee
+    context['employees'] = employee_set
+
+    return render(request, 'SEI/team.html', context)
