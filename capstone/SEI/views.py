@@ -1,31 +1,23 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404, HttpResponse
 from django.core.urlresolvers import reverse
-
 # Decorator to use built-in authentication system
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-
 # Used to create and manually log in a user
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
-
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 import json
 import datetime
 import decimal
-
 from SEI.models import *
 from SEI.forms import *
-
 from SEI.models import ProjectMonth
-<<<<<<< HEAD
 from django.core import serializers
 from django.forms.models import model_to_dict
-=======
 from django.forms.formsets import formset_factory
->>>>>>> 4fa5a4b158101c6003b8df57f4cd9281ef4fd502
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
 def reset_employee_availability_at_begin_of_month():
@@ -39,9 +31,6 @@ def decimal_default(obj):
 
 @login_required
 def home(request):
-<<<<<<< HEAD
-    return render(request, 'SEI/home.html', {"role":})
-=======
     ####TO DO
     #If IT Admin will redirect to add users page
 
@@ -53,7 +42,6 @@ def home(request):
     #otherwise show project search 
 
     return render(request, 'SEI/home.html', {})
->>>>>>> 4fa5a4b158101c6003b8df57f4cd9281ef4fd502
 
 
 @login_required
@@ -415,7 +403,7 @@ def add_employee(request, employee_chosen):
             emp_availability.is_available = 0
             detail[emp[0].id] = emp_availability.percentage_used
         emp_availability.save()
-        print emp_availability.percentage_used
+        print(emp_availability.percentage_used)
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
@@ -424,15 +412,13 @@ def add_employee(request, employee_chosen):
 #@login_required
 def get_employee(request,first_name, last_name):
     employees=Employee.objects.filter(first_name=first_name, last_name=last_name)
-    employee_list = {}
-    i = 1
+    employee_list = []
     for emp in employees:
         emp_detail = model_to_dict(emp)
         emp_detail['team_name'] = emp.team.team_name
-        employee_list[i] = emp_detail
-        i = i + 1
+        employee_list.append(emp_detail)
     emp_list_result = json.dumps(employee_list, default=decimal_default)
-    return render(request,'SEI/employee_list.json',{"employee_list":emp_list_result})
+    return HttpResponse(emp_list_result, content_type="application/json")
 
 def get_employee_project(request,employee_id):
     today = datetime.datetime.today()
@@ -440,12 +426,14 @@ def get_employee_project(request,employee_id):
     five_month_before_date= today - datetime.timedelta(5*365/12)
     five_month_before = str(five_month_before_date.year) + '-' + str(five_month_before_date.month) + '-01'
     current_month = str(today.year) + '-' + str(today.month) + '-01'
-
-    Tasks=EmployeeMonth.objects.filter(employee=employee,project_date__gt=five_month_before,project_date__lte=current_month )
+    Tasks=EmployeeMonth.objects.filter(employee=employee,project_date__gt=five_month_before,project_date__lte=current_month)
     time_sum={}
     projects={}
     for task in Tasks:
+        print("here")
+        #print(task.project)
         dateKey=task.project_date
+        print(dateKey)
         project={}
         project['PWP_num']=task.project.PWP_num
         project['time_use']=task.time_use

@@ -61,15 +61,6 @@ class UserForm(forms.ModelForm):
         cleaned_data = super(UserForm, self).clean()
         return cleaned_data
 
-class EmployeeForm(forms.ModelForm):
-    class Meta:
-        model = Employee
-        exclude = ('user', 'activation_key',)
-
-    def clean(self):
-        cleaned_data = super(EmployeeForm, self).clean()
-        return cleaned_data
-
 class ProjectForm(forms.ModelForm):
     error_css_class = 'error'
     required_css_class = 'required'

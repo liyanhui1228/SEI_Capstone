@@ -1,21 +1,25 @@
 function getEmployeList(){
-  var first_name=$(".custom-search-input").text();
-  var url="SEI/get_employee/"+first_name;
+  var input=$("#search_input").val().toLowerCase().split(/\s+/g);
+  var first_name=input[0];
+  var last_name=input[1];
+  var url="/SEI/get_employee/"+first_name+"/"+last_name;
   $.get(url)
-    .done(function(data) {
-      for(var i=1;i<=data.length;i++){
+  .done(function(data) {
+      for(var i=0;i<data.length;i++){
         var employee_list=$("#employee_list");
-        var employee_name=data.i.first_name+" "+data[i].i.last_name;
-        var team_name=data.i.team_name;
-        var employee_id=data[i].pk;
-        employee_list.append("<li class='list-group-item' id=\""+data.i.id+"\">"+employee_name+"\t"+team_name+"</li>");
+        employee=data[i];
+        var employee_name=employee["first_name"]+" "+employee["last_name"];
+        var team_name=employee.team_name;
+        var employee_id=employee.id;
+        employee_list.append("<li class='list-group-item' id=\""+employee_id+"\">Name:"+employee_name+"\t\t\tTeam:"+team_name+"</li>");
       }
+      $('#myModal').modal({show:true});
   });
 }
 
 function showContent(e){
-  var employee_id=e.target.attr("id");
-  var url="SEI/get_employee_project/"+employee_id;
+  var employee_id=$(e.target).attr("id");
+  var url="/SEI/get_employee_project/"+employee_id;
   $.get(url)
    .done(function(data){
       renderDonutChart(data);
@@ -39,7 +43,7 @@ function renderDonutChart(data){
     if(donut_data.length!=0){
       Morris.Donut({
           element: 'morris-donut-chart',
-          data: donut_data
+          data: donut_data,
           resize: true
       });
     }
@@ -90,7 +94,9 @@ function renderLineChart(data){
 }
 
 
-$(document).ready(function(){
-    $("#myModal").on("show.bs.modal", getEmployeList);
-    $("#employee_list").on(click,"li",showContent);
+$(function(){
+    $("#search_btn").click(getEmployeList);
+
+    // $("#myModal").on("show.bs.modal", getEmployeList);
+    $("#employee_list").on("click","li",showContent);
 })
