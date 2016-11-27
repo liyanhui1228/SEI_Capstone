@@ -86,13 +86,13 @@
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li>
-                        <a href="javascript:;" data-toggle="collapse" data-target="#demo"><i class="fa fa-fw fa-cubes"></i> Project <i class="fa fa-fw fa-caret-down"></i></a>
-                        <ul id="demo" class="collapse">
+                        <a href="javascript:;" data-toggle="collapse" data-target="#Project"><i class="fa fa-fw fa-cubes"></i> Project <i class="fa fa-fw fa-caret-down"></i></a>
+                        <ul id="Project" class="collapse">
                             <li>
                                 <a href="{% url 'addProject' %}">Add Project</a>
                             </li>
                             <li>
-                                <a href="{% url 'projectview' '' %}">View Project</a>
+                                <a href="{% url 'projectsearch' %}">View Project</a>
                             </li>
                             <li>
                                 <a href="{% url 'addResources' 'PWP_num' %}" onclick="return popup(this, 'addresource')">Allocate Resource</a>
@@ -100,22 +100,19 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="{% url 'teamview' 1 %}"><i class="fa fa-fw fa-users"></i>Team</a>
+                        <a href="{% url 'teamsearch' %}"><i class="fa fa-fw fa-users"></i>Team</a>
                     </li>
                     <li>
-                        <a href="{% url 'employeeview' '' %}"><i class="fa fa-fw fa-sitemap"></i> Employee</a>
+                        <a href="{% url 'employeesearch' %}"><i class="fa fa-fw fa-sitemap"></i> Employee</a>
                     </li>
                     <li>
-                        <a href="javascript:;" data-toggle="collapse" data-target="#demo"><i class="fa fa-fw fa-cubes"></i> Admin <i class="fa fa-fw fa-caret-down"></i></a>
-                        <ul id="demo" class="collapse">
+                        <a href="javascript:;" data-toggle="collapse" data-target="#Admin"><i class="fa fa-fw fa-cubes"></i> Admin <i class="fa fa-fw fa-caret-down"></i></a>
+                        <ul id="Admin" class="collapse">
                             <li>
-                                <a href="{% url 'addProject' %}">Add Team</a>
+                                <a href="{% url 'adminTeam' %}">Modify Team</a>
                             </li>
                             <li>
-                                <a href="{% url 'projectview' '' %}">Add Employee</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'addResources' 'PWP_num' %}" onclick="return popup(this, 'addresource')">Allocate Resource</a>
+                                <a href="{% url 'adminEmployee' %}">Modify Employee</a>
                             </li>
                         </ul>
                     </li>

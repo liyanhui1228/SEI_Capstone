@@ -67,28 +67,24 @@ def add_project(request):
     #    return render(request, 'SEI/permission.html', context)
 
     ChargeStringFormSet = formset_factory(ChargeStringForm)
-    if request.method == "POST":    
-        form = ProjectForm(request.POST)
-        formset = ChargeStringFormSet(data=request.POST)
-    else:
+    if request.method == "GET":
         form = ProjectForm()
         formset = ChargeStringFormSet()
-    context['form'] = form
-    context['chargestring_formset'] = formset
+        context['form'] = form
+        context['chargestring_formset'] = formset
+        return render(request, 'SEI/project.html', context)
+    ##should pass in team and client or select??
+    #new_project = Project(team=team, client=client)
+    #form = ProjectForm(request.POST, instance=new_project)
+    form = ProjectForm(request.POST)
+    formset = ChargeStringFormSet(data=request.POST)
 
     if not form.is_valid():
         return render(request, 'SEI/project.html', context)
 
-    new_project = Project(PWP_num=form.cleaned_data['PWP_num'], \
-                          project_description=form.cleaned_data['project_description'], \
-                          project_budget=form.cleaned_data['project_budget'], \
-                          is_internal=form.cleaned_data['is_internal'], \
-                          start_date=form.cleaned_data['start_date'], \
-                          end_date=form.cleaned_data['end_date'])
-    new_project.save()
+    new_project = form.save()
 
     #save charge strings
-    #project_id = new_project.id
     if formset.is_valid():
         for cs_form in formset:
             if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
@@ -520,7 +516,7 @@ def employeeview(request, employee_id):
 
 # @login_required
 # @transaction.atomic
-def add_team(request):
+def admin_team(request):
     user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
     messages = []
@@ -531,17 +527,17 @@ def add_team(request):
     if request.method == 'GET':
         form = TeamForm()
         context['form'] = form
-        return render(request, 'SEI/addTeam.html', context)
+        return render(request, 'SEI/admin_team.html', context)
 
     form = TeamForm(request.POST)
     if not form.is_valid():
         context['form'] = form
         messages.append("Form contained invalid data")
-        return render(request, 'SEI/addTeam.html', context)
+        return render(request, 'SEI/admin_team.html', context)
 
     form.save()
     messages.append("A new team has been added")
-    return render(request, 'SEI/addTeam.html', context)
+    return render(request, 'SEI/admin_team.html', context)
 
 ##@login_required
 def view_team(request, team_id):
@@ -550,7 +546,8 @@ def view_team(request, team_id):
     if user_profile.user_role == 'ITADMIN':
         return render(request, 'SEI/permission.html', context)
 
-    team = get_object_or_404(Team, team_id = team_id)
+    if team_id != None:
+        team = get_object_or_404(Team, team_id = team_id)
 
     project_set = Project.objects.filter(team = team)
     employee_set = Employee.objects.filter(team = team)
@@ -565,3 +562,31 @@ def view_team(request, team_id):
     context['employees'] = employee_set
 
     return render(request, 'SEI/teamview.html', context)
+
+def admin_employee(request):
+    context = {}
+    return render(request, 'SEI/admin_employee.html', context)
+
+@login_required
+def search_team(request):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    if user_profile.user_role == 'ITADMIN':
+        return render(request, 'SEI/permission.html')
+
+    return render(request, 'SEI/teamview.html')
+
+@login_required
+def search_employee(request):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    if user_profile.user_role == 'ITADMIN':
+        return render(request, 'SEI/permission.html')
+
+    return render(request, 'SEI/employeeview.html')    
+
+@login_required
+def search_project(request):
+    user_profile = get_object_or_404(Profile, user = request.user)
+    if user_profile.user_role == 'ITADMIN':
+        return render(request, 'SEI/permission.html')
+
+    return render(request, 'SEI/projectview.html')    
