@@ -469,6 +469,5 @@ chart.emphasizeYearTicks = function (_) {
   return chart;
 };
 
-alert(chart);
 return chart;
 }
