@@ -29,29 +29,26 @@ body {
   .border-radius(0) !important;
 }
 
-#field-label{
-  display: inline-block;
-  min-width: 10px;
-  padding: 3px 7px;
+.detailtable {
+  border: 0px solid #ddd;
+}
+
+.detailtable > tr {
+  border: 0px solid #ddd;
+}
+
+td.detaillabel {
   font-size: 12px;
   font-weight: bold;
   line-height: 1;
+  /*
+  display: inline-block;
   color: #fff;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
   background-color: #777;
+  */
   border-radius: 10px;
 }
 
-#field-value{
-  min-width: 10px;
-  padding: 3px 7px;
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 1;
-  text-align: right;
-  vertical-align: right;
-  border-radius: 10px;
-  float: right;
+tr.detail {
+  border: 1px solid #ddd;  
 }

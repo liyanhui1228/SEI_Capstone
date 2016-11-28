@@ -47,8 +47,8 @@ function visavailChart() {
 
   // global div for tooltip
   var div = d3.select('#visavailchart').append('div')
-      .attr('class', 'tooltip')
-      .style('opacity', 0);
+  .attr('class', 'tooltip')
+  .style('opacity', 0);
 
   var definedBlocks = null;
   var isDateOnlyFormat = null;
@@ -88,7 +88,7 @@ function visavailChart() {
           } else {
             if (definedBlocks) {
               throw new Error('Detected different data formats in input data. Format can either be ' +
-                  'continuous data format or time gap data format but not both.');
+                'continuous data format or time gap data format but not both.');
             }
           }
         }
@@ -116,7 +116,10 @@ function visavailChart() {
               throw new Error('Date/time format not recognized. Pick between \'YYYY-MM-DD\' or ' +
                 '\'YYYY-MM-DD HH:MM:SS\'.');
             }
-
+/*
+            if(d1[2] == null){
+                d1[2] = d3.time.second.offset(d1[0], d.interval_s);              
+            }
             if (!definedBlocks) {
               d1[2] = d3.time.second.offset(d1[0], d.interval_s);
             } else {
@@ -130,7 +133,7 @@ function visavailChart() {
                 throw new Error('Date/time format not recognized. Pick between \'YYYY-MM-DD\' or ' +
                     '\'YYYY-MM-DD HH:MM:SS\'.');
               }
-            }
+            }*/
           }
         });
       });
@@ -141,7 +144,7 @@ function visavailChart() {
         var dataLength = series.data.length;
         series.data.forEach(function (d, i) {
           if (i !== 0 && i < dataLength) {
-            if (d[1] === tmpData[tmpData.length - 1][1]) {
+            /*if (d[1] === tmpData[tmpData.length - 1][1]) {
               // the value has not changed since the last date
               if (definedBlocks) {
                 if (tmpData[tmpData.length - 1][2].getTime() === d[0].getTime()) {
@@ -155,7 +158,7 @@ function visavailChart() {
                 tmpData[tmpData.length - 1][2] = d[2];
                 tmpData[tmpData.length - 1][3] = 1;
               }
-            } else {
+            } else {*/
               // the value has changed since the last date
               d[3] = 0;
               if (!definedBlocks) {
@@ -163,7 +166,7 @@ function visavailChart() {
                 tmpData[tmpData.length - 1][2] = d[0];
               }
               tmpData.push(d);
-            }
+            //}
           } else if (i === 0) {
             d[3] = 0;
             tmpData.push(d);
@@ -176,6 +179,8 @@ function visavailChart() {
       var startDate = 0;
       var endDate = 0;
 
+/*
+      //select dates based on dataset
       dataset.forEach(function (series, seriesI) {
         if (series.disp_data.length>0) {
           if (startDate === 0) {
@@ -191,24 +196,30 @@ function visavailChart() {
           }
         }
       });
+      */
+
+      //force data range to current year January - December
+      //var parseDate = d3.time.format('%Y-%m-%d');
+      startDate = parseDate.parse("2016-01-01");
+      endDate = d3.time.year.offset(startDate, 1);
 
       // define scales
       var xScale = d3.time.scale()
-          .domain([startDate, endDate])
-          .range([0, width])
-          .clamp(1);
+      .domain([startDate, endDate])
+      .range([0, width])
+      .clamp(1);
 
       // define axes
       var xAxis = d3.svg.axis()
-          .scale(xScale)
-          .orient('top');
+      .scale(xScale)
+      .orient('top');
 
       // create SVG element
       var svg = d3.select(this).append('svg')
-          .attr('width', width + margin.left + margin.right)
-          .attr('height', height + margin.top + margin.bottom)
-          .append('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       // create basic element groups
       svg.append('g').attr('id', 'g_title');
@@ -217,130 +228,131 @@ function visavailChart() {
 
       // create y axis labels
       svg.select('#g_axis').selectAll('text')
-          .data(dataset.slice(startSet, endSet))
-          .enter()
-          .append('text')
-          .attr('x', paddingLeft)
-          .attr('y', lineSpacing + dataHeight / 2)
-          .text(function (d) {
-            return d.measure;
-          })
-          .attr('transform', function (d, i) {
-            return 'translate(0,' + ((lineSpacing + dataHeight) * i) + ')';
-          })
-          .attr('class', 'ytitle');
+      .data(dataset.slice(startSet, endSet))
+      .enter()
+      .append('text')
+      .attr('x', paddingLeft)
+      .attr('y', lineSpacing + dataHeight / 2)
+      .text(function (d) {
+        return d.measure;
+      })
+      .attr('transform', function (d, i) {
+        return 'translate(0,' + ((lineSpacing + dataHeight) * i) + ')';
+      })
+      .attr('class', 'ytitle');
 
       // create vertical grid
       svg.select('#g_axis').selectAll('line.vert_grid').data(xScale.ticks())
-          .enter()
-          .append('line')
-          .attr({
-            'class': 'vert_grid',
-            'x1': function (d) {
-              return xScale(d);
-            },
-            'x2': function (d) {
-              return xScale(d);
-            },
-            'y1': 0,
-            'y2': dataHeight * noOfDatasets + lineSpacing * noOfDatasets - 1 + paddingBottom
-          });
+      .enter()
+      .append('line')
+      .attr({
+        'class': 'vert_grid',
+        'x1': function (d) {
+          return xScale(d);
+        },
+        'x2': function (d) {
+          return xScale(d);
+        },
+        'y1': 0,
+        'y2': dataHeight * noOfDatasets + lineSpacing * noOfDatasets - 1 + paddingBottom
+      });
 
       // create horizontal grid
       svg.select('#g_axis').selectAll('line.horz_grid').data(dataset)
-          .enter()
-          .append('line')
-          .attr({
-            'class': 'horz_grid',
-            'x1': 0,
-            'x2': width,
-            'y1': function (d, i) {
-              return ((lineSpacing + dataHeight) * i) + lineSpacing + dataHeight / 2;
-            },
-            'y2': function (d, i) {
-              return ((lineSpacing + dataHeight) * i) + lineSpacing + dataHeight / 2;
-            }
-          });
+      .enter()
+      .append('line')
+      .attr({
+        'class': 'horz_grid',
+        'x1': 0,
+        'x2': width,
+        'y1': function (d, i) {
+          return ((lineSpacing + dataHeight) * i) + lineSpacing + dataHeight / 2;
+        },
+        'y2': function (d, i) {
+          return ((lineSpacing + dataHeight) * i) + lineSpacing + dataHeight / 2;
+        }
+      });
 
       // create x axis
       svg.select('#g_axis').append('g')
-          .attr('class', 'axis')
-          .call(xAxis);
- 
+      .attr('class', 'axis')
+      .call(xAxis);
+
 
       // make y groups for different data series
       var g = svg.select('#g_data').selectAll('.g_data')
-          .data(dataset.slice(startSet, endSet))
-          .enter()
-          .append('g')
-          .attr('transform', function (d, i) {
-            return 'translate(0,' + ((lineSpacing + dataHeight) * i) + ')';
-          })
-          .attr('class', 'dataset');
+      .data(dataset.slice(startSet, endSet))
+      .enter()
+      .append('g')
+      .attr('transform', function (d, i) {
+        return 'translate(0,' + ((lineSpacing + dataHeight) * i) + ')';
+      })
+      .attr('class', 'dataset');
 
       // add data series
       g.selectAll('rect')
-          .data(function (d) {
-            return d.disp_data;
-          })
-          .enter()
-          .append('rect')
-          .attr('x', function (d) {
-            return xScale(d[0]);
-          })
-          .attr('y', lineSpacing)
-          .attr('width', function (d) {
-            return (xScale(d[2]) - xScale(d[0]));
-          })
-          .attr('height', dataHeight)
-          .attr('class', function (d) {
-            if (d[1] === 1) {
-              return 'rect_has_data';
-            }
-            return 'rect_has_no_data';
-          })
-          .on('mouseover', function (d, i) {
-            var matrix = this.getScreenCTM().translate(+this.getAttribute('x'), +this.getAttribute('y'));
-            div.transition()
-                .duration(200)
-                .style('opacity', 0.9);
-            div.html(function () {
-              var output = '';
-              if (d[1] === 1) {
-                output = '<i class="fa fa-fw fa-check tooltip_has_data"></i>';
-              } else {
-                output = '<i class="fa fa-fw fa-times tooltip_has_no_data"></i>';
-              }
-              if (isDateOnlyFormat) {
-                if (d[2] > d3.time.second.offset(d[0], 86400)) {
-                  return output + moment(parseDate(d[0])).format('l')
-                      + ' - ' + moment(parseDate(d[2])).format('l');
-                }
+      .data(function (d) {
+        return d.disp_data;
+      })
+      .enter()
+      .append('rect')
+      .attr('x', function (d) {
+        return xScale(d[0]);
+      })
+      .attr('y', lineSpacing)
+      .attr('width', function (d) {
+        var d2 = d3.time.month.offset(d[0], 1);
+        return (xScale(d2) - xScale(d[0]));
+      })
+      .attr('height', dataHeight)
+      .attr('class', function (d) {
+        if (d[1] > 0) {
+          return 'rect_has_data';
+        }
+        return 'rect_has_no_data';
+      })
+      .on('mouseover', function (d, i) {
+        var matrix = this.getScreenCTM().translate(+this.getAttribute('x'), +this.getAttribute('y'));
+        div.transition()
+        .duration(200)
+        .style('opacity', 0.9);
+        div.html(function () {
+          var output = '';
+          if (d[1] > 0) {
+            output = '<i class="fa fa-fw fa-check tooltip_has_data"></i>';
+          } else {
+            output = '<i class="fa fa-fw fa-times tooltip_has_no_data"></i>';
+          }
+          if (isDateOnlyFormat) {
+                //if (d[2] > d3.time.second.offset(d[0], 86400)) {
+                //  return output + moment(parseDate(d[0])).format('l')
+                //      + ' - ' + moment(parseDate(d[2])).format('l');
+                //}
                 return output + moment(parseDate(d[0])).format('l');
               } else {
-                if (d[2] > d3.time.second.offset(d[0], 86400)) {
-                  return output + moment(parseDateTime(d[0])).format('l') + ' '
-                      + moment(parseDateTime(d[0])).format('LTS') + ' - '
-                      + moment(parseDateTime(d[2])).format('l') + ' '
-                      + moment(parseDateTime(d[2])).format('LTS');
-                }
-                return output + moment(parseDateTime(d[0])).format('LTS') + ' - '
-                    + moment(parseDateTime(d[2])).format('LTS');
+                //if (d[2] > d3.time.second.offset(d[0], 86400)) {
+                //  return output + moment(parseDateTime(d[0])).format('l') + ' '
+                 //     + moment(parseDateTime(d[0])).format('LTS'); //+ ' - '
+                      //+ moment(parseDateTime(d[2])).format('l') + ' '
+                      //+ moment(parseDateTime(d[2])).format('LTS');
+                //}
+                return output + moment(parseDateTime(d[0])).format('LTS'); 
+                //+ ' - ' + moment(parseDateTime(d[2])).format('LTS');
               }
             })
-            .style('left', function () {
-              return window.pageXOffset + matrix.e + 'px';
-            })
-            .style('top', function () {
-              return window.pageYOffset + matrix.f - 11 + 'px';
-            })
-            .style('height', dataHeight + 11 + 'px');
-          })
-          .on('mouseout', function () {
-            div.transition()
-                .duration(500)
-                .style('opacity', 0);
-          });
+        .style('left', function () {
+          return window.pageXOffset + matrix.e + 'px';
+        })
+        .style('top', function () {
+          return window.pageYOffset + matrix.f - 11 + 'px';
+        })
+        .style('height', dataHeight + 11 + 'px');
+      })
+      .on('mouseout', function () {
+        div.transition()
+        .duration(500)
+        .style('opacity', 0);
+      });
 
       // rework ticks and grid for better visual structure
       function isYear(t) {
@@ -357,105 +369,106 @@ function visavailChart() {
       // year emphasis
       // ensure year emphasis is only active if years are the biggest clustering unit
       if (emphasizeYearTicks
-          && !(isYearTick.every(function (d) { return d === true; }))
-          && isMonthTick.every(function (d) { return d === true; })) {
+        && !(isYearTick.every(function (d) { return d === true; }))
+        && isMonthTick.every(function (d) { return d === true; })) {
         d3.selectAll('g.tick').each(function (d, i) {
           if (isYearTick[i]) {
             d3.select(this)
-                .attr({
-                  'class': 'x_tick_emph',
-                });
+            .attr({
+              'class': 'x_tick_emph',
+            });
           }
         });
-        d3.selectAll('.vert_grid').each(function (d, i) {
-          if (isYearTick[i]) {
-            d3.select(this)
-                .attr({
-                  'class': 'vert_grid_emph',
-                });
-          }
-        });
-      }
+      d3.selectAll('.vert_grid').each(function (d, i) {
+        if (isYearTick[i]) {
+          d3.select(this)
+          .attr({
+            'class': 'vert_grid_emph',
+          });
+        }
+      });
+    }
 
       // create title
       if (drawTitle) {
         svg.select('#g_title')
-            .append('text')
-            .text('Allocations')
-            .attr('x', paddingLeft)
-            .attr('y', paddingTopHeading)
-            .attr('class', 'heading');
+        .append('text')
+        .text('Allocations')
+        .attr('x', paddingLeft)
+        .attr('y', paddingTopHeading)
+        .attr('class', 'heading');
       }
 
       // create subtitle
       var subtitleText = '';
       if (isDateOnlyFormat) {
         subtitleText = 'from ' + moment(parseDate(startDate)).format('MMMM Y') + ' to '
-          + moment(parseDate(endDate)).format('MMMM Y');
+        + moment(parseDate(endDate)).format('MMMM Y');
       } else {
         subtitleText = 'from ' + moment(parseDateTime(startDate)).format('l') + ' '
-            + moment(parseDateTime(startDate)).format('LTS') + ' to '
-            + moment(parseDateTime(endDate)).format('l') + ' '
-            + moment(parseDateTime(endDate)).format('LTS');
+        + moment(parseDateTime(startDate)).format('LTS') + ' to '
+        + moment(parseDateTime(endDate)).format('l') + ' '
+        + moment(parseDateTime(endDate)).format('LTS');
       }
 
       svg.select('#g_title')
-          .append('text')
-          .attr('x', paddingLeft)
-          .attr('y', paddingTopHeading + 17)
-          .text(subtitleText)
-          .attr('class', 'subheading');
+      .append('text')
+      .attr('x', paddingLeft)
+      .attr('y', paddingTopHeading + 17)
+      .text(subtitleText)
+      .attr('class', 'subheading');
 
       // create legend
       var legend = svg.select('#g_title')
-          .append('g')
-          .attr('id', 'g_legend')
-          .attr('transform', 'translate(0,-12)');
+      .append('g')
+      .attr('id', 'g_legend')
+      .attr('transform', 'translate(0,-12)');
 
       legend.append('rect')
-          .attr('x', width + margin.right - 150)
-          .attr('y', paddingTopHeading)
-          .attr('height', 15)
-          .attr('width', 15)
-          .attr('class', 'rect_has_data');
+      .attr('x', width + margin.right - 150)
+      .attr('y', paddingTopHeading)
+      .attr('height', 15)
+      .attr('width', 15)
+      .attr('class', 'rect_has_data');
 
       legend.append('text')
-          .attr('x', width + margin.right - 150 + 20)
-          .attr('y', paddingTopHeading + 8.5)
-          .text('Resource Allocated')
-          .attr('class', 'legend');
+      .attr('x', width + margin.right - 150 + 20)
+      .attr('y', paddingTopHeading + 8.5)
+      .text('Resource Allocated')
+      .attr('class', 'legend');
     });
-  }
+}
 
-  chart.width = function (_) {
-    if (!arguments.length) return width;
-    width = _;
-    return chart;
-  };
-
-  chart.drawTitle = function (_) {
-    if (!arguments.length) return drawTitle;
-    drawTitle = _;
-    return chart;
-  };
-
-  chart.maxDisplayDatasets = function (_) {
-    if (!arguments.length) return maxDisplayDatasets;
-    maxDisplayDatasets = _;
-    return chart;
-  };
-
-  chart.curDisplayFirstDataset = function (_) {
-    if (!arguments.length) return curDisplayFirstDataset;
-    curDisplayFirstDataset = _;
-    return chart;
-  };
-
-  chart.emphasizeYearTicks = function (_) {
-    if (!arguments.length) return emphasizeYearTicks;
-    emphasizeYearTicks = _;
-    return chart;
-  };
-
+chart.width = function (_) {
+  if (!arguments.length) return width;
+  width = _;
   return chart;
+};
+
+chart.drawTitle = function (_) {
+  if (!arguments.length) return drawTitle;
+  drawTitle = _;
+  return chart;
+};
+
+chart.maxDisplayDatasets = function (_) {
+  if (!arguments.length) return maxDisplayDatasets;
+  maxDisplayDatasets = _;
+  return chart;
+};
+
+chart.curDisplayFirstDataset = function (_) {
+  if (!arguments.length) return curDisplayFirstDataset;
+  curDisplayFirstDataset = _;
+  return chart;
+};
+
+chart.emphasizeYearTicks = function (_) {
+  if (!arguments.length) return emphasizeYearTicks;
+  emphasizeYearTicks = _;
+  return chart;
+};
+
+alert(chart);
+return chart;
 }

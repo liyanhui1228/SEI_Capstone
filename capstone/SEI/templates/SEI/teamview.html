@@ -1,14 +1,18 @@
 {% extends 'SEI/base.html' %}
 {% block title %}<title>Team Allocation Overview</title>{% endblock %}
 {% block head %}
-    <!-- scripts go here when we add the chart -->
+    <!-- scripts  -->
+{% load static %}
+<script src="{% static "js/team.js" %}"></script>
+<script src="{% static "vendors/d3/d3.min.js" %}" charset="utf-8"></script>
+
 {% endblock %}
 
 {% block content %}
                 <div class="row">
            <div id="custom-search-input">
                             <div class="input-group col-md-12">
-                                <input type="text" class="search-query form-control" placeholder="Search with Team Name" />
+                                <input id="search_input" type="text" class="search-query form-control" placeholder="Search with Team Name" />
                                 <span class="input-group-btn">
                                     <button id="search_btn" class="btn btn-danger" type="button">
                                         <span class=" glyphicon glyphicon-search"></span>
@@ -17,12 +21,30 @@
                             </div>
                         </div>
     </div>
-                <!-- Page Heading -->
+<div id="myModal" class="modal fade" role="dialog">
+   <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Select the Team</h4>
+         </div>
+         <div class="modal-body">
+            <ul class="list-group" id="team_list">
+            </ul>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         </div>
+      </div>
+   </div>
+</div>                <!-- Page Heading -->
                 <div class="row">
                     <div class="col-lg-12">
                         <h1 class="page-header">
                             Team <small>Overview</small>
                         </h1>
+                </div>
                 </div>
                 <div class="row">
                     <div class="col-lg-12">
@@ -52,6 +74,7 @@
                             </div>
                             </div>
                 </div>
+                </div>
                 <div class="row">
                     <div class="col-lg-6">
                         <div class="panel panel-default">
@@ -59,7 +82,7 @@
                                 <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Projects</h3>
                             </div>
                             <div class="panel-body">
-                                    <table class="table">
+                                    <table id="project_list" class="table table-hover table-striped">
                                       <tr>
                                         <th>PWP Number</th>
                                         <th>Project Description</th>
@@ -68,10 +91,10 @@
                                       </tr>
                                     {% for project in projects  %}
                                       <tr>
-                                        <td>
-                                        {{ project.PWP_num }}</a></td>
+                                        <td><a href="{% url 'projectview' project.PWP_num %}">{{ project.PWP_num }}</a></td>
                                         <td>{{ project.project_description }}</td>
-                                        <td>{{ project.project_budget }} - {{ project.project_spending }}</td>
+                                        
+                                        <td>{{ project.project_budget }}</td>
 										</tr>
 									{% endfor %}
                                     </table>
@@ -84,7 +107,7 @@
                                 <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Employees</h3>
                             </div>
                             <div class="panel-body">
-                                    <table class="table">
+                                    <table id="employee_list" class="table table-hover table-striped">
                                       <tr>
                                         <th>Employee Name</th>
                                         <th>Employee ID</th>
@@ -93,9 +116,9 @@
                                       </tr>
                                       {% for employee in employees  %}
                                       <tr>
-                                        <td>{{ employee.employee_id }}</a></td>
-                                        <td>{{ employee.first_name }}  {{ employee.last_name }}</td>
+                                        <td><a href="{% url 'employeeview' employee.employee_id %}">{{ employee.first_name }}  {{ employee.last_name }}</a></td>
 										{% comment %}
+                                        <td>{{ employee.employee_id }}</td>
                                         <td>{{ employee.allocation }}</td>
 										{% endcomment %}
                                     </tr>
@@ -105,7 +128,168 @@
                             </div>
                         </div>
                     </div>
-                </div>
+
+                <div class="row" id="budget_resource_chart">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-bar-chart-o fa-fw"></i>Aggregated Budget View</h3>
+                            </div>
+                            <div class="panel-body">
+  <div id="stackedbarchart"></div>
+                  </div>
+<script type="text/javascript">
+
+// Setup svg using Bostock's margin convention
+
+var margin = {top: 20, right: 160, bottom: 35, left: 30};
+
+var width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var svg = d3.select("#stackedbarchart")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+/* Data in strings like it would be if imported from a csv */
+
+var data = [
+  { month: "1", employee: "10", subcontractor: "15", travel: "9", equipment: "6" },
+  { month: "2", employee: "12", subcontractor: "18", travel: "9", equipment: "4" },
+  { month: "3", employee: "05", subcontractor: "20", travel: "8", equipment: "2" },
+  { month: "4", employee: "01", subcontractor: "15", travel: "5", equipment: "4" },
+  { month: "5", employee: "02", subcontractor: "10", travel: "4", equipment: "2" },
+  { month: "6", employee: "03", subcontractor: "12", travel: "6", equipment: "3" },
+  { month: "7", employee: "04", subcontractor: "15", travel: "8", equipment: "1" },
+  { month: "8", employee: "06", subcontractor: "11", travel: "9", equipment: "4" },
+  { month: "9", employee: "10", subcontractor: "13", travel: "9", equipment: "5" },
+  { month: "10", employee: "16", subcontractor: "19", travel: "6", equipment: "9" },
+  { month: "11", employee: "19", subcontractor: "17", travel: "5", equipment: "7" },
+  { month: "12", employee: "25", subcontractor: "10", travel: "2", equipment: "0" },
+];
+
+//var parse = d3.time.format("%M").parse;
+
+// Transpose the data into layers
+var dataset = d3.layout.stack()(["employee", "subcontractor", "travel", "equipment"].map(function(expense) {
+  return data.map(function(d) {
+    return {x: d.month, y: +d[expense]};
+  });
+}));
+
+
+// Set x, y and colors
+var x = d3.scale.ordinal()
+  .domain(dataset[0].map(function(d) { return d.x; }))
+  .rangeRoundBands([10, width-10], 0.02);
+
+var y = d3.scale.linear()
+  .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
+  .range([height, 0]);
+
+var colors = ["#d9534f", "#f0ad4e", "#3d8b3d", "#337ab7"];
+  
+
+// Define and draw axes
+var yAxis = d3.svg.axis()
+  .scale(y)
+  .orient("left")
+  .ticks(5)
+  .tickSize(-width, 0, 0)
+  .tickFormat( function(d) { return d } );
+
+var xAxis = d3.svg.axis()
+  .scale(x)
+  .orient("bottom")
+//  .tickFormat(d3.time.format("%Y"));
+
+svg.append("g")
+  .attr("class", "y axis")
+  .call(yAxis);
+
+svg.append("g")
+  .attr("class", "x axis")
+  .attr("transform", "translate(0," + height + ")")
+  .call(xAxis);
+
+
+// Create groups for each series, rects for each segment 
+var groups = svg.selectAll("g.cost")
+  .data(dataset)
+  .enter().append("g")
+  .attr("class", "cost")
+  .style("fill", function(d, i) { return colors[i]; });
+
+var rect = groups.selectAll("rect")
+  .data(function(d) { return d; })
+  .enter()
+  .append("rect")
+  .attr("x", function(d) { return x(d.x); })
+  .attr("y", function(d) { return y(d.y0 + d.y); })
+  .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+  .attr("width", x.rangeBand())
+  .on("mouseover", function() { tooltip.style("display", null); })
+  .on("mouseout", function() { tooltip.style("display", "none"); })
+  .on("mousemove", function(d) {
+    var xPosition = d3.mouse(this)[0] - 15;
+    var yPosition = d3.mouse(this)[1] - 25;
+    tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+    tooltip.select("text").text(d.y);
+  });
+
+
+// Draw legend
+var legend = svg.selectAll(".legend")
+  .data(colors)
+  .enter().append("g")
+  .attr("class", "legend")
+  .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
+ 
+legend.append("rect")
+  .attr("x", width - 18)
+  .attr("width", 18)
+  .attr("height", 18)
+  .style("fill", function(d, i) {return colors.slice().reverse()[i];});
+ 
+legend.append("text")
+  .attr("x", width + 5)
+  .attr("y", 9)
+  .attr("dy", ".35em")
+  .style("text-anchor", "start")
+  .text(function(d, i) { 
+    switch (i) {
+      case 3: return "Employee";
+      case 2: return "Subcontractor";
+      case 1: return "Travel";
+      case 0: return "Equipment";
+    }
+  });
+
+
+// Prep the tooltip bits, initial display is hidden
+var tooltip = svg.append("g")
+  .attr("class", "tooltip")
+  .style("display", "none");
+    
+tooltip.append("rect")
+  .attr("width", 30)
+  .attr("height", 20)
+  .attr("fill", "white")
+  .style("opacity", 0.5);
+
+tooltip.append("text")
+  .attr("x", 15)
+  .attr("dy", "1.2em")
+  .style("text-anchor", "middle")
+  .attr("font-size", "12px")
+  .attr("font-weight", "bold");
+
+</script>
+
 
 {% endblock %}
 

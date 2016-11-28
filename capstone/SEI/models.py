@@ -52,7 +52,7 @@ class Project(models.Model):
     project_description = models.CharField(max_length=200, default="", blank=True)
     project_budget = models.DecimalField(max_digits=8, decimal_places=2)
     is_internal = models.BooleanField(default=True)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, default=None)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, default=None, blank=True, null=True)
     client_name = models.CharField(max_length=200, default="", blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -61,7 +61,7 @@ class Project(models.Model):
 class ProjectMonth(models.Model):
     project_date = models.CharField(max_length=200)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    employee_list = models.ManyToManyField(Employee, related_name='do_project_this_month', symmetrical=False, null=True)
+    employee_list = models.ManyToManyField(Employee, related_name='do_project_this_month', symmetrical=False)
     budget = models.DecimalField(max_digits=18, decimal_places=2, null=True)
 
 class EmployeeMonth(models.Model):

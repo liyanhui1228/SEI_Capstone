@@ -24,6 +24,7 @@ function showContent(e){
    .done(function(data){
       renderDonutChart(data);
       renderLineChart(data);
+      renderAllocationChart(data);
    });
 }
 
@@ -92,6 +93,12 @@ function renderLineChart(data){
     });
     line_chart.show();
 }
+
+  function renderAllocationChart(data){
+        var resourcerow=$("#resource_chart");
+        resourcerow.show();
+
+  }
 
 
 $(function(){

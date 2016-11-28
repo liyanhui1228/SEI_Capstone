@@ -125,7 +125,8 @@ class AddEmployeeForm(forms.Form):
 class TeamForm(forms.ModelForm):
     class Meta:
         model = Team
-        exclude = ('team_id', )
+        fields = '__all__'
+        #exclude = ('team_id', )
 
     def clean(self):
         cleaned_data = super(TeamForm, self).clean()
