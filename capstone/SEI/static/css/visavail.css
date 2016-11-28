@@ -1,16 +1,16 @@
 /* style for visavail.js */
 .rect_has_data {
     /* blocks that have data */
-    fill: #5cb85c;
+    fill: #fa8072;
 }
 
 .rect_has_data:hover {
-    fill: #449d44
+    fill: #c9302c
 }
 
 .rect_has_no_data {
     /* blocks without data */
-    fill: #d9534d;
+    fill: #fa8072;
 }
 
 .rect_has_no_data:hover {

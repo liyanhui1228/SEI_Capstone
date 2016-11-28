@@ -18,6 +18,7 @@ from SEI.models import ProjectMonth
 from django.core import serializers
 from django.forms.models import model_to_dict
 from django.forms.formsets import formset_factory
+import collections
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
 def reset_employee_availability_at_begin_of_month():
@@ -255,8 +256,11 @@ def project_overview(request, PWP_num):
     context['project_description'] = project_item.project_description
     context['project_budget'] = project_item.project_budget
     context['isExternal'] = project_item.is_internal
-    context['team_name'] = project_item.team.team_name
-    context['organization_name'] = project_item.client.organization_name
+    if project_item.team != None:
+        context['team_name'] = project_item.team.team_name
+    else:
+        context['team_name'] = ""
+    context['organization_name'] = project_item.client_name
     context['start_date'] = project_item.start_date
     context['end_date'] = project_item.end_date
     context['charge_string'] = charge_string
@@ -281,7 +285,8 @@ def budget_view(request, PWP_num):
     total_expense_till_now = 0
 
     resource_allocation = {}
-
+    resource_chart = collections.defaultdict(list)
+    resource_names = {}
     for pm in project_month_list:
         monthly_cost = {}
         project_expense = ProjectExpense.objects.filter(project=project_item, project_date=pm.project_date)
@@ -291,6 +296,8 @@ def budget_view(request, PWP_num):
         person_cost = 0
         for em in employee_month:
             person_cost += em.month_cost
+            resource_chart[em.employee.employee_id].append([project_date, em.time_use])
+            resource_names[em.employee.employee_id] = em.employee.first_name + " " + em.employee.last_name
 
         monthly_cost['person'] = person_cost
 
@@ -308,6 +315,9 @@ def budget_view(request, PWP_num):
                 equipment_cost += pe.cost
             if pe.category == "('O', 'Others')":
                 other_cost += pe.cost
+            resource_chart[pe.id].append([project_date, pe.cost])
+            resource_names[pe.id] = (pe.category, pe.expense_description)
+
         monthly_cost['travel'] = travel_cost
         monthly_cost['subcontractor'] = subcontractor_cost
         monthly_cost['equipment'] = equipment_cost
@@ -325,6 +335,7 @@ def budget_view(request, PWP_num):
     context['budget_balance'] = context['total_budget'] - total_expense_till_now
     context['projected_expense'] = total_expense - total_expense_till_now
     context['projected_remaining'] = context['total_budget'] - total_expense
+    context['resource_chart_data'] = [{'resource':value, 'data':resource_chart[key]} for key, value in resource_names.items()]
     return render(request, "SEI/budget_view.json",context)
 
 @login_required
@@ -585,7 +596,8 @@ def view_team(request, team_id):
     if user_profile.user_role == 'ITADMIN':
         return render(request, 'SEI/permission.html', context)
 
-    team = get_object_or_404(Team, id = team_id)
+    if team_id != None:
+        team = get_object_or_404(Team, id = team_id)
 
     project_set = Project.objects.filter(team = team)
     employee_set = Employee.objects.filter(team = team)
@@ -627,4 +639,13 @@ def search_project(request):
     if user_profile.user_role == 'ITADMIN':
         return render(request, 'SEI/permission.html')
 
-    return render(request, 'SEI/projectview.html')  
+    return render(request, 'SEI/projectview.html')    
+
+@login_required
+def get_team(request,team_name):
+    teams=Team.objects.filter(team_name__contains=team_name)
+    team_list = []
+    for team in teams:
+        team_list.append(model_to_dict(team))
+    team_list_result = json.dumps(team_list, default=decimal_default)
+    return HttpResponse(team_list_result, content_type="application/json")

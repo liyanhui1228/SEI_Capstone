@@ -14,7 +14,10 @@
 <script src="{% static "js/plugins/flot/jquery.flot.tooltip.min.js" %}"></script>
 <script src="{% static "js/plugins/flot/jquery.flot.resize.js" %}"></script>
 <script src="{% static "js/plugins/flot/jquery.flot.pie.js" %}"></script>
-{% endblock %}
+<!-- For allocation chart -->
+<script src="{% static "vendors/moment/moment-with-locales.min.js" %}" type="text/javascript"></script>
+<script src="{% static "vendors/d3/d3.min.js" %}" charset="utf-8"></script>
+<script src="{% static "js/visavail.js" %}" charset="utf-8"></script>{% endblock %}
 {% block content %}
 <div class="row">
    <div id="custom-search-input">
@@ -90,6 +93,50 @@
    </div>
 </div> -->
 <!-- /.row -->
+                <div class="row" id="resource_chart" style="display: none">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-bar-chart-o fa-fw"></i>Resources Allocation</h3>
+                            </div>
+                            <div class="panel-body">
+  <div id="visavailchart"></div>
+                  </div>
+
+
+<script type="text/javascript">
+    var dataset = [{
+        "measure": "Alpha",
+        "data": [
+            ["2016-10-01", .25],
+            ["2016-11-01", 50],
+            ["2016-12-01", 85]
+        ]
+    }, {
+        "measure": "Beta",
+        "data": [
+            ["2016-05-01", 1]
+        ]
+    }];
+</script>
+
+
+<script>
+    // draw Visavail.js chart
+    var chart = visavailChart().width(800);
+    //dataset=[];
+    if (dataset != null && dataset.length > 0){
+    d3.select("#visavailchart")
+            .datum(dataset)
+            .call(chart);
+            }
+</script>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 {% endblock %}
 {% block scripts %}
 {% endblock %}
