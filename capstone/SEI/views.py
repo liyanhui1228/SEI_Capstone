@@ -437,15 +437,6 @@ def get_employee_project(request,employee_id):
     five_month_before_date= today - datetime.timedelta(5*365/12)
     five_month_before = str(five_month_before_date.year) + '-' + str(five_month_before_date.month) + '-01'
     current_month = str(today.year) + '-' + str(today.month) + '-01'
-    print("pwp"+str(Project.objects.get(id=1).PWP_num))
-    print("budget"+str(Project.objects.get(id=1).project_budget))
-    print("description"+str(Project.objects.get(id=1).project_description))
-    print("iternal"+str(Project.objects.get(id=1).is_internal))
-    print("client_name"+Project.objects.get(id=1).client_name)
-    print("start_date"+str(Project.objects.get(id=1).start_date))
-    print("end_date"+str(Project.objects.get(id=1).end_date))
-    print("business_manager"+str(Project.objects.get(id=1).business_manager))
-    #print(Project.objects.get(id=1).team.team_name)
     Tasks=EmployeeMonth.objects.filter(employee=employee,project_date__gt=five_month_before,project_date__lte=current_month)
     print(len(Tasks))
     time_sum={}
