@@ -374,7 +374,7 @@ def add_employee(request, employee_chosen):
             emp_availability.is_available = 0
             detail[emp[0].id] = emp_availability.percentage_used
         emp_availability.save()
-        print emp_availability.percentage_used
+        print (emp_availability.percentage_used)
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
@@ -409,6 +409,42 @@ def add_resources(request, project_id):
     messages.append("Expense has been saved")
     return render(request, 'cmumc/resource.html', context)
 
+#@login_required
+def get_employee(request,first_name):
+    employees=Employee.objects.filter(first_name=first_name)
+    return render(request,'SEI/employee_list.json',{"employee_list":serializers.serialize('json',employees)})
+
+
+def get_employee_project(request,employee_id):
+    today = datetime.datetime.today()
+    employee=get_object_or_404(Employee,id=employee_id)
+    five_month_before_date= today - datetime.timedelta(5*365/12)
+    five_month_before = str(five_month_before_date.year) + '-' + str(five_month_before_date.month) + '-01'
+    current_month = str(today.year) + '-' + str(today.month) + '-01'
+
+    Tasks=EmployeeMonth.objects.filter(employee=employee,project_date__gt=five_month_before,project_date__lte=current_month )
+    time_sum={}
+    projects={}
+    for task in Tasks:
+        dateKey=task.project_date
+        project={}
+        project['PWP_num']=task.project.PWP_num
+        project['time_use']=task.time_use
+        time_sum[str(dateKey)]= time_sum.get(str(dateKey),0) + task.time_use
+        if str(dateKey) in projects:
+            projects[str(dateKey)].append(project)
+        else:
+            project_list=[]
+            project_list.append(project)
+            projects[str(dateKey)]=project_list
+
+    for date in projects:
+        total_time=time_sum.get(str(date),0)
+        if total_time != 0:
+            for project in projects[str(date)]:
+                project['percentage']="%.2f" %  (project['time_use']*100.0/total_time)
+
+    return HttpResponse(json.dumps(projects))
 
 
 
@@ -432,3 +468,4 @@ def add_expense(request,expense_detail):
                                       expense_description=expense_description,category=category,\
                                       project=project)
     new_expense_detail.save()
+
