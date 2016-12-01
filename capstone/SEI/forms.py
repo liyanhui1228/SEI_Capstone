@@ -61,28 +61,20 @@ class UserForm(forms.ModelForm):
         cleaned_data = super(UserForm, self).clean()
         return cleaned_data
 
-class EmployeeForm(forms.ModelForm):
-    class Meta:
-        model = Employee
-        exclude = ('user', 'activation_key',)
-
-    def clean(self):
-        cleaned_data = super(EmployeeForm, self).clean()
-        return cleaned_data
-
 class ProjectForm(forms.ModelForm):
     error_css_class = 'error'
     required_css_class = 'required'
     start_date = forms.DateField()
     end_date = forms.DateField()
-
+    
     class Meta:
         model = Project
+        # exclude = ('team', 'client', )
         fields = '__all__'
         widgets = {
             #'start_date': forms.SelectDateWidget(),
             #'end_date': forms.SelectDateWidget(),
-            'project_budget': forms.NumberInput(attrs={'min': 0, 'step':1000}),
+            'project_budget': forms.NumberInput(attrs={'min': 0, 'step':1}),
          }
 
     def clean(self):
@@ -101,6 +93,15 @@ class ProjectForm(forms.ModelForm):
         if end_date < start_date:
             raise forms.ValidationError("End date must occur after start date")
         return end_date
+
+class ChargeStringForm(forms.ModelForm):
+    class Meta:
+        model = ChargeString
+        fields = ['charge_string']
+
+    def clean(self):
+        cleaned_data = super(ChargeStringForm, self).clean()
+        return cleaned_data
 
 class ResourceForm(forms.ModelForm):
     month = forms.CharField(max_length=30)
@@ -121,3 +122,12 @@ class AddEmployeeForm(forms.Form):
         cleaned_data = super(AddEmployeeForm, self).clean()
         return cleaned_data
 
+class TeamForm(forms.ModelForm):
+    class Meta:
+        model = Team
+        fields = '__all__'
+        #exclude = ('team_id', )
+
+    def clean(self):
+        cleaned_data = super(TeamForm, self).clean()
+        return cleaned_data

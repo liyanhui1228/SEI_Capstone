@@ -1,5 +1,5 @@
 body {
-    padding-top: 70px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+    padding-top: 0px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
 }
 
 .form-field input{
@@ -20,4 +20,35 @@ body {
 
 .btn.btn-lg.btn-primary.btn-block.project{
     width:100px;
+}
+
+#page-wrapper {
+}
+
+* {
+  .border-radius(0) !important;
+}
+
+.detailtable {
+  border: 0px solid #ddd;
+}
+
+.detailtable > tr {
+  border: 0px solid #ddd;
+}
+
+td.detaillabel {
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  /*
+  display: inline-block;
+  color: #fff;
+  background-color: #777;
+  */
+  border-radius: 10px;
+}
+
+tr.detail {
+  border: 1px solid #ddd;  
 }

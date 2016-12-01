@@ -1,37 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-      {% load static %}
-      <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
-      <title>Login</title>
-   </head>
-   <body>
-      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-         <div class="container">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-               <a class="navbar-brand" href="#">SEIRM</a>
-            </div>
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-               <ul class="nav navbar-nav">
-                  <li>
-                     <a href="#">Project</a>
-                  </li>
-                  <li>
-                     <a href="#">Team</a>
-                  </li>
-                  <li>
-                     <a href="#">Employee</a>
-                  </li>
-               </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-         </div>
-      </nav>
-      
-   </body>
-</html>
+{% extends 'SEI/base.html' %}
+{% block title %}<title>Project Overview</title>{% endblock %}
+{% block head %}
+{% load static %}
+<script src="{% static "js/project.js" %}"></script>
+<link href="{% static "css/visavail.css" %}" rel="stylesheet" type="text/css">
+<script src="{% static "vendors/moment/moment-with-locales.min.js" %}" type="text/javascript"></script>
+<script src="{% static "vendors/d3/d3.min.js" %}" charset="utf-8"></script>
+<script src="{% static "js/visavail.js" %}" charset="utf-8"></script>
+{% endblock %}
+
+{% block content %}
+                <div class="row">
+           <div id="custom-search-input">
+                            <div class="input-group col-md-12">
+                                <input id="search_input" type="text" class="search-query form-control" placeholder="Search with PWP Number" />
+                                <span class="input-group-btn">
+                                    <button id="search_btn" class="btn btn-danger" type="button">
+                                        <span class=" glyphicon glyphicon-search"></span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+    </div>
+                <!-- Page Heading -->
+                <div id="page">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">
+                            Project <small>Overview</small>
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="row" id="project_details" style="display: none">
+                    <div class="col-lg-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i> Project Detail</h3>
+                            </div>
+                            <div>
+                            <div class="panel-body">
+                                                        <div class="list-group">
+                                <table class="table">
+                                    <tbody>
+                                            <tr class="detail">
+                                                <td class="detaillabel">PWP Number:</td>
+                                                <td><span id="PWP_num"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Project Description:</td>
+                                                <td><span id="project_description"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Project Budget:</td>
+                                                <td><span id="project_budget_overview"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Team Name:</td>
+                                                <td><span id="team_name"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Internal:</td>
+                                                <td><span id="isExternal"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Start Date:</td>
+                                                <td><span id="start_date"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">End Date:</td>
+                                                <td><span id="end_date"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Client Name:</td>
+                                                <td><span id="organization_name"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Charge:</td>
+                                                <td><span id="charge_string_list"></span></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                        </div>
+                                        </div>
+                                </div>                                
+                        </div>
+                            </div>
+                    <div class="col-lg-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-usd fa-fw"></i>Budget Outlook</h3>
+                            </div>
+                            <div class="panel-body">
+                            <div class="list-group">
+                            <table class="table">
+                                    <tbody>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Project Budget:</td>
+                                                <td><span id="project_budget_balance"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Balance Remaining:</td>
+                                                <td><span id="budget_balance"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Future Budget:</td>
+                                                <td><span id="project_spend"></span></td>
+                                            </tr>
+                                            <tr class="detail">
+                                                <td class="detaillabel">Variance:</td>
+                                                <td><span id="project_remain"></span></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" id="resource_chart" style="display: none">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><i class="fa fa-bar-chart-o fa-fw"></i>Resources Allocation</h3>
+                            </div>
+                            <div class="panel-body">
+  <div id="visavailchart"></div>
+                  </div>
+
+
+<script type="text/javascript">
+    var dataset = [{
+        "measure": "Mike Smith",
+        "data": [
+            ["2016-10-01", .25],
+            ["2016-11-01", 50],
+            ["2016-12-01", 85]
+        ]
+    }, {
+        "measure": "John Doe",
+        "data": [
+            ["2016-05-01", 1]
+        ]
+    }];
+</script>
+
+
+<script>
+    // draw Visavail.js chart
+    var chart = visavailChart().width(800);
+    //dataset=[];
+    if (dataset != null && dataset.length > 0){
+    d3.select("#visavailchart")
+            .datum(dataset)
+            .call(chart);
+            }
+</script>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+{% endblock %}
+
+
+        {% block scripts %}
+
+        {% endblock %}    

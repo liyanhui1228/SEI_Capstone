@@ -90,6 +90,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'SEIRM_db',
+        # 'USER': 'SEI_project',
+        # 'PASSWORD': 'SEITeam2016',
+        # 'HOST': '54.163.188.98',
+        # 'PORT': '3306',
     }
 }
 

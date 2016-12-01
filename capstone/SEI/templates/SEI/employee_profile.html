@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
+	<title>Profile</title>
+  </head>
+  
+<body>
+<div class="container">
+          <div class="col-md-4">
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                <h3 class="panel-title">My Profile</h3>
+              </div>
+              <div class="panel-body">
+                <div class="page-header">
+					<p class="intro">{{ employee.user.first_name }} {{ employee.user.last_name }}</p>
+                    <p class="intro">@{{ employee.user.username }}</p> 
+                </div>
+                <div>
+                  <ul class="list-group">
+                  <li class="list-group-item">Position: {{ employee.age }}</li>
+                  <li class="list-group-item">Title: {{  employee.title }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+</div>
+</body>
+</html>
