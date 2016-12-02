@@ -15,6 +15,7 @@ from django.contrib.auth.tokens import default_token_generator
 import json
 import datetime
 import decimal
+import csv
 
 from SEI.models import *
 from SEI.forms import *
@@ -374,7 +375,7 @@ def add_employee(request, employee_chosen):
             emp_availability.is_available = 0
             detail[emp[0].id] = emp_availability.percentage_used
         emp_availability.save()
-        print emp_availability.percentage_used
+        print (emp_availability.percentage_used)
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
@@ -410,8 +411,6 @@ def add_resources(request, project_id):
     return render(request, 'cmumc/resource.html', context)
 
 
-
-
     
 @login_required
 def add_expense(request,expense_detail):
@@ -432,3 +431,151 @@ def add_expense(request,expense_detail):
                                       expense_description=expense_description,category=category,\
                                       project=project)
     new_expense_detail.save()
+
+
+@login_required
+def bulk_upload(request,file_path):
+    """
+    bulk upload the employee information from csv file path
+    csv file format:
+    uid,first_name,last_name,position,title,internal_salary,external_salary,team_name
+    :param request: Request
+    :param file_path: csv path
+    :return: message that indicats if it's successful or not, but how to return ???
+    """
+    failed_row = []
+    created_row = 0
+    updated_row = 0
+    with open(file_path) as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for index,row in enumerate(reader):
+            if len(row) != 8:
+                return "invalid csv format, should be 8 rows"
+            if row[0]=='uid':
+                pass
+            else:
+                employee_info = employee_validation(row)
+                if employee_info:
+                    response = insert_employee(employee_info)
+                    if response == 0:
+                        failed_row.append(str(index+1))
+                    elif response == 1:
+                        created_row += 1
+                    else:
+                        updated_row += 1
+                else:
+                    failed_row.append(str(index+1))
+    print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
+
+
+
+def employee_validation(row):
+    """
+    validate the employee row
+    :param row: employee information
+    :return: if correct, return a dictionary with employee information, if not, then return None
+    validate: row[0] -- > uid, row[5] -- > internal salary, row[6] --> external salary, row[7] --> team name
+    """
+    employee_info = {}
+    # if row[0] == None or row[0] == '':
+    #     return None
+    # employee_info['employee_uid'] = row[0]
+    try:
+        employee_info['internal_salary']=float(row[5])
+        employee_info['external_salary']=float(row[6])
+        employee_info['team'] = get_object_or_404(Team, team_name = row[7])
+    except:
+        return None
+    if row[1] != None and row[1] != '':
+        employee_info['first_name'] = row[1]
+    if row[2] != None and row[2] != '':
+        employee_info['last_name'] = row[2]
+    if row[3] != None and row[3] != '':
+        employee_info['title'] = row[3]
+    if row[4] != None and row[4] != '':
+        employee_info['position'] = row[4]
+    return employee_info
+
+
+def insert_employee(employee):
+    """
+    update or create a new employee object and save
+    :param employee: Employee dictionary
+    :return: create: 1, update: 2, exception: 0
+    """
+    try:
+        obj, created = Employee.objects.update_or_create(
+            first_name = employee['first_name'],
+            last_name = employee['last_name'],
+            # employee_uid=employee['employee_uid'],
+            defaults=employee,
+        )
+        if created:
+            return 1
+        else:return 2
+    except:
+        return 0
+
+
+@login_required
+def team_view(request, team_id,year):
+    """
+    view the team budget and expense in a given year
+    :param request: Request
+    :param team_id: id for team object
+    :param year: year requested
+    :return: JSON format result
+    """
+    year = int(year)
+    team = get_object_or_404(Team,id=team_id)
+    project_set = Project.objects.filter(team=team)
+
+    context = {}
+
+    resource_allocation = {}
+    for month in (1,2,3,4,5,6,7,8,9,10,11,12):
+        date = datetime.date(year,month,1)
+        monthly_cost = {}
+        project_month_list = ProjectMonth.objects.filter(project__in=project_set, project_date = date)
+        project_expense = ProjectExpense.objects.filter(project__in=project_set, project_date = date)
+        employee_month = EmployeeMonth.objects.filter(project__in=project_set, project_date = date)
+
+        # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
+        travel_cost = 0
+        subcontractor_cost = 0
+        equipment_cost = 0
+        other_cost = 0
+        for pe in project_expense:
+            if pe.category == "('T', 'Travel')":
+                travel_cost += pe.cost
+            if pe.category == "('S', 'Subcontractor')":
+                subcontractor_cost += pe.cost
+            if pe.category == "('E', 'Equipment')":
+                equipment_cost += pe.cost
+            if pe.category == "('O', 'Others')":
+                other_cost += pe.cost
+
+        monthly_cost['travel'] = travel_cost
+        monthly_cost['subcontractor'] = subcontractor_cost
+        monthly_cost['equipment'] = equipment_cost
+        monthly_cost['other'] = other_cost
+
+        # Get the total Person cost in this month for this project
+        person_cost = 0
+        for em in employee_month:
+            person_cost += em.month_cost
+
+        monthly_cost['person'] = person_cost
+
+
+        month_budget = 0
+        for pm in project_month_list:
+            month_budget += pm.budget
+        monthly_cost['monthly_budget'] = month_budget
+        # Store all the 5 kinds of cost in JSON, the key is project_date
+
+        resource_allocation[str(year) + "." + str(month)] = monthly_cost
+
+    context['resource_allocation'] = resource_allocation
+    return render(request, "SEI/resource_allocation.json", context)
+
