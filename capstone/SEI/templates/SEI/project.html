@@ -1,6 +1,7 @@
-{% extends 'SEI/base.html' %}
-{% block title %}<title>Add Project</title>{% endblock %}
-{% block head %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="/resources/demos/style.css">
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -18,69 +19,52 @@
     });
   
     });
-
-
-$(function(){
-    var cscount =  0;
-    $(".add_charge_string").click(function(e){
-        e.preventDefault();
-        cscount = cscount + 1;
-        var total_forms = parseInt($('#id_form-TOTAL_FORMS').val()) + 1;
-        $('#id_form-TOTAL_FORMS').val(total_forms);
-        //clone the form charge string for new input and replace the name
-        var name = "form-" + cscount + "-charge_string";
-        $("#form_table tr:last").clone(true).find("input").each(function() {$(this).val('').attr('id', "id" + name).attr('name', name);
-          }).end().find("label").each(function() { $(this).val('').attr('for', "id"+name);
-          }).end().appendTo("table");
-        var removeBtn = '<button id="remove_charge_string' + (cscount - 1) + '" class="btn btn-danger remove_charge_string" >-</button></div><div id="charge_strings_in">';
-        var removeButton = $(removeBtn);
-        $( this ).replaceWith(removeButton);
-        $("#cscount").val(cscount);  
-            $('.remove_charge_string').unbind().click(function(e){
-                e.preventDefault();
-                var fieldNum = this.id.charAt(this.id.length-1);
-                $(this).closest('tr').remove();
-                var total_forms = parseInt($('#id_form-TOTAL_FORMS').val()) - 1;
-                $('#id_form-TOTAL_FORMS').val(total_forms);
-            });
-    });
-});
-
-
-
     </script>
-{% endblock %}
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
-{% block content %}
-<div class="row" align="center">
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
+	<title>Project Page</title>
+  </head>
+  
+  <body>
+      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+         <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+               <a class="navbar-brand" href="#">SEIRM</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+               <ul class="nav navbar-nav">
+                  <li>
+                     <a href="#">Project</a>
+                  </li>
+                  <li>
+                     <a href="#">Team</a>
+                  </li>
+                  <li>
+                     <a href="#">Employee</a>
+                  </li>
+               </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+         </div>
+      </nav>
+    <div class="container">
 	<p>
 	<form action="{% url 'addProject' %}" method="POST">
-{{ chargestring_formset.management_form }}
-	<table id='form_table'>
+	<table>
 	{% for field in form %}
 	<tr><td>{{ field.label_tag }}</td><td>{{ field }}</td><td>{{ field.errors }}</td></tr>
 	{% endfor %}
-{% for chargestring_form in chargestring_formset %}
-<tr>
-<td>{{ chargestring_form.charge_string.label_tag }}</td>
-  <td>                    {{ chargestring_form.charge_string }}<button id="add_charge_string" class="btn add_charge_string" type="button">+</button>
-</td></tr>
-
 	</table>
-        <div class="charge-string-formset">
-
-        </div>
-{% endfor %}
-
-    <input type="hidden" name="cscount" value="1" />
 
 	<input class="btn btn-lg btn-primary btn-block project " type="submit" value="Save" />
 	{% csrf_token %}
 	</form>
 	</p>
-  </div>
-{% endblock %}
-
-
-        {% block scripts %}
-        {% endblock %}    
+	</div>
+  </body>
+</html>
