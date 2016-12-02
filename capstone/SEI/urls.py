@@ -34,6 +34,5 @@ urlpatterns = [
     url(r'^team', SEI.views.search_team, name='teamsearch'),
     url(r'^admin_team$', SEI.views.admin_team, name='adminTeam'),
     url(r'^admin_employee$', SEI.views.admin_employee, name='adminEmployee'),
-    url(r'^get_team/(?P<team_name>\w*)$',SEI.views.get_team),
-    url(r'^bulk_upload/(?P<file_path>\w*)$',SEI.views.bulk_upload)
+    url(r'^get_team/(?P<team_name>\w*)$',SEI.views.get_team)
 ]
