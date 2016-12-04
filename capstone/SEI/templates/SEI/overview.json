@@ -1,7 +1,8 @@
+{% load humanize %}
 {
   "PWP_num": "{{PWP_num}}",
   "project_description": "{{project_description}}",
-  "project_budget": {{project_budget}},
+  "project_budget": "{{project_budget|intcomma}}",
   "isExternal": "{{isExternal}}",
   "start_date": "{{start_date}}",
   "end_date": "{{end_date}}",
@@ -9,7 +10,8 @@
   "team_name": "{{team_name}}",
   "charge_string": [
     {% for charges in charge_string %}
-    {"charge":{{charges.charge}}}
+    {"charge":"{{charges.charge_string}}"}
+    {% if not forloop.last %},{% endif %}
     {% endfor %}
     ]
 

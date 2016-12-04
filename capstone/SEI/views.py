@@ -62,34 +62,28 @@ def projectview(request, PWP_num):
 def add_project(request):
     context = {}
 
-    profile_item = get_object_or_404(Profile, user=request.user)
     #TO DO uncomment once user admin is working
+    #profile_item = get_object_or_404(Profile, user=request.user)
     #if profile_item.user_role == 'NM':
     #    return render(request, 'SEI/permission.html', context)
 
     ChargeStringFormSet = formset_factory(ChargeStringForm)
-    if request.method == "POST":    
-        form = ProjectForm(request.POST)
-        formset = ChargeStringFormSet(data=request.POST)
-    else:
+    if request.method == "GET":
         form = ProjectForm()
         formset = ChargeStringFormSet()
-    context['form'] = form
-    context['chargestring_formset'] = formset
+        context['form'] = form
+        context['chargestring_formset'] = formset
+        return render(request, 'SEI/project.html', context)
+
+    form = ProjectForm(request.POST)
+    formset = ChargeStringFormSet(data=request.POST)
 
     if not form.is_valid():
         return render(request, 'SEI/project.html', context)
 
-    new_project = Project(PWP_num=form.cleaned_data['PWP_num'], \
-                          project_description=form.cleaned_data['project_description'], \
-                          project_budget=form.cleaned_data['project_budget'], \
-                          is_internal=form.cleaned_data['is_internal'], \
-                          start_date=form.cleaned_data['start_date'], \
-                          end_date=form.cleaned_data['end_date'])
-    new_project.save()
+    new_project = form.save()
 
     #save charge strings
-    #project_id = new_project.id
     if formset.is_valid():
         for cs_form in formset:
             if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
@@ -285,8 +279,6 @@ def budget_view(request, PWP_num):
     total_expense_till_now = 0
 
     resource_allocation = {}
-    resource_chart = collections.defaultdict(list)
-    resource_names = {}
     for pm in project_month_list:
         monthly_cost = {}
         project_expense = ProjectExpense.objects.filter(project=project_item, project_date=pm.project_date)
@@ -296,8 +288,6 @@ def budget_view(request, PWP_num):
         person_cost = 0
         for em in employee_month:
             person_cost += em.month_cost
-            resource_chart[em.employee.employee_id].append([project_date, em.time_use])
-            resource_names[em.employee.employee_id] = em.employee.first_name + " " + em.employee.last_name
 
         monthly_cost['person'] = person_cost
 
@@ -315,8 +305,6 @@ def budget_view(request, PWP_num):
                 equipment_cost += pe.cost
             if pe.category == "('O', 'Others')":
                 other_cost += pe.cost
-            resource_chart[pe.id].append([project_date, pe.cost])
-            resource_names[pe.id] = (pe.category, pe.expense_description)
 
         monthly_cost['travel'] = travel_cost
         monthly_cost['subcontractor'] = subcontractor_cost
@@ -335,8 +323,45 @@ def budget_view(request, PWP_num):
     context['budget_balance'] = context['total_budget'] - total_expense_till_now
     context['projected_expense'] = total_expense - total_expense_till_now
     context['projected_remaining'] = context['total_budget'] - total_expense
-    context['resource_chart_data'] = [{'resource':value, 'data':resource_chart[key]} for key, value in resource_names.items()]
     return render(request, "SEI/budget_view.json",context)
+
+@login_required
+def project_resource(request, PWP_num, year):
+    """
+    Gets the project resources for a given project and year to display in the project view graph
+    returns the JSON for d3 chart in
+    :param request: Request
+    :param PWP_num: PWP_num,unique identifier for a project
+    :return: JSON format of budget
+    """
+    context = {}
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    #project_month_list = ProjectMonth.objects.filter(project=project_item, project_date__year = 2016)
+
+    resource_chart = collections.defaultdict(list)
+    resource_names = {}
+    #for pm in project_month_list:
+    
+    project_expense = ProjectExpense.objects.filter(project=project_item, project_date__year=2016)
+    employee_month = EmployeeMonth.objects.filter(project=project_item, project_date__year=2016)
+
+    #get all employees assigned for the given date
+    for em in employee_month:
+        resource_chart[em.employee.employee_id].append([project_date, em.time_use])
+        resource_names[em.employee.employee_id] = em.employee.first_name + " " + em.employee.last_name
+
+    # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
+    travel_cost = 0
+    subcontractor_cost = 0
+    equipment_cost = 0
+    other_cost = 0
+    for pe in project_expense:
+        resource_chart[pe.id].append([project_date, pe.cost])
+        resource_names[pe.id] = (pe.category, pe.expense_description)
+
+    # Store all the 5 kinds of cost in JSON, the key is project_date
+    context['resource_allocation'] = [{'measure':value, 'data':resource_chart[key]} for key, value in resource_names.items()]
+    return render(request, "SEI/resource_allocation.json",context)
 
 @login_required
 def view_employee_list(request, PWP_num, project_date_year, project_date_month):
@@ -532,7 +557,7 @@ def employeeview(request, employee_id):
 # @login_required
 # @transaction.atomic
 def add_team(request):
-    user_profile = get_object_or_404(Profile, user = request.user)
+    #user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
     messages = []
     context['messages'] = messages
@@ -557,12 +582,14 @@ def add_team(request):
 # @login_required
 # @transaction.atomic
 def admin_team(request):
-    user_profile = get_object_or_404(Profile, user = request.user)
+    #user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
     messages = []
-    context['messages'] = messages
-    if user_profile.user_role == 'ITADMIN' or user_profile.user_role == 'ADMIN':
-        return render(request, 'SEI/permission.html', context)
+    #if user_profile.user_role == 'ITADMIN' or user_profile.user_role == 'ADMIN':
+    #    return render(request, 'SEI/permission.html', context)
+
+    teams = Team.objects.all()
+    context['teams'] = teams
 
     if request.method == 'GET':
         form = TeamForm()
@@ -574,9 +601,12 @@ def admin_team(request):
         context['form'] = form
         messages.append("Form contained invalid data")
         return render(request, 'SEI/admin_team.html', context)
+    else:
+        form.save()
+        messages.append("A new team has been added")
+        form = TeamForm()
+        context['form'] = form
 
-    form.save()
-    messages.append("A new team has been added")
     return render(request, 'SEI/admin_team.html', context)
 
 
@@ -605,30 +635,54 @@ def view_team(request, team_id):
     return render(request, 'SEI/teamview.html', context)
 
 def admin_employee(request):
+    #user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
+    messages = []
+    #if user_profile.user_role == 'ITADMIN' or user_profile.user_role == 'ADMIN':
+    #    return render(request, 'SEI/permission.html', context)
+
+    employees = Employee.objects.all()
+    context['employees'] = employees
+
+    if request.method == 'GET':
+        form = EmployeeForm()
+        context['form'] = form
+        return render(request, 'SEI/admin_employee.html', context)
+
+    form = EmployeeForm(request.POST)
+    if not form.is_valid():
+        context['form'] = form
+        messages.append("Form contained invalid data")
+        return render(request, 'SEI/admin_employee.html', context)
+    else:
+        form.save()
+        messages.append("A new employee has been added")
+        form = EmployeeForm()
+        context['form'] = form
+
     return render(request, 'SEI/admin_employee.html', context)
 
 @login_required
 def search_team(request):
-    user_profile = get_object_or_404(Profile, user = request.user)
-    if user_profile.user_role == 'ITADMIN':
-        return render(request, 'SEI/permission.html')
+    #user_profile = get_object_or_404(Profile, user = request.user)
+    #if user_profile.user_role == 'ITADMIN':
+    #    return render(request, 'SEI/permission.html')
 
     return render(request, 'SEI/teamview.html')
 
 @login_required
 def search_employee(request):
-    user_profile = get_object_or_404(Profile, user = request.user)
-    if user_profile.user_role == 'ITADMIN':
-        return render(request, 'SEI/permission.html')
+    #user_profile = get_object_or_404(Profile, user = request.user)
+    #if user_profile.user_role == 'ITADMIN':
+    #    return render(request, 'SEI/permission.html')
 
     return render(request, 'SEI/employeeview.html')    
 
 @login_required
 def search_project(request):
-    user_profile = get_object_or_404(Profile, user = request.user)
-    if user_profile.user_role == 'ITADMIN':
-        return render(request, 'SEI/permission.html')
+    #user_profile = get_object_or_404(Profile, user = request.user)
+    #if user_profile.user_role == 'ITADMIN':
+    #   return render(request, 'SEI/permission.html')
 
     return render(request, 'SEI/projectview.html')    
 

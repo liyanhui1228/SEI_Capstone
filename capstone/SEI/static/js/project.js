@@ -1,6 +1,6 @@
 function getProjectInfo(){
     var PWP_num=$("#search_input").val().toLowerCase();
-    var url="overview/"+PWP_num
+    var url="overview/"+PWP_num;
     d3.json(url, function(error, json) {
        if (error) return console.warn(error);
        d3.select("#PWP_num").text(json['PWP_num'])
@@ -11,13 +11,15 @@ function getProjectInfo(){
        d3.select("#end_date").text(json['end_date'])
        d3.select("#organization_name").text(json['organization_name'])
        d3.select("#team_name").text(json['team_name'])
+       $("#charge_string_list").empty();
        for(var i=0;i<json.charge_string.length;i++){
-           d3.select("#charge_string_list").select("p")
+           d3.select("#charge_string_list").selectAll("p")
              .data(json.charge_string)
              .enter()
              .append("p")
              .text(function(d){
-                return "charge:"+d.charge+"  date:"+d.date
+                console.log(d.charge);
+                return d.charge                
              })
        }
     });
@@ -25,7 +27,7 @@ function getProjectInfo(){
 
 function getBudgetInfo(){
     var PWP_num=$("#search_input").val().toLowerCase();
-    var url="budget/"+PWP_num
+    var url="budget/"+PWP_num;
     d3.json(url, function(error, json) {
        if (error) return console.warn(error);
        d3.select("#project_budget_balance").text(json['project_budget'])
@@ -41,15 +43,25 @@ function getBudgetInfo(){
                 return "Year:"+d.year+"  Month:"+d.month+" Budget:"+d.budget+" Expense:"+d.expense
              })
        }*/
+    });
+}
+
+function getResourceAllocationChart(){
+    var PWP_num=$("#search_input").val().toLowerCase();
+    var year = 2016;
+    var url="resource/"+PWP_num+"/"+year;
+    var dataset = []
+    d3.json(url, function(error, json) {
+       if (error) return console.warn(error);
+       dataset = json['resource_allocation']
+    });
     // draw Visavail.js chart
     var chart = visavailChart().width(800);
     //dataset=[];
-    if (json['resource_chart_data'] != null && json['resource_chart_data'].length > 0){
+    $( "#visavailchart" ).empty();
     d3.select("#visavailchart")
-            .datum(json['resource_chart_data'])
+            .datum(dataset)
             .call(chart);
-            }
-    });
 }
 
 
@@ -65,6 +77,7 @@ $(function(){
     d3.select("#search_btn").on("click",function(){
         getProjectInfo();
         getBudgetInfo();
+        getResourceAllocationChart();
         var row=$("#project_details");
         row.show();
         var resourcerow=$("#resource_chart");

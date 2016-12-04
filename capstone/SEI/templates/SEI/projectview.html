@@ -53,7 +53,7 @@
                                             </tr>
                                             <tr class="detail">
                                                 <td class="detaillabel">Project Budget:</td>
-                                                <td><span id="project_budget_overview"></span></td>
+                                                <td>$<span id="project_budget_overview"></span></td>
                                             </tr>
                                             <tr class="detail">
                                                 <td class="detaillabel">Team Name:</td>
@@ -76,8 +76,8 @@
                                                 <td><span id="organization_name"></span></td>
                                             </tr>
                                             <tr class="detail">
-                                                <td class="detaillabel">Charge:</td>
-                                                <td><span id="charge_string_list"></span></td>
+                                                <td class="detaillabel">Charge String:</td>
+                                                <td><div id="charge_string_list"><p></p></div></td>
                                             </tr>
                                             </tbody>
                                         </table>
@@ -97,19 +97,19 @@
                                     <tbody>
                                             <tr class="detail">
                                                 <td class="detaillabel">Project Budget:</td>
-                                                <td><span id="project_budget_balance"></span></td>
+                                                <td>$<span id="project_budget_balance"></span></td>
                                             </tr>
                                             <tr class="detail">
                                                 <td class="detaillabel">Balance Remaining:</td>
-                                                <td><span id="budget_balance"></span></td>
+                                                <td>$<span id="budget_balance"></span></td>
                                             </tr>
                                             <tr class="detail">
-                                                <td class="detaillabel">Future Budget:</td>
-                                                <td><span id="project_spend"></span></td>
+                                                <td class="detaillabel">Future Budget Needed:</td>
+                                                <td>$<span id="project_spend"></span></td>
                                             </tr>
                                             <tr class="detail">
                                                 <td class="detaillabel">Variance:</td>
-                                                <td><span id="project_remain"></span></td>
+                                                <td>$<span id="project_remain"></span></td>
                                             </tr>
                                             </tbody>
                                         </table>
@@ -129,34 +129,6 @@
   <div id="visavailchart"></div>
                   </div>
 
-
-<script type="text/javascript">
-    var dataset = [{
-        "measure": "Mike Smith",
-        "data": [
-            ["2016-10-01", .25],
-            ["2016-11-01", 50],
-            ["2016-12-01", 85]
-        ]
-    }, {
-        "measure": "John Doe",
-        "data": [
-            ["2016-05-01", 1]
-        ]
-    }];
-</script>
-
-
-<script>
-    // draw Visavail.js chart
-    var chart = visavailChart().width(800);
-    //dataset=[];
-    if (dataset != null && dataset.length > 0){
-    d3.select("#visavailchart")
-            .datum(dataset)
-            .call(chart);
-            }
-</script>
 
                             </div>
                         </div>

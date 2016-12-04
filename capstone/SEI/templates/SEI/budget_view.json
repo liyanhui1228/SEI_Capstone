@@ -1,20 +1,8 @@
+{% load humanize %}
 {
 
-    "project_budget":{{total_budget}},
-    "budget_balance":{{budget_balance}},
-    "projected_spend":{{projected_expense}},
-    "projected_remaining":{{projected_remaining}},
-    "monthly_expense":{
-       {% for item in resource_allocation.items %}
-        "{{item.0}}":{
-          "monthly_budget":{{item.1.monthly_budget}},
-          "person":{{item.1.person}},
-          "travel":{{item.1.travel}},
-          "subcontractor":{{item.1.subcontractor}}
-          "equipment":{{item.1.equipment}},
-          "other":{{item.1.other}},
-          "monthly_total_expense":{{item.1.monthly_total_expense}}
-        }
-      {% endfor %}
-    }
+    "project_budget":"{{total_budget|intcomma}}",
+    "budget_balance":"{{budget_balance|intcomma}}",
+    "projected_spend":"{{projected_expense|intcomma}}",
+    "projected_remaining":"{{projected_remaining|intcomma}}"
 }
