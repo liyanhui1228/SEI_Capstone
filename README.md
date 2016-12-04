@@ -51,4 +51,7 @@ README.md
    }
 }
 ```
-
+#Issues
+## Employee View (quick note for next meeting)
+1. The herf of employee view seems not working, http://localhost:8000/SEI/employee not work, we need to add a / after that to make it work. which means it's http://localhost:8000/SEI/employee/
+2. The allocation graph in employee view has some design issue like the start month not showing up as january but 2016.
