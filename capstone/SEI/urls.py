@@ -35,5 +35,6 @@ urlpatterns = [
     url(r'^admin_team$', SEI.views.admin_team, name='adminTeam'),
     url(r'^admin_employee$', SEI.views.admin_employee, name='adminEmployee'),
     url(r'^get_team/(?P<team_name>\w*)$',SEI.views.get_team),
+    url(r'^get_employee_allocation/(?P<employee_id>\d+)/(?P<year>\d+)$',SEI.views.get_employee_allocation),
     url(r'^resource/(?P<PWP_num>\w+)/(?P<year>.*?)$', SEI.views.project_resource, name='viewProjectResource')
 ]
