@@ -342,8 +342,8 @@ def project_resource(request, PWP_num, year):
     resource_names = {}
     #for pm in project_month_list:
     
-    project_expense = ProjectExpense.objects.filter(project=project_item, project_date__year=2016)
-    employee_month = EmployeeMonth.objects.filter(project=project_item, project_date__year=2016)
+    project_expense = ProjectExpense.objects.filter(project=project_item, project_date__year=year)
+    employee_month = EmployeeMonth.objects.filter(project=project_item, project_date__year=year)
 
     #get all employees assigned for the given date
     for em in employee_month:
