@@ -17,7 +17,7 @@ function getEmployeList(){
   });
 }
 
-function showContent(e){
+function show_morris_content(e){
   var employee_id=$(e.target).attr("id");
   var employee_name=$(e.target).text();
   $("#header").show()
@@ -29,7 +29,6 @@ function showContent(e){
    .done(function(data){
       renderDonutChart(data);
       renderLineChart(data);
-      renderAllocationChart(data);
    });
 }
 
@@ -41,9 +40,9 @@ function removeModal(){
 }
 
 function renderDonutChart(data){
-    var json=JSON.parse(data)
-    var donut_chart=$("#donut_chart")
-    donut_chart.hide()
+  var json=JSON.parse(data)
+  var donut_chart=$("#donut_chart")
+  donut_chart.hide()
     var d = new Date();
     var currentmonth = d.getYear()+1900+"-"+(d.getMonth()+1)+"-01";
     donut_data=[]
@@ -60,7 +59,7 @@ function renderDonutChart(data){
             data: donut_data,
             resize:true
       });
-   }
+    } 
 }
 
 function renderLineChart(data){
@@ -108,11 +107,28 @@ function renderLineChart(data){
     }
 }
 
-  function renderAllocationChart(data){
-        var resourcerow=$("#resource_chart");
-        resourcerow.show();
-
-  }
+function show_d3_content(e){
+    var employee_id=$(e.target).attr("id");
+    project_allocation_chart=$("#visavailchart")
+    var year=new Date().getFullYear();
+    $.get("/SEI/get_employee_allocation/"+employee_id+"/"+year)
+    .done(function(data){
+        var json = JSON.parse(data);
+        var chart = visavailChart().width(800);
+        dataset=[];
+        if (json['resource_chart_data'] != null && json['resource_chart_data'].length > 0){
+          dataset = json['resource_chart_data']
+        }
+        else
+          dataset = []
+        
+        project_allocation_chart.empty();
+        d3.select("#visavailchart")
+          .datum(dataset)
+          .call(chart);
+    });
+    $("#project_allocation_chart").show();
+}
 
 
 $(function(){
@@ -120,5 +136,7 @@ $(function(){
        removeModal();
     });
     $("#search_btn").click(getEmployeList);
-    $("#employee_list").on("click","li",showContent);
+    $("#employee_list").on("click","li",show_d3_content);
+    console.log("here")
+    $("#employee_list").on("click","li",show_morris_content);
 })

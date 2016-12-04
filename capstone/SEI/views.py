@@ -465,6 +465,20 @@ def get_employee_project(request,employee_id):
     return HttpResponse(json.dumps(projects))
 
 @login_required
+def get_employee_allocation(request,employee_id,year):
+    context = {}
+    employee = get_object_or_404(Employee, id = employee_id)
+    employee_month_list = EmployeeMonth.objects.filter(employee=employee, project_date__year=year)
+ 
+    resource_chart = collections.defaultdict(list)
+    for em in employee_month_list:
+        resource_chart[em.project.PWP_num].append([str(em.project_date), em.time_use])
+ 
+    context['resource_chart_data'] = [{'measure':key, 'data':value} for key, value in resource_chart.items()]
+
+    return HttpResponse(json.dumps(context))
+
+@login_required
 def add_resources(request, PWP_num):
     context = {}
     messages = []
