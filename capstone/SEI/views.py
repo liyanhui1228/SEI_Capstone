@@ -28,7 +28,7 @@ def reset_employee_availability_at_begin_of_month():
 
 def admin_check(user):
     employee_item = get_object_or_404(Profile, user=user)
-    return employee_item.user_role == "NM"
+    return employee_item.user_role == "ADMIN"
 
 
 # For solving the decimal is not serializable error when dumping json
@@ -66,6 +66,7 @@ def projectview(request, PWP_num):
 
 @login_required
 @transaction.atomic
+@user_passes_test(admin_check)
 def add_project(request):
     context = {}
 
@@ -147,6 +148,7 @@ def profile(request, user_name):
 ##can add a if tag in the template to hide salary and role from normal user
 @login_required
 @transaction.atomic
+@user_passes_test(admin_check)
 def update_profile(request):
     context = {}
 
@@ -179,6 +181,7 @@ def update_profile(request):
 
 
 @transaction.atomic
+@user_passes_test(admin_check)
 def register(request):
     context = {}
 
@@ -409,6 +412,7 @@ def view_employee_list(request, PWP_num, project_date_year, project_date_month):
     return render(request, "SEI/employee_list.json", context)
 
 @login_required
+@user_passes_test(admin_check)
 def add_employee(request, employee_chosen):
     employee_chosen_json = json.loads(employee_chosen)
     context = {}
@@ -512,6 +516,7 @@ def get_employee_allocation(request,employee_id,year):
     return HttpResponse(json.dumps(context))
 
 @login_required
+@user_passes_test(admin_check)
 def add_resources(request, PWP_num):
     context = {}
     messages = []
@@ -541,6 +546,7 @@ def add_resources(request, PWP_num):
     return render(request, 'SEI/resource.html', context)
 
 @login_required
+@user_passes_test(admin_check)
 def add_expense(request,expense_detail):
     """
     add expense_detail for a specific project in category: travel, subcontractor, etc
@@ -578,6 +584,7 @@ def employeeview(request, employee_id):
 
 # @login_required
 # @transaction.atomic
+@user_passes_test(admin_check)
 def add_team(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
@@ -718,6 +725,7 @@ def get_team(request,team_name):
     return HttpResponse(team_list_result, content_type="application/json")
 
 @login_required
+@user_passes_test(admin_check)
 def bulk_upload(request,file_path):
     """
     bulk upload the employee information from csv file path
