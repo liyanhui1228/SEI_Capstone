@@ -60,11 +60,11 @@
                                     </p>
                                     <p class="list-group-item">
                                         <span >Manager:</span>
-                                        <span >{{ team.manager }}</span>
+                                        <span >{{ team.manager.first_name }} {{ team.manager.last_name }}</span>
                                     </p>
                                     <p class="list-group-item">
                                         <span >Directorate:</span>
-                                        <span >{{ team.directorate }}</span>
+                                        <span >{{ team.directorate.first_name }} {{ team.directorate.last_name }}</span>
                                     </p>
                                     <p class="list-group-item">
                                         <span >Division:</span>
@@ -89,12 +89,13 @@
                                         <!-- Project Burn is the Budget Overview Variance -->
                                         <th>Projected Burn(Over/Under)</th>
                                       </tr>
+                                    {% load humanize %}
                                     {% for project in projects  %}
                                       <tr>
                                         <td><a href="{% url 'projectview' project.PWP_num %}">{{ project.PWP_num }}</a></td>
                                         <td>{{ project.project_description }}</td>
                                         
-                                        <td>{{ project.project_budget }}</td>
+                                        <td>${{ project.project_budget|intcomma }}</td>
 										</tr>
 									{% endfor %}
                                     </table>
@@ -116,11 +117,9 @@
                                       </tr>
                                       {% for employee in employees  %}
                                       <tr>
-                                        <td><a href="{% url 'employeeview' employee.employee_id %}">{{ employee.first_name }}  {{ employee.last_name }}</a></td>
-										{% comment %}
-                                        <td>{{ employee.employee_id }}</td>
+                                        <td><a href="{% url 'employeeview' employee.id %}">{{ employee.first_name }}  {{ employee.last_name }}</a></td>
+                                        <td>{{ employee.id }}</td>
                                         <td>{{ employee.allocation }}</td>
-										{% endcomment %}
                                     </tr>
                                     {% endfor %}
                                     </table>

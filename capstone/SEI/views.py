@@ -626,10 +626,10 @@ def admin_team(request):
 
 ##@login_required
 def view_team(request, team_id):
-    user_profile = get_object_or_404(Profile, user = request.user)
+    #user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
-    if user_profile.user_role == 'ITADMIN':
-        return render(request, 'SEI/permission.html', context)
+    #if user_profile.user_role == 'ITADMIN':
+    #    return render(request, 'SEI/permission.html', context)
 
     if team_id != None:
         team = get_object_or_404(Team, id = team_id)
