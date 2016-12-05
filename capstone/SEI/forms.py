@@ -61,11 +61,16 @@ class UserForm(forms.ModelForm):
         cleaned_data = super(UserForm, self).clean()
         return cleaned_data
 
+class ProjectModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "%s" % (obj.team_name)
+
 class ProjectForm(forms.ModelForm):
     error_css_class = 'error'
     required_css_class = 'required'
     start_date = forms.DateField()
     end_date = forms.DateField()
+    team = ProjectModelChoiceField(queryset=Team.objects.all())
     
     class Meta:
         model = Project
@@ -122,7 +127,13 @@ class AddEmployeeForm(forms.Form):
         cleaned_data = super(AddEmployeeForm, self).clean()
         return cleaned_data
 
+class TeamModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "%s %s" % (obj.first_name, obj.last_name)
+
 class TeamForm(forms.ModelForm):
+    manager = TeamModelChoiceField(queryset=Employee.objects.all())
+    directorate = TeamModelChoiceField(queryset=Employee.objects.all())
     class Meta:
         model = Team
         fields = '__all__'
@@ -132,7 +143,12 @@ class TeamForm(forms.ModelForm):
         cleaned_data = super(TeamForm, self).clean()
         return cleaned_data
 
+class EmployeeModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "%s" % (obj.team_name)
+
 class EmployeeForm(forms.ModelForm):
+    team = EmployeeModelChoiceField(queryset=Team.objects.all())
     class Meta:
         model = Employee
         fields = '__all__'
