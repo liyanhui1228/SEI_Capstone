@@ -64,27 +64,21 @@ function getResourceAllocationChart(){
             .call(chart);
 }
 
-
-/*$(document).ready(function(){
-    d3.select("#search_btn").on("click",function(){
-        getProjectInfo();
-        getBudgetInfo();
-    })
-})
-*/
 $(function(){
-    //$("#search_btn").click(getEmployeList);
     d3.select("#search_btn").on("click",function(){
+
         getProjectInfo();
         getBudgetInfo();
         getResourceAllocationChart();
+        var PWP_num=$("#search_input").val().toLowerCase();
+        var form=$("#editform")
+        form.attr('action','/SEI/edit_project/'+PWP_num)
+        var header=$("#header");
+        header.show();
         var row=$("#project_details");
         row.show();
         var resourcerow=$("#resource_chart");
         resourcerow.show();
     })
-
-    // $("#myModal").on("show.bs.modal", getEmployeList);
-    //$("#employee_list").on("click","li",showContent);
 })
 

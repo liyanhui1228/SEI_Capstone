@@ -4,7 +4,7 @@
 
 {% block content %}
                 <div class="row">
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 col-lg-offset-3">
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Add New Team</h3>
@@ -14,7 +14,7 @@
                             		<div class="list-group">
 										<form action="{% url 'adminTeam' %}" method="post">
 											{{ form.as_p }}
-										<input type="submit" value="Create">
+										<input type="submit" class="btn btn-primary" value="Create">
 										{% csrf_token %}
 										</form>
                                 </div>                                
@@ -39,6 +39,7 @@
                                         <th>Manager</th>
                                         <th>Directorate</th>
                                         <th>Division</th>
+                                        <th>Operation</th>
                                       </tr>
                                       {% for team in teams  %}
                                       <tr>
@@ -46,6 +47,7 @@
                                         <td>{{ team.manager.first_name }} {{ team.manager.last_name }}</td>
                                         <td>{{ team.directorate.first_name }} {{ team.directorate.last_name }}</td>
                                         <td>{{ team.division }}</td>
+                                        <td><form action="{% url 'edit_team' team_id=team.id %}"><input type="submit" class="btn btn-primary" value="edit"></input></form>
                                     </tr>
                                     {% endfor %}
                                     </table>

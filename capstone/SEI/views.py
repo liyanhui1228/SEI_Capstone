@@ -107,29 +107,38 @@ def add_project(request):
 @transaction.atomic
 @user_passes_test(admin_check)
 def edit_project(request, PWP_num):
-    context = {}
-
-    employee_item = get_object_or_404(Employee, user=request.user)
-    if employee_item.user_role == 'NM':
-        return render(request, 'SEI/permission.html', context)
-
-    try:
-        project_item = Project.objects.get(PWP_num=PWP_num)
-    except:
-        project_item = Project(PWP_num=PWP_num)
-    if request.method == 'POST':
-        project_form = ProjectForm(request.POST, instance=project_item)
-        context['form'] = profile_form
-        if project_form.is_valid():
-            project_form.save()
-            return redirect('projectview', PWP_num=PWP_num)
-        else:
-            return render(request, 'SEI/edit_project.html', context)
-    else:
+    
+    ChargeStringFormSet = formset_factory(ChargeStringForm)
+    if request.method == 'GET':
+        project_item = get_object_or_404(Project,PWP_num=PWP_num)
         project_form = ProjectForm(instance=project_item)
-        return render(request, 'SEI/edit_project.html', {
-            'form': project_form
-        })
+        formset = ChargeStringFormSet()
+        context={}
+        context['form'] = project_form
+        context['PWP_num']=project_item.PWP_num
+        context['chargestring_formset'] = formset
+        return render(request, 'SEI/edit_project.html', context)
+    
+    project_item = get_object_or_404(Project,PWP_num=PWP_num)
+    project_form=ProjectForm(request.POST,instance=project_item)
+    formset = ChargeStringFormSet(data=request.POST)
+
+    if project_form.is_valid():
+        project_form.save()
+        return redirect(reverse('projectsearch'))
+
+    #save charge strings
+    if formset.is_valid():
+        for cs_form in formset:
+            if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
+                new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
+                    project = new_project)
+                new_charge_string.save()
+
+    return render(request,'SEI/edit_project.html',{'form':project_form})
+
+
+        
 
 @login_required
 def profile(request, user_name):
@@ -358,8 +367,8 @@ def project_resource(request, PWP_num, year):
 
     #get all employees assigned for the given date
     for em in employee_month:
-        resource_chart[em.employee.employee_id].append([project_date, em.time_use])
-        resource_names[em.employee.employee_id] = em.employee.first_name + " " + em.employee.last_name
+        resource_chart[em.employee.id].append([em.project_date, em.time_use])
+        resource_names[em.employee.id] = em.employee.first_name + " " + em.employee.last_name
 
     # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
     travel_cost = 0
@@ -637,6 +646,40 @@ def admin_team(request):
         context['form'] = form
 
     return render(request, 'SEI/admin_team.html', context)
+
+@login_required
+def edit_team(request,team_id):
+ 
+    if request.method=='GET':
+        team = get_object_or_404(Team,id=team_id)
+        form=TeamForm(instance=team)
+        return render(request,'SEI/edit_team.html',{'form':form,'id':team.id})
+
+    team=get_object_or_404(Team,id=team_id)
+    form=TeamForm(request.POST,instance=team)
+    if not form.is_valid():
+        context['form']=form
+        return render(request,'SEI/edit_team.html',context)
+    else:
+        form.save()
+        return redirect(reverse('adminTeam'))
+
+@login_required
+def edit_employee(request,employee_id):
+ 
+    if request.method=='GET':
+        employee = get_object_or_404(Employee,id=employee_id)
+        form=EmployeeForm(instance=employee)
+        return render(request,'SEI/edit_employee.html',{'form':form,'id':employee.id})
+
+    employee=get_object_or_404(Employee,id=employee_id)
+    form=EmployeeForm(request.POST,instance=employee)
+    if not form.is_valid():
+        context['form']=form
+        return render(request,'SEI/edit_employee.html',context)
+    else:
+        form.save()
+        return redirect(reverse('search_employee'))
 
 
 ##@login_required

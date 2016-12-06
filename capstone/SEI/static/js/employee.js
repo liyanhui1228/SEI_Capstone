@@ -1,4 +1,4 @@
-function getEmployeList(){
+function getEmployeList(){      
   var input=$("#search_input").val().toLowerCase().split(/\s+/g);
   var first_name=input[0];
   var last_name=input[1];
@@ -137,6 +137,5 @@ $(function(){
     });
     $("#search_btn").click(getEmployeList);
     $("#employee_list").on("click","li",show_d3_content);
-    console.log("here")
     $("#employee_list").on("click","li",show_morris_content);
 })

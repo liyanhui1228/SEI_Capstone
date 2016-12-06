@@ -4,7 +4,7 @@
 
 {% block content %}
                 <div class="row">
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 col-lg-offset-3">
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Add New Employee</h3>
@@ -14,7 +14,7 @@
                             		<div class="list-group">
 										<form action="{% url 'adminEmployee' %}" method="post">
 											{{ form.as_p }}
-										<input type="submit" value="Create">
+										<input type="submit" class="btn btn-primary" value="Create">
 										{% csrf_token %}
 										</form>
                                 </div>                                
@@ -42,6 +42,7 @@
                                         <th>Internal salary</th>
                                         <th>External salary</th>
                                         <th>Team</th>
+                                        <th>Operation</th>
                                       </tr>
                                       {% for employee in employees  %}
                                       <tr>
@@ -52,6 +53,7 @@
                                         <td>{{ employee.internal_salary }}</td>
                                         <td>{{ employee.external_salary }}</td>
                                         <td>{{ employee.team.team_name }}</td>
+                                        <td><form action="{% url 'edit_employee' employee_id=employee.id %}"><input type="submit" class="btn btn-primary" value="edit"></input></form></td>
                                     </tr>
                                     {% endfor %}
                                     </table>                                
