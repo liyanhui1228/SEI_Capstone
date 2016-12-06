@@ -47,7 +47,7 @@
                                         <td>{{ team.manager.first_name }} {{ team.manager.last_name }}</td>
                                         <td>{{ team.directorate.first_name }} {{ team.directorate.last_name }}</td>
                                         <td>{{ team.division }}</td>
-                                        <td><form action="{% url 'edit_team' team_id=team.id %}"><input type="submit" class="btn btn-primary" value="edit"></input></form>
+                                        <td><form action="{% url 'edit_team' team_id=team.id %}"><input type="submit" class="btn btn-primary" value="edit"></input></form></td>
                                     </tr>
                                     {% endfor %}
                                     </table>

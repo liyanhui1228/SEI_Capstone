@@ -138,7 +138,7 @@ class EmployeeForm(forms.ModelForm):
     
     class Meta:
         model = Employee
-        fields = '__all__'
+        exclude=('employee_uid',)
         widgets={
            'first_name' : forms.TextInput(attrs={'class':'form-control'}),
            'last_name' : forms.TextInput(attrs={'class':'form-control'}),
