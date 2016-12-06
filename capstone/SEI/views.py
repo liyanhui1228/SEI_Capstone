@@ -758,6 +758,24 @@ def bulk_upload(request,file_path = "/Users/eccco_yao/Desktop/example.csv"):
                     failed_row.append(str(index+1))
     print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
 
+def update_salary_history(employee_uid, internal_salary, external_salary):
+    employee = get_object_or_404(Employee,employee_uid=employee_uid)
+    emp_salary_history = SalaryHistory.objects.filter(employee=employee)
+    now_datetime = datetime.datetime.now()
+    now_date = str(now_datetime.year) + '-' + str(now_datetime.month) + '-' + str(now_datetime.day)
+    if not emp_salary_history:
+        emp_salary_history = SalaryHistory.objects.create(employee=employee, internal_salary = internal_salary, external_salary = external_salary, effective_from = now_date)
+        emp_salary_history.save()
+    else:
+        emp_salary_history_latest = emp_salary_history.latest()
+        internal_recent = emp_salary_history_latest.internal_salary
+        external_recent = emp_salary_history_latest.external_salary
+        if internal_recent != internal_salary or external_recent != external_salary:
+            emp_salary_history_latest.effective_until = now_date
+            emp_salary_history_latest.save(update_fields=["effective_until"])
+            new_salary = SalaryHistory.objects.create(employee=employee, internal_salary=internal_salary, external_salary=external_salary, effective_from=now_date)
+            new_salary.save()
+
 
 
 def employee_validation(row):
@@ -799,6 +817,9 @@ def update_or_create_employee(employee):
             employee_uid=employee['employee_uid'],
             defaults=employee,
         )
+        update_salary_history(employee['employee_uid'], employee['internal_salary'],
+                              employee['external_salary'])
+
         if created:
             return 1
         else:return 2

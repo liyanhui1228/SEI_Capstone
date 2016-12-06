@@ -81,6 +81,8 @@ class ProjectExpense(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
 class SalaryHistory(models.Model):
+    class Meta:
+        get_latest_by = 'effective_from'
     effective_from = models.DateField()
     effective_until = models.DateField(null=True)
     internal_salary = models.DecimalField(max_digits=8, decimal_places=2)
