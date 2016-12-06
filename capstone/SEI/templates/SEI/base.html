@@ -24,8 +24,7 @@
         window.open(href, windowname, 'width=600,height=400,left=350,top=200,scrollbars=no,toolbar=no,directories=no'); 
         return false; 
       }
-
-</script>
+    </script>
 {% block title %}{% endblock %}
 {% block head %}{% endblock %}	<!--for javascript if needed -->
 
@@ -69,9 +68,11 @@
                         <li>
                             <a href="#"><i class="fa fa-fw fa-folder"></i> Export</a>
                         </li>
+                        {% if request.user.is_superuser %}
                         <li>
                             <a href="#"><i class="fa fa-fw fa-cloud-upload"></i> Bulk Upload</a>
                         </li>
+                        {% endif %}
                         <li>
                             <a href="#"><i class="fa fa-fw fa-gear"></i> Settings</a>
                         </li>
@@ -88,9 +89,11 @@
                     <li>
                         <a href="javascript:;" data-toggle="collapse" data-target="#Project"><i class="fa fa-fw fa-cubes"></i> Project <i class="fa fa-fw fa-caret-down"></i></a>
                         <ul id="Project" class="collapse">
+                            {% if request.user.is_superuser %}
                             <li>
                                 <a href="{% url 'addProject' %}">Add Project</a>
                             </li>
+                            {% endif %}
                             <li>
                                 <a href="{% url 'projectsearch' %}">View Project</a>
                             </li>
@@ -102,17 +105,19 @@
                     <li>
                         <a href="{% url 'employeesearch' %}"><i class="fa fa-fw fa-sitemap"></i> Employee</a>
                     </li>
-                    <li>
-                        <a href="javascript:;" data-toggle="collapse" data-target="#Admin"><i class="fa fa-user"></i> Admin <i class="fa fa-fw fa-caret-down"></i></a>
-                        <ul id="Admin" class="collapse">
-                            <li>
-                                <a href="{% url 'adminTeam' %}">Modify Team</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'adminEmployee' %}">Modify Employee</a>
-                            </li>
-                        </ul>
-                    </li>
+                        {% if request.user.is_superuser %}
+                        <li>
+                            <a href="javascript:;" data-toggle="collapse" data-target="#Admin"><i class="fa fa-fw fa-user"></i> Admin <i class="fa fa-fw fa-caret-down"></i></a>
+                            <ul id="Admin" class="collapse">
+                                <li>
+                                    <a href="{% url 'adminTeam' %}">Modify Team</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'adminEmployee' %}">Modify Employee</a>
+                                </li>
+                            </ul>
+                        </li>
+                        {% endif %}
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
