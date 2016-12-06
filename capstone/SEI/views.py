@@ -21,14 +21,15 @@ from django.forms.formsets import formset_factory
 import collections
 
 from django.contrib.auth.decorators import user_passes_test
-import csv
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
 def reset_employee_availability_at_begin_of_month():
     pass
 
 def admin_check(user):
-    return user.is_superuser
+    employee_item = get_object_or_404(Profile, user=user)
+    return employee_item.user_role == "ADMIN"
+
 
 # For solving the decimal is not serializable error when dumping json
 def decimal_default(obj):
@@ -725,7 +726,7 @@ def get_team(request,team_name):
 
 @login_required
 @user_passes_test(admin_check)
-def bulk_upload(request,file_path = "/Users/eccco_yao/Desktop/example.csv"):
+def bulk_upload(request,file_path):
     """
     bulk upload the employee information from csv file path
     csv file format:
@@ -828,7 +829,7 @@ def update_or_create_employee(employee):
 
 
 @login_required
-def team_view_chart(request, team_id=1):
+def team_view(request, team_id,year):
     """
     view the team budget and expense in a given year
     :param request: Request
@@ -836,13 +837,13 @@ def team_view_chart(request, team_id=1):
     :param year: year requested
     :return: JSON format result
     """
-    year = datetime.datetime.now().year
+    year = int(year)
     team = get_object_or_404(Team,id=team_id)
     project_set = Project.objects.filter(team=team)
 
     context = {}
 
-    resource_allocation = []
+    resource_allocation = {}
     for month in (1,2,3,4,5,6,7,8,9,10,11,12):
         date = datetime.date(year,month,1)
         monthly_cost = {}
@@ -865,7 +866,6 @@ def team_view_chart(request, team_id=1):
             if pe.category == "('O', 'Others')":
                 other_cost += pe.cost
 
-        monthly_cost['month'] = month
         monthly_cost['travel'] = travel_cost
         monthly_cost['subcontractor'] = subcontractor_cost
         monthly_cost['equipment'] = equipment_cost
@@ -881,12 +881,11 @@ def team_view_chart(request, team_id=1):
 
         month_budget = 0
         for pm in project_month_list:
-            if pm.budget:
-                month_budget += pm.budget
+            month_budget += pm.budget
         monthly_cost['monthly_budget'] = month_budget
         # Store all the 5 kinds of cost in JSON, the key is project_date
 
-        resource_allocation.append(monthly_cost)
+        resource_allocation[str(year) + "." + str(month)] = monthly_cost
 
     context['resource_allocation'] = resource_allocation
     return render(request, "SEI/resource_allocation.json", context)
