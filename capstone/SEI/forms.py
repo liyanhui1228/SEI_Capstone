@@ -5,20 +5,6 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.humanize.templatetags.humanize import intcomma
 
-# MonthCategory = (
-#     ('January', 'January'),
-#     ('February', 'February'),
-#     ('March', 'March'),
-#     ('April', 'April'),
-#     ('May', 'May'),
-#     ('June', 'June'),
-#     ('July', 'July'),
-#     ('August', 'August'),
-#     ('September', 'September'),
-#     ('October', 'October'),
-#     ('November', 'November'),
-#     ('December', 'December'),
-# )
 
 class RegistrationForm(forms.Form):
     first_name = forms.CharField(max_length=40)
@@ -74,13 +60,7 @@ class ProjectForm(forms.ModelForm):
     
     class Meta:
         model = Project
-        # exclude = ('team', 'client', )
         fields = '__all__'
-        widgets = {
-            #'start_date': forms.SelectDateWidget(),
-            #'end_date': forms.SelectDateWidget(),
-            'project_budget': forms.NumberInput(attrs={'min': 0, 'step':1}),
-         }
 
     def clean(self):
         cleaned_data = super(ProjectForm, self).clean()
@@ -132,12 +112,18 @@ class TeamModelChoiceField(forms.ModelChoiceField):
         return "%s %s" % (obj.first_name, obj.last_name)
 
 class TeamForm(forms.ModelForm):
-    manager = TeamModelChoiceField(queryset=Employee.objects.all())
-    directorate = TeamModelChoiceField(queryset=Employee.objects.all())
+    manager = TeamModelChoiceField(queryset=Employee.objects.all(),widget=forms.Select(attrs={'class':'form-control'}))
+    directorate = TeamModelChoiceField(queryset=Employee.objects.all(),widget=forms.Select(attrs={'class':'form-control'}))
     class Meta:
         model = Team
         fields = '__all__'
+        widgets={
+           'team_name' : forms.TextInput(attrs={'class':'form-control'}),
+           'division' : forms.TextInput(attrs={'class':'form-control'})
+        }
+        
         #exclude = ('team_id', )
+
 
     def clean(self):
         cleaned_data = super(TeamForm, self).clean()
@@ -148,11 +134,19 @@ class EmployeeModelChoiceField(forms.ModelChoiceField):
         return "%s" % (obj.team_name)
 
 class EmployeeForm(forms.ModelForm):
-    team = EmployeeModelChoiceField(queryset=Team.objects.all())
+    team = EmployeeModelChoiceField(queryset=Team.objects.all(),widget=forms.Select(attrs={'class':'form-control'}))
+    
     class Meta:
         model = Employee
         fields = '__all__'
-        #exclude = ('team_id', )
+        widgets={
+           'first_name' : forms.TextInput(attrs={'class':'form-control'}),
+           'last_name' : forms.TextInput(attrs={'class':'form-control'}),
+           'position':forms.TextInput(attrs={'class':'form-control'}),
+           'title':forms.TextInput(attrs={'class':'form-control'}),
+           'internal_salary':forms.NumberInput(attrs={'class':'form-control'}),
+           'external_salary':forms.NumberInput(attrs={'class':'form-control'})
+        }
 
     def clean(self):
         cleaned_data = super(EmployeeForm, self).clean()

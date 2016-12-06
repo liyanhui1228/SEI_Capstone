@@ -53,7 +53,7 @@ $(function(){
 {% block content %}
 <div class="row" align="center">
 	<p>
-	<form action="{% url 'addProject' %}" method="POST">
+	<form action="{% url 'addProject' %}" method="POST" class="form-group">
 {{ chargestring_formset.management_form }}
 	<table id='form_table'>
 	{% for field in form %}
