@@ -1,61 +1,170 @@
 <!DOCTYPE html>
 <html>
-   <head>
-      <title>Resource Allocation</title>
-      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-      {% load static %}
-      <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
-      <!-- css and font for bootstrap template -->
-      <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}">
-      <script>
-           function showblock(menu){
-               if(menu.selectedIndex==0){
-                   var employeeblock=document.getElementById("resource_employee")
-                   employeeblock.style.display='block'
-                   var resourceblock=document.getElementById("resource_other")
-                   resourceblock.style.display='none'
-               }else{
-                   var employeeblock=document.getElementById("resource_employee")
-                   employeeblock.style.display='none'
-                   var resourceblock=document.getElementById("resource_other")
-                   resourceblock.style.display='block'
-               }
-           }
-      </script>
-   </head>
-   <body>
-      <div class="container">
-            <form class="col-md-6 col-md-offset-3" role="form">
-                <h2>Add Resources</h2>
-                <div class="form-group">
-                    <label for="resource" class="col-md-12 control-label">Select Resource:</label>
-                    <div class="col-md-12">
-                        <select id="resource" class="form-control" onchange="showblock(this)">
-                            <option>Employee</option>
-                            <option>Subcontractor</option>
-                            <option>Trip</option>
-                            <option>Equipment</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="resource_employee" style="display:block">
-                    <label for="resource" class="col-md-12 control-label">Add Employee:</label>
-                    <div class="form-group">
-                    <div class="col-md-12">
-                        <button type="submit" class="btn btn-primary btn-block">Add</button>
-                    </div>
-                    <div align="center">
-                  </div>
-                </div>
-                <div id="resource_other" style="display:none">
-                     <label for="resource" class="col-md-12 control-label">Add Resouces:</label>
-                     <div class="col-md-12">
-                         <textarea rows="5" id="description" placeholder="Description" class="form-control"></textarea>
-                         <input type="text" id="cost" placeholder="Cost" class="form-control" autofocus>
-                         <button type="submit" class="btn btn-primary btn-block">Add</button>
-                     </div>
-                </div>
-            </form> <!-- /form -->
-        </div> <!-- ./container -->
-   </body>
+<head>
+  <title>Resource Allocation</title>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  {% load static %}
+  <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
+  <!-- css and font for bootstrap template -->
+  <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}">
+    <script src="{% static "js/jquery.js" %}"></script>
+  <script>
+   function showblock(menu){
+     if(menu.selectedIndex==0){
+       var employeeblock=document.getElementById("resource_employee")
+       employeeblock.style.display='block'
+       var resourceblock=document.getElementById("resource_other")
+       resourceblock.style.display='none'
+     }else{
+       var employeeblock=document.getElementById("resource_employee")
+       employeeblock.style.display='none'
+       var resourceblock=document.getElementById("resource_other")
+       resourceblock.style.display='block'
+     }
+   }
+ </script>
+ <script>
+  $(function(){
+    var pecount =  0;
+    $(".add_other").click(function(e){
+      e.preventDefault();
+      pecount = pecount + 1;
+      var total_other_forms = parseInt($('#id_otherexpense-TOTAL_FORMS').val()) + 1;
+      $('#id_otherexpense-TOTAL_FORMS').val(total_other_forms);
+        //clone the form charge string for new input and replace the name
+        $("#other_table tr:last").clone(true).find("input, select, textarea").each(function() {
+          name = replaceName(pecount, 'name');
+          $(this).val('').attr('id', "id_" + name).attr('name', name);
+        }).end().find("label").each(function() { 
+          name = replaceName(pecount, 'for');
+          $(this).val('').attr('for', name);
+        }).end().appendTo("#other_table");
+        var t = document.getElementById('other_table');
+        console.log(t);
+        var removeBtn = '<button id="remove_other' + (pecount - 1) + '" class="btn btn-danger remove_other" >-</button>';
+        var removeButton = $(removeBtn);
+        $( this ).replaceWith(removeButton);
+        $("#pecount").val(pecount);  
+        $('.remove_other').unbind().click(function(e){
+          e.preventDefault();
+          var fieldNum = this.id.charAt(this.id.length-1);
+          $(this).closest('tr').remove();
+          var total_forms = parseInt($('#id_otherexpense-TOTAL_FORMS').val()) - 1;
+          $('#id_otherexpense-TOTAL_FORMS').val(total_forms);
+        });
+      });
+  });
+
+/* not sure this is actually needed
+$(function(){
+    var pecount =  0;
+    $(".add_employee").click(function(e){
+        e.preventDefault();
+        pecount = pecount + 1;
+        var total_other_forms = parseInt($('#id_otherexpense-TOTAL_FORMS').val()) + 1;
+        $('#id_otherexpense-TOTAL_FORMS').val(total_other_forms);
+        //clone the form charge string for new input and replace the name
+        $("#other_table tr:last").clone(true).find("input").each(function() {
+          name = replaceName(pecount, 'name');
+        $(this).val('').attr('id', "id_" + name).attr('name', name);
+          }).end().find("select").each(function() {
+          name = replaceName(pecount, 'name');
+        $(this).val('').attr('id', "id_" + name).attr('name', name);
+          }).end().find("textarea").each(function() {
+          name = replaceName(pecount, 'name');
+        $(this).val('').attr('id', "id_" + name).attr('name', name);
+          }).end().find("label").each(function() { 
+          name = replaceName(pecount, 'for');
+            $(this).val('').attr('for', name);
+          }).end().appendTo("#other_table");
+        var t = document.getElementById('other_table');
+        console.log(t);
+        var removeBtn = '<button id="remove_other' + (pecount - 1) + '" class="btn btn-danger remove_other" >-</button>';
+        var removeButton = $(removeBtn);
+        $( this ).replaceWith(removeButton);
+        $("#pecount").val(pecount);  
+            $('.remove_other').unbind().click(function(e){
+                e.preventDefault();
+                var fieldNum = this.id.charAt(this.id.length-1);
+                $(this).closest('tr').remove();
+                var total_forms = parseInt($('#id_otherexpense-TOTAL_FORMS').val()) - 1;
+                $('#id_otherexpense-TOTAL_FORMS').val(total_forms);
+            });
+    });
+});
+*/
+
+function replaceName(count, tag){
+  idArray = $(this).attr(tag).split("-");
+  name = $(this).attr(tag).replace(idArray[1], count);
+  return name;
+}
+</script>
+</head>
+<body>
+  <div class="row" align="center">
+    <div class="container">
+      <form class="col-md-6 col-md-offset-3" role="form">
+        <h2>Add Resources</h2>
+        <div class="form-group">
+          <table id='form_table'>
+            {% for field in form %}
+            <tr><td>{{ field.label_tag }}</td><td>{{ field }}</td><td>{{ field.errors }}</td></tr>
+            {% endfor %}
+          </table>
+          <label for="resource" class="col-md-12 control-label">Select Resource:</label>
+          <div class="col-md-12">
+          </div>
+
+          <select id="resource" class="form-control" onchange="showblock(this)">
+            <option>Employee</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div id="resource_employee" style="display:block">
+          <label for="resource" class="col-md-12 control-label">Add Employee:</label>
+          <div class="form-group">
+            <form action="{% url 'addResources' project.PWP_num %}" method="POST">
+             {{ employeeexpense_formset.management_form }}
+          <button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
+          </form>
+
+        </div>
+      </div>
+      <div id="resource_other" style="display:none">
+       <label for="resource" class="col-md-12 control-label">Add Resouces:</label>
+       <div class="col-md-12">
+        <form action="{% url 'addResources' project.PWP_num %}" method="POST">
+          {{ projectexpense_formset.management_form }}
+          <table id='other_table'>
+            <thead>
+              <th>Category</th>
+              <th>Cost</th>
+              <th>Description</th>
+            </thead>
+            {% for projectexpense_form in projectexpense_formset %}
+            <tr>
+              <td>{{ projectexpense_form.category }}</td>
+              <td>{{ projectexpense_form.cost }}</td>
+              <td>{{ projectexpense_form.expense_description }}</td>
+              <td><button id="add_other" class="btn add_other" type="button">+</button></td>
+            </tr>
+            {% endfor %}
+          </table>
+
+          <div class="col-md-12">
+          <button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </form> <!-- /form -->
+</div> <!-- ./container -->
+
+</div>
+<input type="hidden" name="eecount" value="1" />
+<input type="hidden" name="pecount" value="1" />
+
+\{% csrf_token %}
+</body>
 </html>

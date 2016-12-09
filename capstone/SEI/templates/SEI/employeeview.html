@@ -5,6 +5,8 @@
 {% block head %}
 <!-- Flot Charts JavaScript -->
 <!--[if lte IE 8]><script src="js/excanvas.min.js"></script><![endif]-->
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% load static %}
 <!-- /#wrapper -->
 <script src="{% static "js/employee.js" %}"></script>
@@ -19,7 +21,6 @@
 <script src="{% static "vendors/d3/d3.min.js" %}"></script>
 <script src="{% static "js/visavail.js" %}"></script>
 <link rel="stylesheet" href="{% static "css/visavail.css" %}">
-
 {% endblock %}
 {% block content %}
 <div class="row">
@@ -27,9 +28,9 @@
       <div class="input-group col-md-12">
          <input id="search_input" type="text" class="search-query form-control" value="" placeholder="Search with Employee Name" />
          <span class="input-group-btn">
-         <button id="search_btn" class="btn btn-danger" type="button">
-         <span class=" glyphicon glyphicon-search"></span>
-         </button>
+            <button id="search_btn" class="btn btn-danger" type="button">
+               <span class=" glyphicon glyphicon-search"></span>
+            </button>
          </span>
       </div>
    </div>
@@ -91,6 +92,21 @@
          <div class="panel-body">
             <div id="visavailchart"></div>
          </div>
+      </div>
+   </div>
+</div>
+<div class="row" id="reporting" style="display: none">
+   <div class="col-lg-12">
+   <div class="panel panel-default">
+       <div class="panel-heading">
+         Reporting
+      </div>
+      <div class="panel-body">
+         <form action="" method="POST">
+            {% csrf_token %}
+            {{ form.as_table }}
+            <input id="submit" type="submit" value="Submit">
+         </form>         </div>
       </div>
    </div>
 </div>

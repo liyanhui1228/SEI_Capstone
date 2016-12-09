@@ -128,6 +128,7 @@ function show_d3_content(e){
           .call(chart);
     });
     $("#project_allocation_chart").show();
+    $("#reporting").show();
 }
 
 

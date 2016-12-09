@@ -18,9 +18,11 @@ from SEI.models import ProjectMonth
 from django.core import serializers
 from django.forms.models import model_to_dict
 from django.forms.formsets import formset_factory
+from django.forms import inlineformset_factory
 import collections
 import csv
 from django.utils.encoding import smart_str
+import pdb
 
 from django.contrib.auth.decorators import user_passes_test
 
@@ -48,9 +50,8 @@ def home(request):
 
     #elif show their employee view
 
-    #otherwise show project search 
-
-    return render(request, 'SEI/home.html', {})
+    #otherwise show project search
+    return render(request, 'SEI/home.html', context)
 
 
 @login_required
@@ -67,7 +68,7 @@ def projectview(request, PWP_num):
 
 @login_required
 @transaction.atomic
-@user_passes_test(admin_check)
+#@user_passes_test(admin_check)
 def add_project(request):
     context = {}
 
@@ -382,7 +383,7 @@ def project_resource(request, PWP_num, year):
 
     # Store all the 5 kinds of cost in JSON, the key is project_date
     context['resource_allocation'] = [{'measure':value, 'data':resource_chart[key]} for key, value in resource_names.items()]
-    return render(request, "SEI/resource_allocation.json",context)
+    return HttpResponse(json.dumps(context))
 
 @login_required
 def view_employee_list(request, PWP_num, project_date_year, project_date_month):
@@ -532,15 +533,47 @@ def add_resources(request, PWP_num):
     messages = []
     context['messages'] = messages
     project_item = get_object_or_404(Project, PWP_num = PWP_num)
-    if request.method == 'GET':
-        form = ResourceForm()
+    project_team_emp = Employee.objects.filter(team = project_item.team)
+
+    ProjectExpenseFormSet = formset_factory(ProjectExpenseForm)
+    EmployeeMonthFormSet = inlineformset_factory(Employee, EmployeeMonth, fields=('__all__'))
+   #EmployeeFormSet = inlineformset_factory(Employee, Book, fields=('title',))
+
+    if request.method == "GET":
+        #pdb.set_trace()
+        form = ProjectMonthForm()
+        otherFS = ProjectExpenseFormSet(prefix="otherexpense")
+        employeeFS = EmployeeMonthFormSet(prefix="employeeexpense", instance=project_team_emp)
+
+        #for emp in project_team_emp:
+        #    em = EmployeeMonthForm(initial={'employee': emp})
+            #em.employee = emp
+        #    employeeFS.forms.append(em)
+
         context['form'] = form
+        context['projectexpense_formset'] = otherFS
+        context['employeeexpense_formset'] = employeeFS
+        context['employees'] = project_team_emp
+        context['project'] = project_item
+        pdb.set_trace()
         return render(request, 'SEI/resource.html', context)
 
-    form = ResourceForm(request.POST)
+    #pdb.set_trace()
+    form = ProjectMonthForm(request.POST)
     if not form.is_valid():
         messages.append("Form contains invalid data")
         return render(request, 'SEI/resource.html', context)
+    
+
+    #if request.method == 'GET':
+    #    form = ResourceForm()
+    #    context['form'] = form
+    #    return render(request, 'SEI/resource.html', context)
+
+    #form = ResourceForm(request.POST)
+    #if not form.is_valid():
+    #    messages.append("Form contains invalid data")
+    #    return render(request, 'SEI/resource.html', context)
 
     context['form'] = form
     month = form.cleaned_data['month']
@@ -873,7 +906,7 @@ def update_or_create_employee(employee):
 
 
 @login_required
-def view_team_chart(request, team_id):
+def chart_team(request, team_id):
     """
     view the team budget and expense in a given year
     :param request: Request
@@ -910,31 +943,34 @@ def view_team_chart(request, team_id):
             if pe.category == "('O', 'Others')":
                 other_cost += pe.cost
 
-        monthly_cost['month']=month
-        monthly_cost['travel'] = travel_cost
-        monthly_cost['subcontractor'] = subcontractor_cost
-        monthly_cost['equipment'] = equipment_cost
-        monthly_cost['other'] = other_cost
+        monthly_cost["month"]=str(month)
+        monthly_cost["travel"] = str(travel_cost)
+        monthly_cost["subcontractor"] = str(subcontractor_cost)
+        monthly_cost["equipment"] = str(equipment_cost)
+        monthly_cost["other"] = str(other_cost)
 
         # Get the total Person cost in this month for this project
         person_cost = 0
         for em in employee_month:
             person_cost += em.month_cost
 
-        monthly_cost['person'] = person_cost
+        monthly_cost["person"] = str(person_cost)
 
 
         month_budget = 0
         for pm in project_month_list:
             if pm.budget:
                 month_budget += pm.budget
-        monthly_cost['monthly_budget'] = month_budget
+        monthly_cost["monthly_budget"] = str(month_budget)
         # Store all the 5 kinds of cost in JSON, the key is project_date
 
         resource_allocation.append(monthly_cost)
 
-    context['resource_allocation'] = resource_allocation
-    return render(request, "SEI/resource_allocation.json", context)
+    context["resource_allocation"] = resource_allocation
+    #pdb.set_trace()
+    #context["resource_allocation"] = resource_allocation
+    #print(context)
+    return HttpResponse(json.dumps(context))
 
 # @login_required
 def test(request):
@@ -953,16 +989,15 @@ def report_project(request, PWP_num):
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
 
     # form = ReportForm(request.POST)
-    # start = form.cleaned_data['start']
-    # print(start)
-    # end = form.cleaned_data['end']
-    # print(end)
+    # query_start_date = form.cleaned_data['query_start_date']
+    # print(query_start_date)
+    # query_end_date = form.cleaned_data['query_end_date']
+    # print(query_end_date)
     # ##should get month
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="ProjectReport.csv"'
-    writer = csv.writer(response, csv.excel)
-    response.write(u'\ufeff'.encode('utf8'))
+    writer = csv.writer(response)
     ##Project Info
     writer.writerow([smart_str(u"Project Info"), smart_str(u"PWP_num"), smart_str(u"client name"), \
                      smart_str(u"business manager"), smart_str(u"is internal"), smart_str(u"start date"), \
@@ -974,8 +1009,15 @@ def report_project(request, PWP_num):
 
     ##Employee Section
     writer.writerow([smart_str(u"Employee Section")])
-    writer.writerow([smart_str(u"employee uid"), smart_str(u"first name"), smart_str(u"last name"), \
-                     smart_str(u"position"), smart_str(u"title")])
+    project_start_month = str(project_date_year) + '-' + str(project_date_month) + '-01'
+    project_end_month = str(project_date_year) + '-' + str(project_date_month) + '-01'
+
+    writer.writerow(['employee uid', 'first name', 'last name', 'position', 'title'])
+
+
+    project_month = ProjectMonth.objects.filter(project=project_item).filter(project_date__gte=project_start_month).filter(project_date__lte=project_end_month)
+    for pm in project_month:
+        employee_list = pm.employee_list
 
 
     ##Subtractor Section

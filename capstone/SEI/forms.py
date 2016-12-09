@@ -153,5 +153,43 @@ class EmployeeForm(forms.ModelForm):
         return cleaned_data
 
 class ReportForm(forms.Form):
-    start = forms.DateTimeField()
-    end = forms.DateTimeField()
+    query_start_date = forms.DateTimeField()
+    query_end_date = forms.DateTimeField()
+
+    def clean(self):
+        cleaned_data = super(ReportForm, self).clean()
+        return cleaned_data
+
+class ProjectExpenseForm(forms.ModelForm):
+    class Meta:
+        model = ProjectExpense
+        fields = ('category', 'cost', 'expense_description')
+        widgets = {
+            'expense_description': forms.Textarea(attrs={'rows': 1}),
+         }
+
+    def clean(self):
+        cleaned_data = super(ProjectExpenseForm, self).clean()
+        return cleaned_data
+
+class EmployeeMonthForm(forms.ModelForm):
+    class Meta:
+        model = EmployeeMonth
+        fields = ('employee', 'time_use', 'isExternal')
+
+    def clean(self):
+        cleaned_data = super(EmployeeMonthForm, self).clean()
+        return cleaned_data
+
+class ProjectMonthForm(forms.ModelForm):
+    class Meta:
+        model = ProjectMonth
+        fields = ('project_date', 'project')
+        widgets = {
+            'project': forms.HiddenInput(),
+            'project_date': forms.TextInput(attrs={'disabled':'disabled', 'readonly':'readonly'}),
+        }
+
+    def clean(self):
+        cleaned_data = super(ProjectMonthForm, self).clean()
+        return cleaned_data

@@ -1,147 +1,168 @@
 {% extends 'SEI/base.html' %}
 {% block title %}<title>Team Allocation Overview</title>{% endblock %}
 {% block head %}
-    <!-- scripts  -->
+<!-- scripts  -->
 {% load static %}
 <script src="{% static "js/team.js" %}"></script>
 <script src="{% static "vendors/d3/d3.min.js" %}" charset="utf-8"></script>
-
+<script src="{% static "js/stackedbar.js" %}"></script>
 {% endblock %}
 
 {% block content %}
-                <div class="row">
-           <div id="custom-search-input">
-                            <div class="input-group col-md-12">
-                                <input id="search_input" type="text" class="search-query form-control" placeholder="Search with Team Name" />
-                                <span class="input-group-btn">
-                                    <button id="search_btn" class="btn btn-danger" type="button">
-                                        <span class=" glyphicon glyphicon-search"></span>
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
+<div class="row">
+ <div id="custom-search-input">
+    <div class="input-group col-md-12">
+        <input id="search_input" type="text" class="search-query form-control" placeholder="Search with Team Name" />
+        <span class="input-group-btn">
+            <button id="search_btn" class="btn btn-danger" type="button">
+                <span class=" glyphicon glyphicon-search"></span>
+            </button>
+        </span>
     </div>
+</div>
+</div>
 <div id="myModal" class="modal fade" role="dialog">
-   <div class="modal-dialog">
-      <!-- Modal content-->
-      <div class="modal-content">
-         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Select the Team</h4>
-         </div>
-         <div class="modal-body">
-            <ul class="list-group" id="team_list">
-            </ul>
-         </div>
-         <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-         </div>
-      </div>
-   </div>
+ <div class="modal-dialog">
+  <!-- Modal content-->
+  <div class="modal-content">
+   <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4 class="modal-title">Select the Team</h4>
+</div>
+<div class="modal-body">
+    <ul class="list-group" id="team_list">
+    </ul>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+</div>
+</div>
+</div>
 </div>                <!-- Page Heading -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
-                            Team <small>Overview</small>
-                        </h1>
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">
+            Team <small>Overview</small>
+        </h1>
+    </div>
+</div>
+<div class="row" id="team" style="display: none">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Team Details</h3>
+            </div>
+            <div class="panel-body">
+                <div class="list-group">
+                    <input id="team_id" type="hidden" value={{ team.id }} >
+                    <p class="list-group-item">
+                        <span >Team Name:</span>
+                        <span >{{ team.team_name }}</span>
+                    </p>
+                    <p class="list-group-item">
+                        <span >Manager:</span>
+                        <span >{{ team.manager.first_name }} {{ team.manager.last_name }}</span>
+                    </p>
+                    <p class="list-group-item">
+                        <span >Directorate:</span>
+                        <span >{{ team.directorate.first_name }} {{ team.directorate.last_name }}</span>
+                    </p>
+                    <p class="list-group-item">
+                        <span >Division:</span>
+                        <span >{{ team.division }}</span> 
+                    </p>
                 </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Team Details</h3>
-                            </div>
-                            <div class="panel-body">
-                                <div class="list-group">
-                                    <p class="list-group-item">
-                                        <span >Team Name:</span>
-                                        <span >{{ team.team_name }}</span>
-                                    </p>
-                                    <p class="list-group-item">
-                                        <span >Manager:</span>
-                                        <span >{{ team.manager.first_name }} {{ team.manager.last_name }}</span>
-                                    </p>
-                                    <p class="list-group-item">
-                                        <span >Directorate:</span>
-                                        <span >{{ team.directorate.first_name }} {{ team.directorate.last_name }}</span>
-                                    </p>
-                                    <p class="list-group-item">
-                                        <span >Division:</span>
-                                        <span >{{ team.division }}</span> 
-                                    </p>
-                            </div>
-                            </div>
-                            </div>
-                </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Projects</h3>
-                            </div>
-                            <div class="panel-body">
-                                    <table id="project_list" class="table table-hover table-striped">
-                                      <tr>
-                                        <th>PWP Number</th>
-                                        <th>Project Description</th>
-                                        <!-- Project Burn is the Budget Overview Variance -->
-                                        <th>Projected Burn(Over/Under)</th>
-                                      </tr>
-                                    {% load humanize %}
-                                    {% for project in projects  %}
-                                      <tr>
-                                        <td><a href="{% url 'projectview' project.PWP_num %}">{{ project.PWP_num }}</a></td>
-                                        <td>{{ project.project_description }}</td>
-                                        
-                                        <td>${{ project.project_budget|intcomma }}</td>
-										</tr>
-									{% endfor %}
-                                    </table>
-                            </div>
-                            </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Employees</h3>
-                            </div>
-                            <div class="panel-body">
-                                    <table id="employee_list" class="table table-hover table-striped">
-                                      <tr>
-                                        <th>Employee Name</th>
-                                        <th>Employee ID</th>
-                                        <!-- Project Burn is the Budget Overview Variance -->
-                                        <th>Current Month Allocation</th>
-                                      </tr>
-                                      {% for employee in employees  %}
-                                      <tr>
-                                        <td><a href="{% url 'employeeview' employee.id %}">{{ employee.first_name }}  {{ employee.last_name }}</a></td>
-                                        <td>{{ employee.id }}</td>
-                                        <td>{{ employee.allocation }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row" id="team_details" style="display: none">
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Projects</h3>
+            </div>
+            <div class="panel-body">
+                <table id="project_list" class="table table-hover table-striped">
+                  <tr>
+                    <th>PWP Number</th>
+                    <th>Project Description</th>
+                    <!-- Project Burn is the Budget Overview Variance -->
+                    <th>Projected Burn(Over/Under)</th>
+                </tr>
+                {% load humanize %}
+                {% for project in projects  %}
+                <tr>
+                    <td><a href="{% url 'projectview' project.PWP_num %}">{{ project.PWP_num }}</a></td>
+                    <td>{{ project.project_description }}</td>
 
-<!--                <div class="row" id="budget_resource_chart">
-                    <div class="col-lg-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title"><i class="fa fa-bar-chart-o fa-fw"></i>Aggregated Budget View</h3>
-                            </div>
-                            <div class="panel-body">
-  <div id="stackedbarchart"></div>
-                  </div>-->
+                    <td>${{ project.project_budget|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+<div class="col-lg-6">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Employees</h3>
+        </div>
+        <div class="panel-body">
+            <table id="employee_list" class="table table-hover table-striped">
+              <tr>
+                <th>Employee Name</th>
+                <th>Employee ID</th>
+                <!-- Project Burn is the Budget Overview Variance -->
+                <th>Current Month Allocation</th>
+            </tr>
+            {% for employee in employees  %}
+            <tr>
+                <td><a href="{% url 'employeeview' employee.id %}">{{ employee.first_name }}  {{ employee.last_name }}</a></td>
+                <td>{{ employee.id }}</td>
+                <td>{{ employee.allocation }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+</div>
+</div>
+
+<div class="row" id="budget_resource_chart" style="display: none">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-bar-chart-o fa-fw"></i>Aggregated Budget View</h3>
+            </div>
+            <div class="panel-body">
+              <div id="stackedbarchart"></div>
+          </div>
+      </div>
+  </div>
+</div>
+
+<div class="row" id="reporting" style="display: none">
+   <div class="col-lg-12">
+       <div class="panel panel-default">
+           <div class="panel-heading">
+             Reporting
+         </div>
+         <div class="panel-body">
+             <form action="" method="POST">
+                {% csrf_token %}
+                {{ form.as_table }}
+                <input id="submit" type="submit" value="Submit">
+            </form>         
+        </div>
+    </div>
+</div>
+</div>
 
 
 {% endblock %}
 
 
-        {% block scripts %}
+{% block scripts %}
 
-        {% endblock %}
+{% endblock %}

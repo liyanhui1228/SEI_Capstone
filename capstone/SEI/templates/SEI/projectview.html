@@ -16,104 +16,72 @@
       <div class="input-group col-md-12">
          <input id="search_input" type="text" class="search-query form-control" placeholder="Search with PWP Number" />
          <span class="input-group-btn">
-         <button id="search_btn" class="btn btn-danger" type="button">
-         <span class=" glyphicon glyphicon-search"></span>
-         </button>
+            <button id="search_btn" class="btn btn-danger" type="button">
+               <span class=" glyphicon glyphicon-search"></span>
+            </button>
          </span>
       </div>
    </div>
 </div>
 <!-- Page Heading -->
 <div id="page">
-    <div id="header" class="page-header row" style="display:none">
-        <div class="col-lg-12 row">
-            <h1>Project <small>Overview</small><form id="editform" method="get" action="#">
-                <input type="submit" class="btn btn-primary" value="Edit this Project"></input>
-            </form></h1>
-        </div>
-   </div>
-   <div class="row" id="project_details" style="display: none">
-      <div class="col-lg-6">
-         <div class="panel panel-default">
-            <div class="panel-heading">
-               <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i> Project Detail</h3>
-            </div>
-            <div>
-               <div class="panel-body">
-                  <div class="list-group">
-                     <table class="table">
-                        <tbody>
-                           <tr class="detail">
-                              <td class="detaillabel">PWP Number:</td>
-                              <td><span id="PWP_num"></span></td>
-                           </tr>
-                           <tr class="detail">
-                              <td class="detaillabel">Project Description:</td>
-                              <td><span id="project_description"></span></td>
-                           </tr>
-                           <tr class="detail">
-                              <td class="detaillabel">Project Budget:</td>
-                              <td>$<span id="project_budget_overview"></span></td>
-                           </tr>
-                           <tr class="detail">
-                              <td class="detaillabel">Team Name:</td>
-                              <td><span id="team_name"></span></td>
-                           </tr>
-                           <tr class="detail">
-                              <td class="detaillabel">Internal:</td>
-                              <td><span id="isExternal"></span></td>
-                           </tr>
-                           <tr class="detail">
-                              <td class="detaillabel">Start Date:</td>
-                              <td><span id="start_date"></span></td>
-                           </tr>
-                           <tr class="detail">
-                              <td class="detaillabel">End Date:</td>
-                              <td><span id="end_date"></span></td>
-                           </tr>
-                           <tr class="detail">
-                              <td class="detaillabel">Client Name:</td>
-                              <td><span id="organization_name"></span></td>
-                           </tr>
-                           <tr class="detail">
-                              <td class="detaillabel">Charge String:</td>
-                              <td>
-                                 <div id="charge_string_list">
-                                    <p></p>
-                                 </div>
-                              </td>
-                           </tr>
-                        </tbody>
-                     </table>
-                  </div>
-               </div>
-            </div>
+ <div id="header" class="page-header row" style="display:none">
+  <div class="col-lg-12 row">
+   <h1>Project <small>Overview</small><form id="editform" method="get" action="#">
+    <input type="submit" class="btn btn-primary" value="Edit this Project"></input>
+ </form></h1>
+</div>
+</div>
+<div class="row" id="project_details" style="display: none">
+   <div class="col-lg-6">
+      <div class="panel panel-default">
+         <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i> Project Detail</h3>
          </div>
-      </div>
-      <div class="col-lg-6">
-         <div class="panel panel-default">
-            <div class="panel-heading">
-               <h3 class="panel-title"><i class="fa fa-usd fa-fw"></i>Budget Outlook</h3>
-            </div>
+         <div>
             <div class="panel-body">
                <div class="list-group">
                   <table class="table">
                      <tbody>
                         <tr class="detail">
+                           <td class="detaillabel">PWP Number:</td>
+                           <td><span id="PWP_num"></span></td>
+                        </tr>
+                        <tr class="detail">
+                           <td class="detaillabel">Project Description:</td>
+                           <td><span id="project_description"></span></td>
+                        </tr>
+                        <tr class="detail">
                            <td class="detaillabel">Project Budget:</td>
-                           <td>$<span id="project_budget_balance"></span></td>
+                           <td>$<span id="project_budget_overview"></span></td>
                         </tr>
                         <tr class="detail">
-                           <td class="detaillabel">Balance Remaining:</td>
-                           <td>$<span id="budget_balance"></span></td>
+                           <td class="detaillabel">Team Name:</td>
+                           <td><span id="team_name"></span></td>
                         </tr>
                         <tr class="detail">
-                           <td class="detaillabel">Future Budget Needed:</td>
-                           <td>$<span id="project_spend"></span></td>
+                           <td class="detaillabel">Internal:</td>
+                           <td><span id="isExternal"></span></td>
                         </tr>
                         <tr class="detail">
-                           <td class="detaillabel">Variance:</td>
-                           <td>$<span id="project_remain"></span></td>
+                           <td class="detaillabel">Start Date:</td>
+                           <td><span id="start_date"></span></td>
+                        </tr>
+                        <tr class="detail">
+                           <td class="detaillabel">End Date:</td>
+                           <td><span id="end_date"></span></td>
+                        </tr>
+                        <tr class="detail">
+                           <td class="detaillabel">Client Name:</td>
+                           <td><span id="organization_name"></span></td>
+                        </tr>
+                        <tr class="detail">
+                           <td class="detaillabel">Charge String:</td>
+                           <td>
+                              <div id="charge_string_list">
+                                 <p></p>
+                              </div>
+                           </td>
                         </tr>
                      </tbody>
                   </table>
@@ -122,19 +90,69 @@
          </div>
       </div>
    </div>
-   <div class="row" id="resource_chart" style="display: none">
-      <div class="col-lg-12">
-         <div class="panel panel-default">
-            <div class="panel-heading">
-               <h3 class="panel-title"><i class="fa fa-bar-chart-o fa-fw"></i>Resources Allocation</h3>
-            </div>
-            <div class="panel-body">
-               <div id="visavailchart"></div>
+   <div class="col-lg-6">
+      <div class="panel panel-default">
+         <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-usd fa-fw"></i>Budget Outlook</h3>
+         </div>
+         <div class="panel-body">
+            <div class="list-group">
+               <table class="table">
+                  <tbody>
+                     <tr class="detail">
+                        <td class="detaillabel">Project Budget:</td>
+                        <td>$<span id="project_budget_balance"></span></td>
+                     </tr>
+                     <tr class="detail">
+                        <td class="detaillabel">Balance Remaining:</td>
+                        <td>$<span id="budget_balance"></span></td>
+                     </tr>
+                     <tr class="detail">
+                        <td class="detaillabel">Future Budget Needed:</td>
+                        <td>$<span id="project_spend"></span></td>
+                     </tr>
+                     <tr class="detail">
+                        <td class="detaillabel">Variance:</td>
+                        <td>$<span id="project_remain"></span></td>
+                     </tr>
+                  </tbody>
+               </table>
             </div>
          </div>
       </div>
    </div>
 </div>
+<div class="row" id="resource_chart" style="display: none">
+   <div class="col-lg-12">
+      <div class="panel panel-default">
+         <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-bar-chart-o fa-fw"></i>Resources Allocation</h3>
+         </div>
+         <div class="panel-body">
+            <div id="visavailchart"></div>
+         </div>
+      </div>
+   </div>
+</div>
+<div class="row" id="reporting" style="display: none">
+   <div class="col-lg-12">
+      <div class="panel panel-default">
+       <div class="panel-heading">
+         Reporting
+      </div>
+      <div class="panel-body">
+         <form action="" method="POST">
+            {% csrf_token %}
+            {{ form.as_table }}
+            <input id="submit" type="submit" value="Submit">
+         </form>         
+      </div>
+   </div>
+</div>
+</div>
+
+</div>
+
 <!-- /.row -->
 {% endblock %}
 {% block scripts %}
