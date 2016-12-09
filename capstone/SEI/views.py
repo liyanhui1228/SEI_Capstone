@@ -20,6 +20,7 @@ from django.forms.models import model_to_dict
 from django.forms.formsets import formset_factory
 import collections
 import csv
+from django.utils.encoding import smart_str
 
 from django.contrib.auth.decorators import user_passes_test
 
@@ -934,4 +935,62 @@ def view_team_chart(request, team_id):
 
     context['resource_allocation'] = resource_allocation
     return render(request, "SEI/resource_allocation.json", context)
+
+# @login_required
+def test(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
+    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+
+    return response
+
+def report_project(request, PWP_num):
+    ##add the permission check here
+
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+
+    # form = ReportForm(request.POST)
+    # start = form.cleaned_data['start']
+    # print(start)
+    # end = form.cleaned_data['end']
+    # print(end)
+    # ##should get month
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="ProjectReport.csv"'
+    writer = csv.writer(response, csv.excel)
+    response.write(u'\ufeff'.encode('utf8'))
+    ##Project Info
+    writer.writerow([smart_str(u"Project Info"), smart_str(u"PWP_num"), smart_str(u"client name"), \
+                     smart_str(u"business manager"), smart_str(u"is internal"), smart_str(u"start date"), \
+                     smart_str(u"end date"), smart_str(u"project budget")])
+    writer.writerow(['', smart_str(project_item.PWP_num), smart_str(project_item.client_name), \
+                     smart_str(project_item.business_manager), smart_str(project_item.is_internal), \
+                     smart_str(project_item.start_date), smart_str(project_item.end_date), \
+                     smart_str(project_item.project_budget)])
+
+    ##Employee Section
+    writer.writerow([smart_str(u"Employee Section")])
+    writer.writerow([smart_str(u"employee uid"), smart_str(u"first name"), smart_str(u"last name"), \
+                     smart_str(u"position"), smart_str(u"title")])
+
+
+    ##Subtractor Section
+    writer.writerow([smart_str(u"Subtractor Section")])
+
+    ##Travel Section
+    writer.writerow([smart_str(u"Travel Section")])
+
+    ##Equipment Section
+    writer.writerow([smart_str(u"Equipment Section")])
+
+    ##Others Section
+    writer.writerow([smart_str(u"Others Section")])
+
+    return response
+
+
 

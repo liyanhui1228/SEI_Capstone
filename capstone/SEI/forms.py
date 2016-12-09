@@ -151,3 +151,7 @@ class EmployeeForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(EmployeeForm, self).clean()
         return cleaned_data
+
+class ReportForm(forms.Form):
+    start = forms.DateTimeField()
+    end = forms.DateTimeField()

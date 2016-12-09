@@ -40,6 +40,8 @@ urlpatterns = [
     url(r'^get_team/(?P<team_name>\w*)$',SEI.views.get_team),
     url(r'^get_employee_allocation/(?P<employee_id>\d+)/(?P<year>\d+)$',SEI.views.get_employee_allocation),
     url(r'^resource/(?P<PWP_num>\w+)/(?P<year>.*?)$', SEI.views.project_resource, name='viewProjectResource'),
-    url(r'^view_team_chart/(?P<team_id>\d+)$',SEI.views.view_team_chart,name="viewTeamChart"),
-    url(r'^bulk_upload$',SEI.views.bulk_upload,name="bulkUpload")
+    url(r'^view_team_chart/(?P<team_id>\d+)$',SEI.views.view_team_chart, name="viewTeamChart"),
+    url(r'^bulk_upload$',SEI.views.bulk_upload, name="bulkUpload"),
+    url(r'^report_project/(?P<PWP_num>\w+)$', SEI.views.report_project, name="reportProject"),
+    url(r'^test$', SEI.views.test, name="test"),
 ]
