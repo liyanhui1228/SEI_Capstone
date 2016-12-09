@@ -1014,6 +1014,7 @@ def report_project(request, PWP_num):
     project_start_month = query_start_date.month
     project_end_year = query_end_date.year
     project_end_month = query_end_date.month
+
     if project_start_year == project_end_year:
         for i in range(1, project_end_month - project_start_month + 1):
             header_list.append(str(project_start_year) + "/" + str(project_start_month + i))
