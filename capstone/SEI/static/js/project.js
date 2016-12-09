@@ -18,7 +18,6 @@ function getProjectInfo(){
              .enter()
              .append("p")
              .text(function(d){
-                console.log(d.charge);
                 return d.charge                
              })
        }
@@ -77,6 +76,8 @@ $(function(){
         $("#project_details").show();
         $("#resource_chart").show();
         $("#reporting").show();
+        var repform=$("#reportform")
+        repform.attr('action','/SEI/report_project/'+PWP_num)
     })
 })
 

@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'SEI',
-    'phonenumber_field'
+    'phonenumber_field',
+    'datetimewidget'
 ]
 
 MIDDLEWARE = [

@@ -4,6 +4,7 @@ from SEI.models import *
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.humanize.templatetags.humanize import intcomma
+from datetimewidget.widgets import DateTimeWidget
 
 
 class RegistrationForm(forms.Form):
@@ -155,6 +156,17 @@ class EmployeeForm(forms.ModelForm):
 class ReportForm(forms.Form):
     query_start_date = forms.DateTimeField()
     query_end_date = forms.DateTimeField()
+
+    class Meta:
+        dateTimeOptions = {
+        'format': 'dd/mm/yyyy HH:ii P',
+        'autoclose': True,
+        'startView': 3
+        }
+        widgets={
+            'query_start_date': DateTimeWidget(options = dateTimeOptions),
+            'query_end_date': DateTimeWidget(options = dateTimeOptions)
+        }
 
     def clean(self):
         cleaned_data = super(ReportForm, self).clean()
