@@ -51,7 +51,7 @@ def home(request):
     #elif show their employee view
 
     #otherwise show project search
-    return render(request, 'SEI/home.html', context)
+    return render(request, 'SEI/home.html')
 
 
 @login_required
@@ -63,6 +63,7 @@ def projectview(request, PWP_num):
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
     context['project'] = project_item
+    context['report'] = ReportForm()
     return render(request, 'SEI/projectview.html', context)
 
 

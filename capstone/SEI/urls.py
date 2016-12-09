@@ -40,7 +40,7 @@ urlpatterns = [
     url(r'^get_team/(?P<team_name>\w*)$',SEI.views.get_team),
     url(r'^get_employee_allocation/(?P<employee_id>\d+)/(?P<year>\d+)$',SEI.views.get_employee_allocation),
     url(r'^resource/(?P<PWP_num>\w+)/(?P<year>.*?)$', SEI.views.project_resource, name='viewProjectResource'),
-    url(r'^chart_team/(?P<team_id>\d+)$',SEI.views.chart_team, name="viewTeamChart"),
+    url(r'^chart_team/(?P<team_id>\d+)$',SEI.views.chart_team, name="chart_team"),
     url(r'^report_project/(?P<PWP_num>\w+)$', SEI.views.report_project, name="reportProject"),
     url(r'^test$', SEI.views.test, name="test"),
     url(r'^chart_team/(?P<team_id>\d+)$',SEI.views.chart_team,name="chartTeam"),

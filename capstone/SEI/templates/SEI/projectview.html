@@ -141,9 +141,8 @@
          Reporting
       </div>
       <div class="panel-body">
-         <form action="" method="POST">
             {% csrf_token %}
-            {{ form.as_table }}
+            {{ report.as_table }}
             <input id="submit" type="submit" value="Submit">
          </form>         
       </div>

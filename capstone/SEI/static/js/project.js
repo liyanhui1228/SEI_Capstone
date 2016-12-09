@@ -73,12 +73,10 @@ $(function(){
         var PWP_num=$("#search_input").val().toLowerCase();
         var form=$("#editform")
         form.attr('action','/SEI/edit_project/'+PWP_num)
-        var header=$("#header");
-        header.show();
-        var row=$("#project_details");
-        row.show();
-        var resourcerow=$("#resource_chart");
-        resourcerow.show();
+        $("#header").show();
+        $("#project_details").show();
+        $("#resource_chart").show();
+        $("#reporting").show();
     })
 })
 
