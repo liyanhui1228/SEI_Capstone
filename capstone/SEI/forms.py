@@ -5,7 +5,6 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.humanize.templatetags.humanize import intcomma
 from datetimewidget.widgets import DateTimeWidget
-import pdb
 
 class RegistrationForm(forms.Form):
     first_name = forms.CharField(max_length=40)
@@ -196,7 +195,6 @@ class EmployeeMonthForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(EmployeeMonthForm, self).clean()
-        pdb.set_trace()
         return cleaned_data
 
 class ProjectMonthForm(forms.ModelForm):

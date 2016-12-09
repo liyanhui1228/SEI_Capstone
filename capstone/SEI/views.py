@@ -433,7 +433,6 @@ def add_employee(employee_chosen, PWP_num, project_date):
     #emp_chosen_list = employee_chosen_json['emp_chosen_list']
     #project_date = employee_chosen_json['project_date']
     emp_detail = employee_chosen.cleaned_data
-    pdb.set_trace()
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
     project_month = ProjectMonth.objects.filter(project=project_item, project_date=project_date)
 
@@ -442,12 +441,9 @@ def add_employee(employee_chosen, PWP_num, project_date):
     emp_id = emp_detail['employee']
     time_to_use = emp_detail['time_use']
     is_external = emp_detail['isExternal']
-    pdb.set_trace()
     emp = Employee.objects.filter(id=emp_id)
-    pdb.set_trace()
     rate = emp_detail.external_salary if is_external else emp_detail.internal_salary
     month_cost = float(time_to_use)/100*rate
-    pdb.set_trace()
 
     # Insert a new record to EmployeeMonth
     employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
@@ -455,7 +451,6 @@ def add_employee(employee_chosen, PWP_num, project_date):
     employee_month.isExternal=is_external
     employee_month.month_cost=month_cost
     employee_month.save()
-    pdb.set_trace()
 
     # Add this employee to employee_list in ProjectMonth
     project_month[0].employee_list.add(emp[0])
@@ -583,9 +578,7 @@ def add_resources(request, PWP_num, project_year, project_month):
         if employeeexpense.is_valid():
             for empexp in employeeexpense:
                 #if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
-                pdb.set_trace()
                 if empexp.is_valid() and 'time_use' in empexp.cleaned_data:
-                    pdb.set_trace()
                     add_employee(empexp, PWP_num, project_date)
 
         context['otherexpense'] = otherexpense
