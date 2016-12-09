@@ -103,3 +103,4 @@ class EmployeeAvailability(models.Model):
 class ChargeString(models.Model):
     charge_string = models.CharField(max_length=100, default="")
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
