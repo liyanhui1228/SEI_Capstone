@@ -790,8 +790,10 @@ def search_project(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
     #if user_profile.user_role == 'ITADMIN':
     #   return render(request, 'SEI/permission.html')
+    context = {}
+    context['report'] = ReportForm()
 
-    return render(request, 'SEI/projectview.html')    
+    return render(request, 'SEI/projectview.html', context)
 
 @login_required
 def get_team(request,team_name):
