@@ -152,6 +152,14 @@ class EmployeeForm(forms.ModelForm):
         cleaned_data = super(EmployeeForm, self).clean()
         return cleaned_data
 
+class ReportForm(forms.Form):
+    query_start_date = forms.DateTimeField()
+    query_end_date = forms.DateTimeField()
+
+    def clean(self):
+        cleaned_data = super(ReportForm, self).clean()
+        return cleaned_data
+
 class ProjectExpenseForm(forms.ModelForm):
     class Meta:
         model = ProjectExpense

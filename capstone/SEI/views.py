@@ -21,6 +21,7 @@ from django.forms.formsets import formset_factory
 from django.forms import inlineformset_factory
 import collections
 import csv
+from django.utils.encoding import smart_str
 import pdb
 
 from django.contrib.auth.decorators import user_passes_test
@@ -970,4 +971,68 @@ def chart_team(request, team_id):
     #context["resource_allocation"] = resource_allocation
     #print(context)
     return HttpResponse(json.dumps(context))
+
+# @login_required
+def test(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
+    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
+
+    return response
+
+def report_project(request, PWP_num):
+    ##add the permission check here
+
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+
+    # form = ReportForm(request.POST)
+    # query_start_date = form.cleaned_data['query_start_date']
+    # print(query_start_date)
+    # query_end_date = form.cleaned_data['query_end_date']
+    # print(query_end_date)
+    # ##should get month
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="ProjectReport.csv"'
+    writer = csv.writer(response)
+    ##Project Info
+    writer.writerow([smart_str(u"Project Info"), smart_str(u"PWP_num"), smart_str(u"client name"), \
+                     smart_str(u"business manager"), smart_str(u"is internal"), smart_str(u"start date"), \
+                     smart_str(u"end date"), smart_str(u"project budget")])
+    writer.writerow(['', smart_str(project_item.PWP_num), smart_str(project_item.client_name), \
+                     smart_str(project_item.business_manager), smart_str(project_item.is_internal), \
+                     smart_str(project_item.start_date), smart_str(project_item.end_date), \
+                     smart_str(project_item.project_budget)])
+
+    ##Employee Section
+    writer.writerow([smart_str(u"Employee Section")])
+    project_start_month = str(project_date_year) + '-' + str(project_date_month) + '-01'
+    project_end_month = str(project_date_year) + '-' + str(project_date_month) + '-01'
+
+    writer.writerow(['employee uid', 'first name', 'last name', 'position', 'title'])
+
+
+    project_month = ProjectMonth.objects.filter(project=project_item).filter(project_date__gte=project_start_month).filter(project_date__lte=project_end_month)
+    for pm in project_month:
+        employee_list = pm.employee_list
+
+
+    ##Subtractor Section
+    writer.writerow([smart_str(u"Subtractor Section")])
+
+    ##Travel Section
+    writer.writerow([smart_str(u"Travel Section")])
+
+    ##Equipment Section
+    writer.writerow([smart_str(u"Equipment Section")])
+
+    ##Others Section
+    writer.writerow([smart_str(u"Others Section")])
+
+    return response
+
+
 
