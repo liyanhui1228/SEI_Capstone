@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="{% static "css/SEIRM.css" %}">
   <!-- css and font for bootstrap template -->
   <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}">
-    <script src="{% static "js/jquery.js" %}"></script>
+  <script src="{% static "js/jquery.js" %}"></script>
   <script>
    function showblock(menu){
      if(menu.selectedIndex==0){
@@ -104,14 +104,9 @@ function replaceName(count, tag){
 <body>
   <div class="row" align="center">
     <div class="container">
-      <form class="col-md-6 col-md-offset-3" role="form">
+      <form action="{% url 'addResources' project.PWP_num project_year project_month %}" method="POST">
         <h2>Add Resources</h2>
         <div class="form-group">
-          <table id='form_table'>
-            {% for field in form %}
-            <tr><td>{{ field.label_tag }}</td><td>{{ field }}</td><td>{{ field.errors }}</td></tr>
-            {% endfor %}
-          </table>
           <label for="resource" class="col-md-12 control-label">Select Resource:</label>
           <div class="col-md-12">
           </div>
@@ -122,49 +117,65 @@ function replaceName(count, tag){
           </select>
         </div>
         <div id="resource_employee" style="display:block">
-          <label for="resource" class="col-md-12 control-label">Add Employee:</label>
+          <label for="resource" class="col-md-12 control-label">Add Employees:</label>
           <div class="form-group">
-            <form action="{% url 'addResources' project.PWP_num %}" method="POST">
-             {{ employeeexpense_formset.management_form }}
-          <button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
-          </form>
+           {{ employeeexpense.management_form }}
+           <table id='employee_table'>
+            <thead>
+              <th>Include</th>
+              <th>Employee</th>
+              <th>Time Allocated</th>
+              <th>External?</th>
+              <th>Internal Salary</th>
+              <th>External Salary</th>
+            </thead>
+            {% for empexp in employeeexpense %}
+            <tr>
+              <td><input type="checkbox" name="includeEmp"></td>
+              <td>{{ empexp.employee_name.value }} {{ empexp.employee }}</td>
+              <td>{{ empexp.time_use }}</td>
+              <td>{{ empexp.isExternal }}</td>
+              <td>{{ empexp.internal_salary.value }}</td>
+              <td>{{ empexp.external_salary.value }}</td>
+            </tr>
 
+            {% endfor %}
+          </table>
+          <button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
         </div>
       </div>
       <div id="resource_other" style="display:none">
        <label for="resource" class="col-md-12 control-label">Add Resouces:</label>
        <div class="col-md-12">
-        <form action="{% url 'addResources' project.PWP_num %}" method="POST">
-          {{ projectexpense_formset.management_form }}
-          <table id='other_table'>
-            <thead>
-              <th>Category</th>
-              <th>Cost</th>
-              <th>Description</th>
-            </thead>
-            {% for projectexpense_form in projectexpense_formset %}
-            <tr>
-              <td>{{ projectexpense_form.category }}</td>
-              <td>{{ projectexpense_form.cost }}</td>
-              <td>{{ projectexpense_form.expense_description }}</td>
-              <td><button id="add_other" class="btn add_other" type="button">+</button></td>
-            </tr>
-            {% endfor %}
-          </table>
+        {{ otherexpense.management_form }}
+        <table id='other_table'>
+          <thead>
+            <th>Category</th>
+            <th>Cost</th>
+            <th>Description</th>
+          </thead>
+          {% for othexp in otherexpense %}
+          <tr>
+            <td>{{ othexp.category }}</td>
+            <td>{{ othexp.cost }}</td>
+            <td>{{ othexp.expense_description }}</td>
+            <td><button id="add_other" class="btn add_other" type="button">+</button></td>
+          </tr>
+          {% endfor %}
+        </table>
 
-          <div class="col-md-12">
+        <div class="col-md-12">
           <button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
-          </div>
-        </form>
-      </div>
+        </div>
+        {% csrf_token %}
+      </form>
     </div>
-  </form> <!-- /form -->
+  </div>
 </div> <!-- ./container -->
 
 </div>
 <input type="hidden" name="eecount" value="1" />
 <input type="hidden" name="pecount" value="1" />
 
-\{% csrf_token %}
 </body>
 </html>

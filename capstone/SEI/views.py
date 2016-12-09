@@ -23,7 +23,7 @@ import collections
 import csv
 from django.utils.encoding import smart_str
 import pdb
-
+from django.utils.dateparse import parse_datetime
 from django.contrib.auth.decorators import user_passes_test
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
@@ -336,8 +336,8 @@ def budget_view(request, PWP_num):
         monthly_total_cost = travel_cost + subcontractor_cost + equipment_cost + other_cost + person_cost
         monthly_cost['monthly_total_expense'] = monthly_total_cost
         total_expense += monthly_total_cost
-        if now.date() > pm.project_date:
-            total_expense_till_now += monthly_total_cost
+        #if now.date() > pm.project_date:
+        total_expense_till_now += monthly_total_cost
         monthly_cost['monthly_budget'] = pm.budget
         # Store all the 5 kinds of cost in JSON, the key is project_date
         resource_allocation[pm.project_date] = monthly_cost
@@ -349,7 +349,7 @@ def budget_view(request, PWP_num):
     return render(request, "SEI/budget_view.json",context)
 
 @login_required
-def project_resource(request, PWP_num, year):
+def project_resource(request, PWP_num):
     """
     Gets the project resources for a given project and year to display in the project view graph
     returns the JSON for d3 chart in
@@ -365,12 +365,12 @@ def project_resource(request, PWP_num, year):
     resource_names = {}
     #for pm in project_month_list:
     
-    project_expense = ProjectExpense.objects.filter(project=project_item, project_date__year=year)
-    employee_month = EmployeeMonth.objects.filter(project=project_item, project_date__year=year)
+    project_expense = ProjectExpense.objects.filter(project=project_item)
+    employee_month = EmployeeMonth.objects.filter(project=project_item)
 
     #get all employees assigned for the given date
     for em in employee_month:
-        resource_chart[em.employee.id].append([em.project_date, em.time_use])
+        resource_chart[em.employee.id].append([str(em.project_date), em.time_use])
         resource_names[em.employee.id] = em.employee.first_name + " " + em.employee.last_name
 
     # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
@@ -423,51 +423,55 @@ def view_employee_list(request, PWP_num, project_date_year, project_date_month):
     context['employee_list'] = emp_list_result
     return render(request, "SEI/employee_list.json", context)
 
-@login_required
-@user_passes_test(admin_check)
-def add_employee(request, employee_chosen):
-    employee_chosen_json = json.loads(employee_chosen)
+#@login_required
+#@user_passes_test(admin_check)
+def add_employee(employee_chosen, PWP_num, project_date):
     context = {}
     alert = {}
     detail = {} # The alert details
-    PWP_num = employee_chosen_json['PWP_num']
-    emp_chosen_list = employee_chosen_json['emp_chosen_list']
-    project_date = employee_chosen_json['project_date']
-
+    #PWP_num = employee_chosen_json['PWP_num']
+    #emp_chosen_list = employee_chosen_json['emp_chosen_list']
+    #project_date = employee_chosen_json['project_date']
+    emp_detail = employee_chosen.cleaned_data
+    pdb.set_trace()
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
     project_month = ProjectMonth.objects.filter(project=project_item, project_date=project_date)
 
     # The key of emp_chosen_list is the employee id
-    for ec in emp_chosen_list:
-        emp_id = ec
-        emp_detail = emp_chosen_list[ec]
-        time_to_use = emp_detail['time_to_use']
-        is_external = emp_detail['is_external']
-        month_cost = emp_detail['month_cost']
-        emp = Employee.objects.filter(id=ec)
+    #for emp_detail in emp_chosen_list:
+    emp_id = emp_detail['employee']
+    time_to_use = emp_detail['time_use']
+    is_external = emp_detail['isExternal']
+    pdb.set_trace()
+    emp = Employee.objects.filter(id=emp_id)
+    pdb.set_trace()
+    rate = emp_detail.external_salary if is_external else emp_detail.internal_salary
+    month_cost = float(time_to_use)/100*rate
+    pdb.set_trace()
 
-        # Insert a new record to EmployeeMonth
-        employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
-        employee_month.time_use=time_to_use
-        employee_month.isExternal=is_external
-        employee_month.month_cost=month_cost
-        employee_month.save()
+    # Insert a new record to EmployeeMonth
+    employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
+    employee_month.time_use=time_to_use
+    employee_month.isExternal=is_external
+    employee_month.month_cost=month_cost
+    employee_month.save()
+    pdb.set_trace()
 
-        # Add this employee to employee_list in ProjectMonth
-        project_month[0].employee_list.add(emp[0])
+    # Add this employee to employee_list in ProjectMonth
+    project_month[0].employee_list.add(emp[0])
 
-        # Update the percentage_used in EmployeeAvailability, if over 100%, send back the alert, alert is null means no alert
-        emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp[0], date=project_date)
-        emp_availability.percentage_used += time_to_use
-        if(emp_availability.percentage_used >= 100):
-            emp_availability.is_available = 0
-            detail[emp[0].id] = emp_availability.percentage_used
-        emp_availability.save()
-        print(emp_availability.percentage_used)
+    # Update the percentage_used in EmployeeAvailability, if over 100%, send back the alert, alert is null means no alert
+    emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp[0], date=project_date)
+    emp_availability.percentage_used += time_to_use
+    if(emp_availability.percentage_used >= 100):
+        emp_availability.is_available = 0
+        detail[emp[0].id] = emp_availability.percentage_used
+    emp_availability.save()
+    print(emp_availability.percentage_used)
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
-    return render(request, "SEI/add_employee_alert.json", context)
+    return context
 
 #@login_required
 def get_employee(request,first_name, last_name):
@@ -528,65 +532,72 @@ def get_employee_allocation(request,employee_id,year):
     return HttpResponse(json.dumps(context))
 
 @login_required
-@user_passes_test(admin_check)
-def add_resources(request, PWP_num):
+#@user_passes_test(admin_check)
+def add_resources(request, PWP_num, project_year, project_month):
     context = {}
     messages = []
     context['messages'] = messages
     project_item = get_object_or_404(Project, PWP_num = PWP_num)
     project_team_emp = Employee.objects.filter(team = project_item.team)
+    project_date = str(project_year) + '-' + str(project_month) + '-01'
 
     ProjectExpenseFormSet = formset_factory(ProjectExpenseForm)
-    EmployeeMonthFormSet = inlineformset_factory(Employee, EmployeeMonth, fields=('__all__'))
-   #EmployeeFormSet = inlineformset_factory(Employee, Book, fields=('title',))
+    EmployeeMonthFormSet = formset_factory(EmployeeMonthForm)
 
     if request.method == "GET":
-        #pdb.set_trace()
         form = ProjectMonthForm()
-        otherFS = ProjectExpenseFormSet(prefix="otherexpense")
-        employeeFS = EmployeeMonthFormSet(prefix="employeeexpense", instance=project_team_emp)
+        otherexpense = ProjectExpenseFormSet(prefix="otherexpense")
+        employeeexpense = EmployeeMonthFormSet(prefix="employeeexpense")
 
-        #for emp in project_team_emp:
-        #    em = EmployeeMonthForm(initial={'employee': emp})
-            #em.employee = emp
-        #    employeeFS.forms.append(em)
+        for index, emp in enumerate(project_team_emp):
+            emp_name = emp.first_name + ' ' + emp.last_name
+            em = EmployeeMonthForm(initial={'employee': emp, 'internal_salary': emp.internal_salary, 'external_salary': emp.external_salary, 'employee_name': emp_name})
+            if index == 0:
+                employeeexpense.forms[0] = em
+            else:
+                employeeexpense.forms.append(em)
 
-        context['form'] = form
-        context['projectexpense_formset'] = otherFS
-        context['employeeexpense_formset'] = employeeFS
-        context['employees'] = project_team_emp
+        context['otherexpense'] = otherexpense
+        context['employeeexpense'] = employeeexpense
         context['project'] = project_item
-        pdb.set_trace()
+        context['project_year'] = project_year
+        context['project_month'] = project_month
         return render(request, 'SEI/resource.html', context)
 
-    #pdb.set_trace()
-    form = ProjectMonthForm(request.POST)
-    if not form.is_valid():
-        messages.append("Form contains invalid data")
-        return render(request, 'SEI/resource.html', context)
+    if request.method == "POST":
+        form = ProjectMonthForm(request.POST)
+        otherexpense = ProjectExpenseFormSet(request.POST, prefix="otherexpense")
+        employeeexpense = EmployeeMonthFormSet(request.POST, prefix="employeeexpense")
+
+        if otherexpense.is_valid():
+            for othexp in otherexpense:
+                #if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
+                if othexp.is_valid() and 'cost' in othexp.cleaned_data and 'category' in othexp.cleaned_data:
+                    new_project_expense = ProjectExpense(project_date = project_date,
+                                     cost=othexp.cleaned_data['cost'],
+                                     expense_description=othexp.cleaned_data['expense_description'],
+                                     category=othexp.cleaned_data['category'],
+                                     project=project_item)
+                    new_project_expense.save()
+
+        if employeeexpense.is_valid():
+            for empexp in employeeexpense:
+                #if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
+                pdb.set_trace()
+                if empexp.is_valid() and 'time_use' in empexp.cleaned_data:
+                    pdb.set_trace()
+                    add_employee(empexp, PWP_num, project_date)
+
+        context['otherexpense'] = otherexpense
+        context['employeeexpense'] = employeeexpense
+        context['project'] = project_item
+        context['project_year'] = project_year
+        context['project_month'] = project_month
+
+        #project_month_item.add(new_project_expense)
+        #project_month_item.save()
+        messages.append("Expense has been saved")
     
-
-    #if request.method == 'GET':
-    #    form = ResourceForm()
-    #    context['form'] = form
-    #    return render(request, 'SEI/resource.html', context)
-
-    #form = ResourceForm(request.POST)
-    #if not form.is_valid():
-    #    messages.append("Form contains invalid data")
-    #    return render(request, 'SEI/resource.html', context)
-
-    context['form'] = form
-    month = form.cleaned_data['month']
-    project_month_item = get_object_or_404(ProjectMonth, project=project_item, month=month)
-    new_project_expense = ProjectExpense(project_month = project_month_item,
-                                         cost=form.cleaned_data['cost'],
-                                         expense_description=form.cleaned_data['expense_description'],
-                                         category=form.cleaned_data['category'])
-    new_project_expense.save()
-    project_month_item.add(new_project_expense)
-    project_month_item.save()
-    messages.append("Expense has been saved")
     return render(request, 'SEI/resource.html', context)
 
 @login_required
@@ -973,7 +984,7 @@ def chart_team(request, team_id):
     #pdb.set_trace()
     #context["resource_allocation"] = resource_allocation
     #print(context)
-    return HttpResponse(json.dumps(context))
+    return HttpResponse(json.dumps(context, default=decimal_default))
 
 # @login_required
 def test(request):

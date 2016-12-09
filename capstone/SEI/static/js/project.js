@@ -47,13 +47,14 @@ function getBudgetInfo(){
 
 function getResourceAllocationChart(){
     var PWP_num=$("#search_input").val().toLowerCase();
-    var year = 2016;
-    var url="resource/"+PWP_num+"/"+year;
+    var url="resource/"+PWP_num;
     var dataset = []
-    d3.json(url, function(error, json) {
-       if (error) return console.warn(error);
-       dataset = json['resource_allocation']
-    });
+    $.get(url).done(function(data){
+      var json = JSON.parse(data);
+      dataset=[];
+      if (json['resource_allocation'] != null && json['resource_allocation'].length > 0){
+        dataset = json['resource_allocation']
+      }
     // draw Visavail.js chart
     var chart = visavailChart().width(800);
     //dataset=[];
@@ -61,6 +62,7 @@ function getResourceAllocationChart(){
     d3.select("#visavailchart")
             .datum(dataset)
             .call(chart);
+    });
 }
 
 $(function(){
