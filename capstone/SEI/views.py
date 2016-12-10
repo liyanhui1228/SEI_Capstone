@@ -534,32 +534,33 @@ def add_resources(request, PWP_num, project_year, project_month):
     project_date = str(project_year) + '-' + str(project_month) + '-01'
 
     ProjectExpenseFormSet = formset_factory(ProjectExpenseForm)
-    EmployeeMonthFormSet = formset_factory(EmployeeMonthForm)
+    EmployeeMonthFormSet = formset_factory(EmployeeMonthForm,extra=0)
 
     if request.method == "GET":
-        form = ProjectMonthForm()
-        otherexpense = ProjectExpenseFormSet(prefix="otherexpense")
-        employeeexpense = EmployeeMonthFormSet(prefix="employeeexpense")
-
+        initial=[]
         for index, emp in enumerate(project_team_emp):
             emp_name = emp.first_name + ' ' + emp.last_name
-            em = EmployeeMonthForm(initial={'employee': emp, 'internal_salary': emp.internal_salary, 'external_salary': emp.external_salary, 'employee_name': emp_name})
-            if index == 0:
-                employeeexpense.forms[0] = em
-            else:
-                employeeexpense.forms.append(em)
+            initial.append({'employee': emp, 'internal_salary': emp.internal_salary, 'external_salary': emp.external_salary, 'employee_name': emp_name})
+        otherexpense = ProjectExpenseFormSet(prefix="otherexpense")
+        employeeexpense = EmployeeMonthFormSet(prefix="employeeexpense",initial=initial)
 
         context['otherexpense'] = otherexpense
         context['employeeexpense'] = employeeexpense
         context['project'] = project_item
         context['project_year'] = project_year
         context['project_month'] = project_month
-        return render(request, 'SEI/resource.html', context)
+        return render(request, 'SEI/add_resource.html', context)
 
     if request.method == "POST":
-        form = ProjectMonthForm(request.POST)
+
+        initial=[]
+        for index, emp in enumerate(project_team_emp):
+            emp_name = emp.first_name + ' ' + emp.last_name
+            initial.append({'employee': emp, 'internal_salary': emp.internal_salary, 'external_salary': emp.external_salary, 'employee_name': emp_name})
+        
+        print(initial)
         otherexpense = ProjectExpenseFormSet(request.POST, prefix="otherexpense")
-        employeeexpense = EmployeeMonthFormSet(request.POST, prefix="employeeexpense")
+        employeeexpense = EmployeeMonthFormSet(request.POST, prefix="employeeexpense",initial=initial)
 
         if otherexpense.is_valid():
             for othexp in otherexpense:
@@ -572,11 +573,17 @@ def add_resources(request, PWP_num, project_year, project_month):
                                      project=project_item)
                     new_project_expense.save()
 
+        
         if employeeexpense.is_valid():
+            print("here")
             for empexp in employeeexpense:
+                print(empexp.cleaned_data)
                 #if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
                 if empexp.is_valid() and 'time_use' in empexp.cleaned_data:
+                    print(empexp.cleaned_data)
                     add_employee(empexp, PWP_num, project_date)
+        else:
+            print(employeeexpense.errors)
 
         context['otherexpense'] = otherexpense
         context['employeeexpense'] = employeeexpense
@@ -588,7 +595,7 @@ def add_resources(request, PWP_num, project_year, project_month):
         #project_month_item.save()
         messages.append("Expense has been saved")
     
-    return render(request, 'SEI/resource.html', context)
+    return render(request, 'SEI/add_resource.html', context)
 
 @login_required
 @permission_required('SEI.add_projectmonth')
