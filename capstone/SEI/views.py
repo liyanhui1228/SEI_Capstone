@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404, HttpResponse
 from django.core.urlresolvers import reverse
 # Decorator to use built-in authentication system
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,permission_required
 from django.db import transaction
 # Used to create and manually log in a user
 from django.contrib.auth.models import User
@@ -24,14 +24,11 @@ import csv
 from django.utils.encoding import smart_str
 import pdb
 from django.utils.dateparse import parse_datetime
-from django.contrib.auth.decorators import user_passes_test
+
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
 def reset_employee_availability_at_begin_of_month():
     pass
-
-def admin_check(user):
-    return user.is_superuser
 
 
 # For solving the decimal is not serializable error when dumping json
@@ -69,7 +66,7 @@ def projectview(request, PWP_num):
 
 @login_required
 @transaction.atomic
-#@user_passes_test(admin_check)
+@permission_required('SEI.add_project')
 def add_project(request):
     context = {}
 
@@ -108,7 +105,7 @@ def add_project(request):
 ##not working
 @login_required
 @transaction.atomic
-@user_passes_test(admin_check)
+@permission_required('SEI.change_project')
 def edit_project(request, PWP_num):
     
     ChargeStringFormSet = formset_factory(ChargeStringForm)
@@ -160,7 +157,6 @@ def profile(request, user_name):
 ##can add a if tag in the template to hide salary and role from normal user
 @login_required
 @transaction.atomic
-@user_passes_test(admin_check)
 def update_profile(request):
     context = {}
 
@@ -193,7 +189,7 @@ def update_profile(request):
 
 
 @transaction.atomic
-@user_passes_test(admin_check)
+@permission_required('SEI.add_user')
 def register(request):
     context = {}
 
@@ -237,6 +233,7 @@ http://%s%s
 
 
 @transaction.atomic
+@permission_required('SEI.add_user')
 def confirm_register(request, user_name, token):
     try:
         user_item = User.objects.get(username=user_name)
@@ -423,8 +420,8 @@ def view_employee_list(request, PWP_num, project_date_year, project_date_month):
     context['employee_list'] = emp_list_result
     return render(request, "SEI/employee_list.json", context)
 
-#@login_required
-#@user_passes_test(admin_check)
+@login_required
+@permission_required('SEI.add_project')
 def add_employee(employee_chosen, PWP_num, project_date):
     context = {}
     alert = {}
@@ -468,7 +465,7 @@ def add_employee(employee_chosen, PWP_num, project_date):
     context['alert'] = alert
     return context
 
-#@login_required
+@login_required
 def get_employee(request,first_name, last_name):
     employees=Employee.objects.filter(first_name=first_name, last_name=last_name)
     employee_list = []
@@ -527,7 +524,7 @@ def get_employee_allocation(request,employee_id,year):
     return HttpResponse(json.dumps(context))
 
 @login_required
-#@user_passes_test(admin_check)
+@permission_required('SEI.add_projectmonth')
 def add_resources(request, PWP_num, project_year, project_month):
     context = {}
     messages = []
@@ -594,7 +591,7 @@ def add_resources(request, PWP_num, project_year, project_month):
     return render(request, 'SEI/resource.html', context)
 
 @login_required
-@user_passes_test(admin_check)
+@permission_required('SEI.add_projectmonth')
 def add_expense(request,expense_detail):
     """
     add expense_detail for a specific project in category: travel, subcontractor, etc
@@ -632,7 +629,7 @@ def employeeview(request, employee_id):
 
 # @login_required
 # @transaction.atomic
-@user_passes_test(admin_check)
+@permission_required('SEI.add_team')
 def add_team(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
@@ -658,6 +655,7 @@ def add_team(request):
 
 # @login_required
 # @transaction.atomic
+@permission_required('SEI.add_team')
 def admin_team(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
@@ -687,6 +685,7 @@ def admin_team(request):
     return render(request, 'SEI/admin_team.html', context)
 
 @login_required
+@permission_required('SEI.change_team')
 def edit_team(request,team_id):
  
     if request.method=='GET':
@@ -704,6 +703,7 @@ def edit_team(request,team_id):
         return redirect(reverse('adminTeam'))
 
 @login_required
+@permission_required('SEI.change_employee')
 def edit_employee(request,employee_id):
  
     if request.method=='GET':
@@ -809,7 +809,7 @@ def get_team(request,team_name):
     return HttpResponse(team_list_result, content_type="application/json")
 
 @login_required
-@user_passes_test(admin_check)
+@permission_required('SEI.add_employee')
 def bulk_upload(request,file_path="/Users/eccco_yao/Desktop/example.csv"):
     """
     bulk upload the employee information from csv file path
@@ -843,6 +843,7 @@ def bulk_upload(request,file_path="/Users/eccco_yao/Desktop/example.csv"):
                     failed_row.append(str(index+1))
     print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
 
+@permission_required('SEI.add_employee')
 def update_salary_history(employee_uid, internal_salary, external_salary):
     employee = get_object_or_404(Employee,employee_uid=employee_uid)
     emp_salary_history = SalaryHistory.objects.filter(employee=employee)
@@ -890,7 +891,7 @@ def employee_validation(row):
         employee_info['position'] = row[4]
     return employee_info
 
-
+@permission_required('SEI.add_employee')
 def update_or_create_employee(employee):
     """
     update or create a new employee object and save
