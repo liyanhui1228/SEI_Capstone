@@ -4,7 +4,7 @@ from SEI.models import *
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.humanize.templatetags.humanize import intcomma
-
+from datetimewidget.widgets import DateTimeWidget
 
 class RegistrationForm(forms.Form):
     first_name = forms.CharField(max_length=40)
@@ -121,9 +121,6 @@ class TeamForm(forms.ModelForm):
            'team_name' : forms.TextInput(attrs={'class':'form-control'}),
            'division' : forms.TextInput(attrs={'class':'form-control'})
         }
-        
-        #exclude = ('team_id', )
-
 
     def clean(self):
         cleaned_data = super(TeamForm, self).clean()
@@ -156,6 +153,17 @@ class ReportForm(forms.Form):
     query_start_date = forms.DateTimeField()
     query_end_date = forms.DateTimeField()
 
+    class Meta:
+        dateTimeOptions = {
+        'format': 'dd/mm/yyyy HH:ii P',
+        'autoclose': True,
+        'startView': 3
+        }
+        widgets={
+            'query_start_date': DateTimeWidget(options = dateTimeOptions),
+            'query_end_date': DateTimeWidget(options = dateTimeOptions)
+        }
+
     def clean(self):
         cleaned_data = super(ReportForm, self).clean()
         return cleaned_data
@@ -172,7 +180,15 @@ class ProjectExpenseForm(forms.ModelForm):
         cleaned_data = super(ProjectExpenseForm, self).clean()
         return cleaned_data
 
+class EmployeeMonthModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "%s %s" % (obj.first_name, obj.last_name)
+
 class EmployeeMonthForm(forms.ModelForm):
+    internal_salary = forms.CharField(label='Internal Salary')
+    external_salary = forms.CharField(label='External Salary')
+    employee_name = forms.CharField(label='Name')
+
     class Meta:
         model = EmployeeMonth
         fields = ('employee', 'time_use', 'isExternal')
@@ -185,10 +201,6 @@ class ProjectMonthForm(forms.ModelForm):
     class Meta:
         model = ProjectMonth
         fields = ('project_date', 'project')
-        widgets = {
-            'project': forms.HiddenInput(),
-            'project_date': forms.TextInput(attrs={'disabled':'disabled', 'readonly':'readonly'}),
-        }
 
     def clean(self):
         cleaned_data = super(ProjectMonthForm, self).clean()

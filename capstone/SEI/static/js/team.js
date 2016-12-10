@@ -55,7 +55,6 @@ function getChart(){
       else
         dataset = []
     //dataset=[];
-    console.log(dataset);
 
     $( "#stackedbarchart" ).empty();
     d3.select("#stackedbarchart")

@@ -67,7 +67,7 @@
                         <li>
                             <a href="#"><i class="fa fa-fw fa-folder"></i> Export</a>
                         </li>
-                        {% if request.user.is_superuser %}
+                        {% if perms.SEI.add_employee %}
                         <li>
                             <a href="#"><i class="fa fa-fw fa-cloud-upload"></i> Bulk Upload</a>
                         </li>
@@ -88,7 +88,7 @@
                     <li>
                         <a href="javascript:;" data-toggle="collapse" data-target="#Project"><i class="fa fa-fw fa-cubes"></i> Project <i class="fa fa-fw fa-caret-down"></i></a>
                         <ul id="Project" class="collapse">
-                            {% if request.user.is_superuser %}
+                            {% if perms.SEI.add_project %}
                             <li>
                                 <a href="{% url 'addProject' %}">Add Project</a>
                             </li>
@@ -104,7 +104,7 @@
                     <li>
                         <a href="{% url 'employeesearch' %}"><i class="fa fa-fw fa-sitemap"></i> Employee</a>
                     </li>
-                        {% if request.user.is_superuser %}
+                        {% if perms.SEI.add_team %}
                         <li>
                             <a href="javascript:;" data-toggle="collapse" data-target="#Admin"><i class="fa fa-fw fa-user"></i> Admin <i class="fa fa-fw fa-caret-down"></i></a>
                             <ul id="Admin" class="collapse">
