@@ -328,7 +328,7 @@ def budget_view(request, PWP_num):
     context['projected_remaining'] = context['total_budget'] - total_expense
     return render(request, "SEI/budget_view.json",context)
 
-def calculate_month_expense(project,project_date):
+def calculate_month_expense(project, project_date):
     """
     calculate the monthly expense from projectExpense model
     :param project_date: selected year and month
@@ -817,7 +817,6 @@ def search_project(request):
     #   return render(request, 'SEI/permission.html')
     context = {}
     context['report'] = ReportForm()
-    print("here")
     return render(request, 'SEI/projectview.html', context)
 
 @login_required
@@ -1001,6 +1000,8 @@ def chart_team(request, team_id):
     #print(context)
     return HttpResponse(json.dumps(context, default=decimal_default))
 
+
+## question all with day 01???
 # @login_required
 def report_project(request, PWP_num):
     context = {}
@@ -1132,9 +1133,17 @@ def report_project(request, PWP_num):
     print(date_range)
     print(filtered_set)
     total_FTE = [0] * length
+
+    month_expense_list = []
+
+    ## project month data inconsistency
+    print(list)
     for employee_item in list:
         content = [employee_item.employee_uid, employee_item.first_name, employee_item.last_name, employee_item.position, employee_item.title]
         for i in range(0, length):
+            month_expense = calculate_month_expense(project_item, date_range[i])
+            print(month_expense)
+            month_expense_list.append(month_expense)
             employee_set = filtered_set[i] ## employeemonth set for this month
             try:
                 employee_month = employee_set.get(employee=employee_item)
@@ -1146,6 +1155,9 @@ def report_project(request, PWP_num):
     total_content = ['total in FTE', '', '', '', '']
     total_content.extend(total_FTE)
     writer.writerow(total_content)
+
+    ## should check month_expense_list
+    print(month_expense_list)
 
     ##Subtractor Section
     writer.writerow([smart_str(u"Subtractor Section")])
@@ -1163,15 +1175,18 @@ def report_project(request, PWP_num):
         subtractor_set.append(temp)
         index = index + 1
 
+    month_total_subtractor = ['total']
     for subtractor_item in subtractor_total_set:
         subtractor_content.append(subtractor_item.expense_description)
         for i in range(0, length):
             subtractor_month_set = subtractor_set[i]
+            month_total_subtractor.append(month_expense_list[i].get('subcontractor'))
             if subtractor_item in subtractor_month_set:
                 subtractor_content.append(str(subtractor_item.cost))
             else:
                 subtractor_content.append('')
         writer.writerow(subtractor_content)
+    writer.writerow(month_total_subtractor)
 
     ##Travel Section
     writer.writerow([smart_str(u"Travel Section")])
@@ -1189,17 +1204,18 @@ def report_project(request, PWP_num):
         travel_set.append(temp)
         index = index + 1
 
+    month_total_travel = ['total']
     for travel_item in travel_total_set:
         travel_content.append(travel_item.expense_description)
         for i in range(0, length):
             travel_month_set = travel_set[i]
+            month_total_travel.append(month_expense_list[i].get('travel'))
             if travel_item in travel_month_set:
                 travel_content.append(str(travel_item.cost))
             else:
                 travel_content.append('')
         writer.writerow(travel_content)
-    ## call functions to get the total amount
-    writer.writerow(['total'])
+    writer.writerow(month_total_travel)
 
     ##Equipment Section
     writer.writerow([smart_str(u"Equipment Section")])
@@ -1217,17 +1233,18 @@ def report_project(request, PWP_num):
         equipment_set.append(temp)
         index = index + 1
 
+    month_total_equipment = ['total']
     for equipment_item in equipment_total_set:
         equipment_content.append(equipment_item.expense_description)
         for i in range(0, length):
             equipment_month_set = equipment_set[i]
+            month_total_equipment.append(month_expense_list[i].get('equipment'))
             if equipment_item in equipment_month_set:
                 equipment_content.append(str(equipment_item.cost))
             else:
                 equipment_content.append('')
         writer.writerow(equipment_content)
-    ## call functions to get the total amount
-    writer.writerow(['total'])
+    writer.writerow(month_total_equipment)
 
     ##Others Section
     writer.writerow([smart_str(u"Others Section")])
@@ -1245,17 +1262,18 @@ def report_project(request, PWP_num):
         others_set.append(temp)
         index = index + 1
 
+    month_total_others = ['total']
     for others_item in others_total_set:
         others_content.append(others_item.expense_description)
         for i in range(0, length):
             others_month_set = others_set[i]
+            month_total_equipment.append(month_expense_list[i].get('other'))
             if others_item in others_month_set:
                 others_content.append(str(others_item.cost))
             else:
                 others_content.append('')
         writer.writerow(others_content)
-    ## call functions to get the total amount
-    writer.writerow(['total'])
+    writer.writerow(month_total_others)
 
     return response
 
