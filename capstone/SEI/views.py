@@ -10,7 +10,7 @@ from django.contrib.auth import login, authenticate
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 import json
-import datetime
+from datetime import date, datetime
 import decimal
 from SEI.models import *
 from SEI.forms import *
@@ -24,6 +24,7 @@ import csv
 from django.utils.encoding import smart_str
 import pdb
 from django.utils.dateparse import parse_datetime
+from dateutil.relativedelta import relativedelta
 
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
@@ -514,11 +515,11 @@ def get_employee_allocation(request,employee_id,year):
     context = {}
     employee = get_object_or_404(Employee, id = employee_id)
     employee_month_list = EmployeeMonth.objects.filter(employee=employee, project_date__year=year)
- 
+
     resource_chart = collections.defaultdict(list)
     for em in employee_month_list:
         resource_chart[em.project.PWP_num].append([str(em.project_date), em.time_use])
- 
+
     context['resource_chart_data'] = [{'measure':key, 'data':value} for key, value in resource_chart.items()]
 
     return HttpResponse(json.dumps(context))
@@ -587,7 +588,7 @@ def add_resources(request, PWP_num, project_year, project_month):
         #project_month_item.add(new_project_expense)
         #project_month_item.save()
         messages.append("Expense has been saved")
-    
+
     return render(request, 'SEI/resource.html', context)
 
 @login_required
@@ -687,7 +688,7 @@ def admin_team(request):
 @login_required
 @permission_required('SEI.change_team')
 def edit_team(request,team_id):
- 
+
     if request.method=='GET':
         team = get_object_or_404(Team,id=team_id)
         form=TeamForm(instance=team)
@@ -705,7 +706,7 @@ def edit_team(request,team_id):
 @login_required
 @permission_required('SEI.change_employee')
 def edit_employee(request,employee_id):
- 
+
     if request.method=='GET':
         employee = get_object_or_404(Employee,id=employee_id)
         form=EmployeeForm(instance=employee)
@@ -787,7 +788,7 @@ def search_employee(request):
     #if user_profile.user_role == 'ITADMIN':
     #    return render(request, 'SEI/permission.html')
 
-    return render(request, 'SEI/employeeview.html')    
+    return render(request, 'SEI/employeeview.html')
 
 @login_required
 def search_project(request):
@@ -981,28 +982,32 @@ def chart_team(request, team_id):
     return HttpResponse(json.dumps(context, default=decimal_default))
 
 # @login_required
-def test(request):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
-
-    writer = csv.writer(response)
-    writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
-    writer.writerow(['Second row', 'A', 'B', 'C', '"Testing"', "Here's a quote"])
-
-    return response
-
-# @login_required
 def report_project(request, PWP_num):
-    ##add the permission check here
-
+    context = {}
+    messages = []
+    context['messages'] = messages
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
 
     form = ReportForm(request.POST)
+
+    if not form.is_valid():
+        messages.append("Form contained invalid data")
+        render(request, "SEI/error.html", context)
+
     query_start_date = form.cleaned_data['query_start_date']
-    print(query_start_date)
     query_end_date = form.cleaned_data['query_end_date']
+
+    ##check date range
+    # if query_start_date < project_item.start_date:
+    #     query_start_date = project_item.start_date
+    #     print(project_item.start_date)
+    #     print(query_start_date)
+    # if query_end_date > project_item.end_date:
+    #     query_end_date = project_item.end_date
+    #     print(project_item.end_date)
+    #     print(query_end_date)
+    print(query_start_date)
     print(query_end_date)
-    ##should get month
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="ProjectReport.csv"'
@@ -1019,78 +1024,218 @@ def report_project(request, PWP_num):
     ##Employee Section
     writer.writerow([smart_str(u"Employee Section")])
     header_list = ['employee uid', 'first name', 'last name', 'position', 'title']
+    subtractor_header_list = ['expense description']
+    travel_header_list = ['expense description']
+    equipment_header_list = ['expense description']
+    others_header_list = ['expense description']
+
     project_start_year = query_start_date.year
     project_start_month = query_start_date.month
     project_end_year = query_end_date.year
     project_end_month = query_end_date.month
 
+    length = 0
     if project_start_year == project_end_year:
-        for i in range(1, project_end_month - project_start_month + 1):
-            header_list.append(str(project_start_year) + "/" + str(project_start_month + i))
+        length = length + project_end_month - project_start_month + 1
+        for i in range(0, project_end_month - project_start_month + 1):
+            header = str(project_start_year) + "/" + str(project_start_month + i)
+            header_list.append(header)
+            subtractor_header_list.append(header)
+            travel_header_list.append(header)
+            equipment_header_list.append(header)
+            others_header_list.append(header)
     else:
-        for i in range(1, 12 - project_start_month + 1):
-            header_list.append(str(project_start_year) + "/" + str(project_start_month + i))
-        for j in range(1, project_end_month + 1):
-            header_list.append(str(project_end_year) + "/" + str(project_end_month + i))
+        length = length + 12 - project_start_month + 1
+        length = length + (project_end_year - project_start_year - 1) * 12
+        length = length + project_end_month + 1
+        for i in range(0, 12 - project_start_month + 1):
+            header = str(project_start_year) + "/" + str(project_start_month + i)
+            header_list.append(header)
+            subtractor_header_list.append(header)
+            travel_header_list.append(header)
+            equipment_header_list.append(header)
+            others_header_list.append(header)
+        for k in range(0, project_end_year - project_start_year - 1):
+            for m in range(0, 12):
+                year = project_start_year + k + 1
+                header = str(year) + "/" + str(m + 1)
+                header_list.append(header)
+                subtractor_header_list.append(header)
+                travel_header_list.append(header)
+                equipment_header_list.append(header)
+                others_header_list.append(header)
+        for j in range(0, project_end_month + 1):
+            header = str(project_end_year) + "/" + str(project_end_month + j)
+            header_list.append(header)
+            subtractor_header_list.append(header)
+            travel_header_list.append(header)
+            equipment_header_list.append(header)
+            others_header_list.append(header)
 
-    start_month = str(project_start_year) + '-' + str(project_start_month) + '-01'
-    end_month = str(project_end_year) + '-' + str(project_end_month) + '-01'
-
-    writer.writerow(header_list)
-
-    project_month = ProjectMonth.objects.filter(project=project_item).filter(project_date__gte=start_month).filter(project_date__lte=end_month)
+    print(length)
+    ##get all employees
+    project_month = ProjectMonth.objects.filter(project=project_item).filter(project_date__gte=query_start_date).filter( \
+        project_date__lte=query_end_date)
     list = Employee.objects.none()
     for pm in project_month:
         employee_list = pm.employee_list
         list = list | employee_list
-
     list = list.distinct()
 
+    writer.writerow(header_list)
+
+    ##create a set for each queried month
+    date_range = []
+    filtered_set = []
+    date_range.append(query_start_date)
+    if project_start_month < 12:
+        next_date = date(project_start_year, project_start_month + 1, 1)
+    else:
+        next_date = date(project_start_year + 1, 1, 1)
+
+    start_set = EmployeeMonth.objects.filter(project=project_item).filter(project_date__gte=query_start_date).filter(project_date__lt=next_date)
+
+    filtered_set.append(start_set)
+    if length > 2:
+        for i in range(1, length - 1):
+            date_range.append(next_date)
+            temp = next_date + relativedelta(months=+1)
+            temp_set = EmployeeMonth.objects.filter(project_date__gte=next_date).filter(project_date__lt=temp)
+            filtered_set.append(temp_set)
+            next_date = temp
+
+    date_range.append(next_date)
+    date_range.append(query_end_date)
+    end_set = EmployeeMonth.objects.filter(project=project_item).filter(project_date__gte=next_date).filter(project_date__lt=query_end_date)
+    filtered_set.append(end_set)
+
+    print(date_range)
+    print(filtered_set)
+    total_FTE = [0] * length
     for employee_item in list:
         content = [employee_item.employee_uid, employee_item.first_name, employee_item.last_name, employee_item.position, employee_item.title]
-        ##should iterate through start to the end, but not done due to inconsistency in model
-        employee_month = EmployeeMonth.objects.filter(project=project_item).filter(employee=employee_item).filter(project_date=query_start_date)
-        if len(employee_month) == 0:
-            content.append('')
-        else:
-            content.append(str(employee_month.time_use))
+        for i in range(0, length):
+            employee_set = filtered_set[i] ## employeemonth set for this month
+            try:
+                employee_month = employee_set.get(employee=employee_item)
+                total_FTE[i] = total_FTE[i] + employee_month.time_use
+                content.append(str(employee_month.time_use))
+            except:
+                content.append('')
         writer.writerow(content)
+    total_content = ['total in FTE', '', '', '', '']
+    total_content.extend(total_FTE)
+    writer.writerow(total_content)
 
     ##Subtractor Section
     writer.writerow([smart_str(u"Subtractor Section")])
-    # subtractor_header_list = ['expense description']
-    #
-    # if project_start_year == project_end_year:
-    #     for i in range(1, project_end_month - project_start_month + 1):
-    #         subtractor_header_list.append(str(project_start_year) + "/" + str(project_start_month + i))
-    # else:
-    #     for i in range(1, 12 - project_start_month + 1):
-    #         subtractor_header_list.append(str(project_start_year) + "/" + str(project_start_month + i))
-    #     for j in range(1, project_end_month + 1):
-    #         subtractor_header_list.append(str(project_end_year) + "/" + str(project_end_month + i))
+    writer.writerow(subtractor_header_list)
 
-    # subtractor_content = []
-    # subtractor_item_total_set = ProjectExpense.objects.filter(project=project_item).filter(category='S').filter(project_date__gte=query_start_date).filter(project_date__lte=query_end_date)
-    #
-    # for subtrator_item in subtractor_item_total_set:
-    #     subtractor_content.append(subtractor_item.expense_description)
-    #     ##should iterate through start to the end, but not done due to inconsistency in model
-    #     subtractor_item_set = subtractor_item_total_set.filter(project_date=query_start_date)
-    #     if len() == 0:
-    #         content.append('')
-    #     else:
-    #         content.append(str(employee_month.time_use))
+    subtractor_content = []
+    subtractor_total_set = ProjectExpense.objects.filter(project=project_item).filter(category='S').filter(project_date__gte=query_start_date).filter(project_date__lte=query_end_date)
 
-    # writer.writerow(subtractor_content)
+    ## create monthly substractor_set
+    subtractor_set = []
+    index = 0
+
+    for i in range(0, length):
+        temp = subtractor_total_set.filter(project_date__gte=date_range[index], project_date__lt=date_range[index + 1])
+        subtractor_set.append(temp)
+        index = index + 1
+
+    for subtractor_item in subtractor_total_set:
+        subtractor_content.append(subtractor_item.expense_description)
+        for i in range(0, length):
+            subtractor_month_set = subtractor_set[i]
+            if subtractor_item in subtractor_month_set:
+                subtractor_content.append(str(subtractor_item.cost))
+            else:
+                subtractor_content.append('')
+        writer.writerow(subtractor_content)
 
     ##Travel Section
     writer.writerow([smart_str(u"Travel Section")])
+    writer.writerow(travel_header_list)
+
+    travel_content = []
+    travel_total_set = ProjectExpense.objects.filter(project=project_item).filter(category='T').filter(
+        project_date__gte=query_start_date).filter(project_date__lte=query_end_date)
+
+    ## create monthly substractor_set
+    travel_set = []
+    index = 0
+    for i in range(0, length):
+        temp = travel_total_set.filter(project_date__gte=date_range[index], project_date__lt=date_range[index + 1])
+        travel_set.append(temp)
+        index = index + 1
+
+    for travel_item in travel_total_set:
+        travel_content.append(travel_item.expense_description)
+        for i in range(0, length):
+            travel_month_set = travel_set[i]
+            if travel_item in travel_month_set:
+                travel_content.append(str(travel_item.cost))
+            else:
+                travel_content.append('')
+        writer.writerow(travel_content)
+    ## call functions to get the total amount
+    writer.writerow(['total'])
 
     ##Equipment Section
     writer.writerow([smart_str(u"Equipment Section")])
+    writer.writerow(equipment_header_list)
+
+    equipment_content = []
+    equipment_total_set = ProjectExpense.objects.filter(project=project_item).filter(category='E').filter(
+        project_date__gte=query_start_date).filter(project_date__lte=query_end_date)
+
+    ## create monthly substractor_set
+    equipment_set = []
+    index = 0
+    for i in range(0, length):
+        temp = equipment_total_set.filter(project_date__gte=date_range[index], project_date__lt=date_range[index + 1])
+        equipment_set.append(temp)
+        index = index + 1
+
+    for equipment_item in equipment_total_set:
+        equipment_content.append(equipment_item.expense_description)
+        for i in range(0, length):
+            equipment_month_set = equipment_set[i]
+            if equipment_item in equipment_month_set:
+                equipment_content.append(str(equipment_item.cost))
+            else:
+                equipment_content.append('')
+        writer.writerow(equipment_content)
+    ## call functions to get the total amount
+    writer.writerow(['total'])
 
     ##Others Section
     writer.writerow([smart_str(u"Others Section")])
+    writer.writerow(others_header_list)
+
+    others_content = []
+    others_total_set = ProjectExpense.objects.filter(project=project_item).filter(category='O').filter(
+        project_date__gte=query_start_date).filter(project_date__lte=query_end_date)
+
+    ## create monthly substractor_set
+    others_set = []
+    index = 0
+    for i in range(0, length):
+        temp = others_total_set.filter(project_date__gte=date_range[index], project_date__lt=date_range[index + 1])
+        others_set.append(temp)
+        index = index + 1
+
+    for others_item in others_total_set:
+        others_content.append(others_item.expense_description)
+        for i in range(0, length):
+            others_month_set = others_set[i]
+            if others_item in others_month_set:
+                others_content.append(str(others_item.cost))
+            else:
+                others_content.append('')
+        writer.writerow(others_content)
+    ## call functions to get the total amount
+    writer.writerow(['total'])
 
     return response
 
