@@ -186,13 +186,13 @@ class EmployeeMonthModelChoiceField(forms.ModelChoiceField):
         return "%s %s" % (obj.first_name, obj.last_name)
 
 class EmployeeMonthForm(forms.ModelForm):
-    internal_salary = forms.CharField(label='Internal Salary')
-    external_salary = forms.CharField(label='External Salary')
-    employee_name = forms.CharField(label='Name')
+    internal_salary = forms.CharField(label='Internal Salary',disabled=True)
+    external_salary = forms.CharField(label='External Salary',disabled=True)
+    employee_name = forms.CharField(label='Name',disabled=True)
 
     class Meta:
         model = EmployeeMonth
-        fields = ('employee', 'time_use', 'isExternal')
+        fields = ('employee','time_use', 'isExternal')
 
     def clean(self):
         cleaned_data = super(EmployeeMonthForm, self).clean()
