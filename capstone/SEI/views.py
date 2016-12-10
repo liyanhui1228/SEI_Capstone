@@ -301,9 +301,9 @@ def budget_view(request, PWP_num):
     resource_allocation = {}
     for pm in project_month_list:
         monthly_cost = {}
-        project_expense = ProjectExpense.objects.filter(project=project_item, project_date=pm.project_date)
         employee_month = EmployeeMonth.objects.filter(project=project_item, project_date=pm.project_date)
-
+        monthly_expense = calculate_month_expense(project_item,pm.project_date)
+        monthly_cost.update(monthly_expense)
         # Get the total Person cost in this month for this project
         person_cost = 0
         for em in employee_month:
@@ -311,26 +311,8 @@ def budget_view(request, PWP_num):
 
         monthly_cost['person'] = person_cost
 
-        # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
-        travel_cost = 0
-        subcontractor_cost = 0
-        equipment_cost = 0
-        other_cost = 0
-        for pe in project_expense:
-            if pe.category == "('T', 'Travel')":
-                travel_cost += pe.cost
-            if pe.category == "('S', 'Subcontractor')":
-                subcontractor_cost += pe.cost
-            if pe.category == "('E', 'Equipment')":
-                equipment_cost += pe.cost
-            if pe.category == "('O', 'Others')":
-                other_cost += pe.cost
-
-        monthly_cost['travel'] = travel_cost
-        monthly_cost['subcontractor'] = subcontractor_cost
-        monthly_cost['equipment'] = equipment_cost
-        monthly_cost['other'] = other_cost
-        monthly_total_cost = travel_cost + subcontractor_cost + equipment_cost + other_cost + person_cost
+        monthly_total_cost = monthly_cost['travel'] + monthly_cost['subcontractor'] + \
+                             monthly_cost['equipment'] + monthly_cost['other'] + person_cost
         monthly_cost['monthly_total_expense'] = monthly_total_cost
         total_expense += monthly_total_cost
         if now.date() > pm.project_date:
@@ -345,7 +327,36 @@ def budget_view(request, PWP_num):
     context['projected_remaining'] = context['total_budget'] - total_expense
     return render(request, "SEI/budget_view.json",context)
 
+def calculate_month_expense(project,project_date):
+    """
+    calculate the monthly expense from projectExpense model
+    :param project_date: selected year and month
+    :param project: project object
+    :return: dictionary
+    """
+    monthly_cost = {}
+    project_expense = ProjectExpense.objects.filter(project=project, project_date=project_date)
 
+    # Get the Travel, Subcontractor, Equipment, Other cost in this month for this project
+    travel_cost = 0
+    subcontractor_cost = 0
+    equipment_cost = 0
+    other_cost = 0
+    for pe in project_expense:
+        if pe.category == "T":
+            travel_cost += pe.cost
+        if pe.category == "S":
+            subcontractor_cost += pe.cost
+        if pe.category == "E":
+            equipment_cost += pe.cost
+        if pe.category == "O":
+            other_cost += pe.cost
+
+    monthly_cost['travel'] = travel_cost
+    monthly_cost['subcontractor'] = subcontractor_cost
+    monthly_cost['equipment'] = equipment_cost
+    monthly_cost['other'] = other_cost
+    return monthly_cost
 
 
 @login_required
@@ -379,7 +390,7 @@ def project_resource(request, PWP_num):
     equipment_cost = 0
     other_cost = 0
     for pe in project_expense:
-        resource_chart[pe.id].append([project_date, pe.cost])
+        resource_chart[pe.id].append([em.project_date, pe.cost])
         resource_names[pe.id] = (pe.category, pe.expense_description)
 
     # Store all the 5 kinds of cost in JSON, the key is project_date
