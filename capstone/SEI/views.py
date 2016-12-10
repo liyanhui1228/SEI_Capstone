@@ -792,7 +792,7 @@ def search_project(request):
     #   return render(request, 'SEI/permission.html')
     context = {}
     context['report'] = ReportForm()
-
+    print("here")
     return render(request, 'SEI/projectview.html', context)
 
 @login_required
@@ -986,6 +986,7 @@ def test(request):
 
     return response
 
+# @login_required
 def report_project(request, PWP_num):
     ##add the permission check here
 
