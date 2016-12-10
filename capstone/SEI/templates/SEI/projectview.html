@@ -18,21 +18,24 @@
       <div class="input-group col-md-12">
          <input id="search_input" type="text" class="search-query form-control" placeholder="Search with PWP Number" />
          <span class="input-group-btn">
-            <button id="search_btn" class="btn btn-danger" type="button">
-               <span class=" glyphicon glyphicon-search"></span>
-            </button>
+         <button id="search_btn" class="btn btn-danger" type="button">
+         <span class=" glyphicon glyphicon-search"></span>
+         </button>
          </span>
       </div>
    </div>
 </div>
 <!-- Page Heading -->
 <div id="page">
- <div id="header" class="page-header row" style="display:none">
-  <div class="col-lg-12 row">
-   <h1>Project <small>Overview</small><form id="editform" method="get" action="#">
-    <input type="submit" class="btn btn-primary" value="Edit this Project"></input>
- </form></h1>
-</div>
+<div id="header" class="page-header row" style="display:none">
+   <div class="col-lg-12 row">
+      <h1>
+         Project <small>Overview</small>
+         <form id="editform" method="get" action="#">
+            <input type="submit" class="btn btn-primary" value="Edit this Project"></input>
+         </form>
+      </h1>
+   </div>
 </div>
 <div class="row" id="project_details" style="display: none">
    <div class="col-lg-6">
@@ -140,24 +143,22 @@
    </div>
 </div>
 <div class="row" id="reporting" style="display: none">
-   <div class="col-lg-12">
-      <div class="panel panel-default">
-       <div class="panel-heading">
-         Reporting
-      </div>
-      <div class="panel-body">
-         <form id="reportform" action="#" method="POST">
-            {% csrf_token %}
-            {{ report.as_table }}
-            <input id="submit" type="submit" value="Submit">
-         </form>         
+      <div class="col-lg-12">
+         <div class="panel panel-default">
+            <div class="panel-heading">
+               Reporting
+            </div>
+            <div class="panel-body">
+               <form id="reportform" action="#" method="POST">
+                  {% csrf_token %}
+                  {{ report.as_table }}
+                  <input id="submit" type="submit" value="Submit">
+               </form>
+            </div>
+         </div>
       </div>
    </div>
 </div>
-</div>
-
-</div>
-
 <!-- /.row -->
 {% endblock %}
 {% block scripts %}
