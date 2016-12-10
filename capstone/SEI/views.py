@@ -333,8 +333,8 @@ def budget_view(request, PWP_num):
         monthly_total_cost = travel_cost + subcontractor_cost + equipment_cost + other_cost + person_cost
         monthly_cost['monthly_total_expense'] = monthly_total_cost
         total_expense += monthly_total_cost
-        #if now.date() > pm.project_date:
-        total_expense_till_now += monthly_total_cost
+        if now.date() > pm.project_date:
+            total_expense_till_now += monthly_total_cost
         monthly_cost['monthly_budget'] = pm.budget
         # Store all the 5 kinds of cost in JSON, the key is project_date
         resource_allocation[pm.project_date] = monthly_cost

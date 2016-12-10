@@ -60,7 +60,7 @@ class Project(models.Model):
     business_manager = models.CharField(max_length=100, default="", blank=True)
 
 class ProjectMonth(models.Model):
-    project_date = models.CharField(max_length=200)
+    project_date = models.DateField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     employee_list = models.ManyToManyField(Employee, related_name='do_project_this_month', symmetrical=False)
     budget = models.DecimalField(max_digits=18, decimal_places=2, null=True)
