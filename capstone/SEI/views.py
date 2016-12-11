@@ -242,18 +242,13 @@ def confirm_register(request, user_name, token):
         if user_profile.activation_key == token:
             user_item.is_active = True
             user_item.save()
-            # Logs in the new user and redirects to his/her Employee page
-            # this doesn't work because we need to put raw password here rather than the hashed password
-            # maybe because the authentication backend have some mechanism to hash the password.
-            # new_user = authenticate(username=user_name, password='123')
-            # login(request, new_user)
-            # print("in here")
-            return redirect(reverse('home'))
+            login(request, user_item)
+            return redirect('home')
         else:
             print("sorry")
     except Exception as e:
         print(e)
-        return redirect(reverse('home'))
+        return redirect('home')
 
 
 @login_required
@@ -476,7 +471,7 @@ def add_employee(employee_chosen, PWP_num, project_date):
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
-    print "success"
+    print("success")
     return context
 
 @login_required
@@ -640,7 +635,8 @@ def employeeview(request, employee_id):
     context = {}
     employee_item = get_object_or_404(Employee, id=employee_id)
     context['employee'] = employee_item
-
+    form = ReportForm()
+    context['form'] = form
     return render(request, 'SEI/employeeview.html', context)
 
 # @login_required
@@ -759,6 +755,9 @@ def view_team(request, team_id):
     ##show employee
     context['employees'] = employee_set
 
+    form = ReportForm()
+    context['form'] = form
+
     return render(request, 'SEI/teamview.html', context)
 
 def admin_employee(request):
@@ -802,7 +801,9 @@ def search_employee(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
     #if user_profile.user_role == 'ITADMIN':
     #    return render(request, 'SEI/permission.html')
-
+    context = {}
+    form = ReportForm()
+    context['form'] = form
     return render(request, 'SEI/employeeview.html')
 
 @login_required
@@ -996,7 +997,6 @@ def chart_team(request, team_id):
     return HttpResponse(json.dumps(context, default=decimal_default))
 
 
-## question all with day 01???
 # @login_required
 def report_project(request, PWP_num):
     context = {}
@@ -1014,14 +1014,10 @@ def report_project(request, PWP_num):
     query_end_date = form.cleaned_data['query_end_date']
 
     ##check date range
-    # if query_start_date < project_item.start_date:
-    #     query_start_date = project_item.start_date
-    #     print(project_item.start_date)
-    #     print(query_start_date)
-    # if query_end_date > project_item.end_date:
-    #     query_end_date = project_item.end_date
-    #     print(project_item.end_date)
-    #     print(query_end_date)
+    if query_start_date < project_item.start_date:
+        query_start_date = project_item.start_date
+    if query_end_date > project_item.end_date:
+        query_end_date = project_item.end_date
     print(query_start_date)
     print(query_end_date)
 
@@ -1063,7 +1059,7 @@ def report_project(request, PWP_num):
     else:
         length = length + 12 - project_start_month + 1
         length = length + (project_end_year - project_start_year - 1) * 12
-        length = length + project_end_month + 1
+        length = length + project_end_month
         for i in range(0, 12 - project_start_month + 1):
             header = str(project_start_year) + "/" + str(project_start_month + i)
             header_list.append(header)
@@ -1081,7 +1077,7 @@ def report_project(request, PWP_num):
                 equipment_header_list.append(header)
                 others_header_list.append(header)
         for j in range(0, project_end_month + 1):
-            header = str(project_end_year) + "/" + str(project_end_month + j)
+            header = str(project_end_year) + "/" + str(j + 1)
             header_list.append(header)
             subtractor_header_list.append(header)
             travel_header_list.append(header)
@@ -1098,8 +1094,6 @@ def report_project(request, PWP_num):
         for emp in employee_list.all():
             if emp not in list:
                 list.append(emp)
-    print list
-
     writer.writerow(header_list)
 
     ##create a set for each queried month
@@ -1112,34 +1106,32 @@ def report_project(request, PWP_num):
         next_date = date(project_start_year + 1, 1, 1)
 
     start_set = EmployeeMonth.objects.filter(project=project_item).filter(project_date__gte=query_start_date).filter(project_date__lt=next_date)
-
     filtered_set.append(start_set)
+    date_range.append(next_date)
+
     if length > 2:
         for i in range(1, length - 1):
-            date_range.append(next_date)
             temp = next_date + relativedelta(months=+1)
             temp_set = EmployeeMonth.objects.filter(project_date__gte=next_date).filter(project_date__lt=temp)
             filtered_set.append(temp_set)
             next_date = temp
+            date_range.append(next_date)
 
-    date_range.append(next_date)
-    date_range.append(query_end_date)
-    end_set = EmployeeMonth.objects.filter(project=project_item).filter(project_date__gte=next_date).filter(project_date__lt=query_end_date)
+    # date_range.append(next_date)
+    end_date = next_date + relativedelta(months=+1)
+    end_set = EmployeeMonth.objects.filter(project=project_item).filter(project_date__gte=next_date).filter(project_date__lt=end_date)
     filtered_set.append(end_set)
-
+    date_range.append(end_date)
     print(date_range)
     print(filtered_set)
-    total_FTE = [0] * length
 
+    total_FTE = [0.0] * length
     month_expense_list = []
 
-    ## project month data inconsistency
-    print(list)
     for employee_item in list:
         content = [employee_item.employee_uid, employee_item.first_name, employee_item.last_name, employee_item.position, employee_item.title]
         for i in range(0, length):
             month_expense = calculate_month_expense(project_item, date_range[i])
-            print(month_expense)
             month_expense_list.append(month_expense)
             employee_set = filtered_set[i] ## employeemonth set for this month
             try:
@@ -1150,11 +1142,9 @@ def report_project(request, PWP_num):
                 content.append('')
         writer.writerow(content)
     total_content = ['total in FTE', '', '', '', '']
-    total_content.extend(total_FTE)
+    new_total_FTE = [x / 100 for x in total_FTE]
+    total_content.extend(new_total_FTE)
     writer.writerow(total_content)
-
-    ## should check month_expense_list
-    print(month_expense_list)
 
     ##Subtractor Section
     writer.writerow([smart_str(u"Subtractor Section")])
@@ -1273,6 +1263,100 @@ def report_project(request, PWP_num):
     writer.writerow(month_total_others)
 
     return response
+
+# @login_required
+def report_employee(request, employee_id):
+    pass
+
+# @login_required
+def report_team(request, team_id):
+    context = {}
+    messages = []
+    context['messages'] = messages
+    team_item = get_object_or_404(Team, id = team_id)
+    employee_list = Employee.objects.filter(team = team_item)
+
+    form = ReportForm(request.POST)
+
+    if not form.is_valid():
+        messages.append("Form contained invalid data")
+        render(request, "SEI/error.html", context)
+
+    query_start_date = form.cleaned_data['query_start_date']
+    query_end_date = form.cleaned_data['query_end_date']
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="TeamReport.csv"'
+    writer = csv.writer(response)
+
+    ##Team Info
+    writer.writerow(['Team name', 'manager', 'directorate', 'division'])
+    writer.writerow([team_item.team_name, team_item.manager, team_item.directorate, team_item.division])
+
+    ##Employee Info
+    header_list = ['employee uid', 'first name', 'last name', 'position', 'title']
+    project_start_year = query_start_date.year
+    project_start_month = query_start_date.month
+    project_end_year = query_end_date.year
+    project_end_month = query_end_date.month
+
+    length = 0
+    if project_start_year == project_end_year:
+        length = length + project_end_month - project_start_month + 1
+        for i in range(0, project_end_month - project_start_month + 1):
+            header = str(project_start_year) + "/" + str(project_start_month + i)
+            header_list.append(header)
+    else:
+        length = length + 12 - project_start_month + 1
+        length = length + (project_end_year - project_start_year - 1) * 12
+        length = length + project_end_month
+        for i in range(0, 12 - project_start_month + 1):
+            header = str(project_start_year) + "/" + str(project_start_month + i)
+            header_list.append(header)
+        for k in range(0, project_end_year - project_start_year - 1):
+            for m in range(0, 12):
+                year = project_start_year + k + 1
+                header = str(year) + "/" + str(m + 1)
+                header_list.append(header)
+        for j in range(0, project_end_month + 1):
+            header = str(project_end_year) + "/" + str(j + 1)
+            header_list.append(header)
+
+    writer.writerow(header_list)
+
+    date_range = []
+    date_range.append(query_start_date)
+    if project_start_month < 12:
+        next_date = date(project_start_year, project_start_month + 1, 1)
+    else:
+        next_date = date(project_start_year + 1, 1, 1)
+
+    date_range.append(next_date)
+
+    if length > 2:
+        for i in range(1, length - 1):
+            temp = next_date + relativedelta(months=+1)
+            next_date = temp
+            date_range.append(next_date)
+
+    # date_range.append(next_date)
+    end_date = next_date + relativedelta(months=+1)
+    date_range.append(end_date)
+    print(date_range)
+
+    for employee_item in employee_list:
+        employee_content = [employee_item.employee_uid, employee_item.first_name, employee_item.last_name, employee_item.position, employee_item.title]
+        for i in range(0, len(date_range)):
+            employee_month = EmployeeMonth.objects.filter(employee=employee_item).filter(project_date__gte=date_range[i]).filter(project_date__lt=date_range[i + 1])
+            total = 0
+            for item in employee_month:
+                total = total + item.time_use
+            employee_content.append(str(total))
+        writer.writerow(employee_content)
+
+    return response
+
+
 
 
 
