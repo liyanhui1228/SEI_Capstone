@@ -444,40 +444,39 @@ def add_employee(employee_chosen, PWP_num, project_date):
     #PWP_num = employee_chosen_json['PWP_num']
     #emp_chosen_list = employee_chosen_json['emp_chosen_list']
     #project_date = employee_chosen_json['project_date']
-    emp_detail = employee_chosen.cleaned_data
+    emp_detail = employee_chosen
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
-    project_month = ProjectMonth.objects.filter(project=project_item, project_date=project_date)
+    project_month, created = ProjectMonth.objects.get_or_create(project=project_item, project_date=project_date)
 
     # The key of emp_chosen_list is the employee id
     #for emp_detail in emp_chosen_list:
-    emp_id = emp_detail['employee']
     time_to_use = emp_detail['time_use']
     is_external = emp_detail['isExternal']
-    emp = Employee.objects.filter(id=emp_id)
-    rate = emp_detail.external_salary if is_external else emp_detail.internal_salary
-    month_cost = float(time_to_use)/100*rate
+    emp = emp_detail['employee']
+    rate = emp.external_salary if is_external else emp.internal_salary
+    month_cost = float(time_to_use)/100*float(rate)
 
     # Insert a new record to EmployeeMonth
-    employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp[0])
+    employee_month, created = EmployeeMonth.objects.get_or_create(project_date=project_date, project=project_item, employee=emp)
     employee_month.time_use=time_to_use
     employee_month.isExternal=is_external
     employee_month.month_cost=month_cost
     employee_month.save()
 
     # Add this employee to employee_list in ProjectMonth
-    project_month[0].employee_list.add(emp[0])
+    project_month.employee_list.add(emp)
 
     # Update the percentage_used in EmployeeAvailability, if over 100%, send back the alert, alert is null means no alert
-    emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp[0], date=project_date)
+    emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp, date=project_date)
     emp_availability.percentage_used += time_to_use
     if(emp_availability.percentage_used >= 100):
         emp_availability.is_available = 0
-        detail[emp[0].id] = emp_availability.percentage_used
+        detail[emp.id] = emp_availability.percentage_used
     emp_availability.save()
-    print(emp_availability.percentage_used)
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
+    print "success"
     return context
 
 @login_required
@@ -572,8 +571,7 @@ def add_resources(request, PWP_num, project_year, project_month):
         for index, emp in enumerate(project_team_emp):
             emp_name = emp.first_name + ' ' + emp.last_name
             initial.append({'employee': emp, 'internal_salary': emp.internal_salary, 'external_salary': emp.external_salary, 'employee_name': emp_name})
-        
-        print(initial)
+
         otherexpense = ProjectExpenseFormSet(request.POST, prefix="otherexpense")
         employeeexpense = EmployeeMonthFormSet(request.POST, prefix="employeeexpense",initial=initial)
 
@@ -590,13 +588,10 @@ def add_resources(request, PWP_num, project_year, project_month):
 
         
         if employeeexpense.is_valid():
-            print("here")
             for empexp in employeeexpense:
-                print(empexp.cleaned_data)
                 #if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
                 if empexp.is_valid() and 'time_use' in empexp.cleaned_data:
-                    print(empexp.cleaned_data)
-                    add_employee(empexp, PWP_num, project_date)
+                    add_employee(empexp.cleaned_data, PWP_num, project_date)
         else:
             print(employeeexpense.errors)
 
