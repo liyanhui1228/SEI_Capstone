@@ -1091,11 +1091,13 @@ def report_project(request, PWP_num):
     ##get all employees
     project_month = ProjectMonth.objects.filter(project=project_item).filter(project_date__gte=query_start_date).filter( \
         project_date__lte=query_end_date)
-    list = Employee.objects.none()
+    list = []
     for pm in project_month:
         employee_list = pm.employee_list
-        list = list | employee_list
-    list = list.distinct()
+        for emp in employee_list.all():
+            if emp not in list:
+                list.append(emp)
+    print list
 
     writer.writerow(header_list)
 
