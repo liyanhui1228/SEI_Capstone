@@ -25,6 +25,7 @@ from django.utils.encoding import smart_str
 import pdb
 from django.utils.dateparse import parse_datetime
 from dateutil.relativedelta import relativedelta
+from django.forms import modelformset_factory
 
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
@@ -103,17 +104,17 @@ def add_project(request):
     return redirect('projectview', PWP_num=form.cleaned_data['PWP_num'])
 
 
-##not working
 @login_required
 @transaction.atomic
 @permission_required('SEI.change_project')
 def edit_project(request, PWP_num):
-    
-    ChargeStringFormSet = formset_factory(ChargeStringForm)
+    pdb.set_trace()
     if request.method == 'GET':
         project_item = get_object_or_404(Project,PWP_num=PWP_num)
+        charge_string = ChargeString.objects.filter(project=project_item)
         project_form = ProjectForm(instance=project_item)
-        formset = ChargeStringFormSet()
+        ChargeStringFormSet = modelformset_factory(ChargeString, form = ChargeStringForm)
+        formset = ChargeStringFormSet(queryset=charge_string)
         context={}
         context['form'] = project_form
         context['PWP_num']=project_item.PWP_num
@@ -121,24 +122,26 @@ def edit_project(request, PWP_num):
         return render(request, 'SEI/edit_project.html', context)
     
     project_item = get_object_or_404(Project,PWP_num=PWP_num)
+    charge_string = ChargeString.objects.filter(project=project_item)
     project_form=ProjectForm(request.POST,instance=project_item)
+    ChargeStringFormSet = modelformset_factory(ChargeString, form = ChargeStringForm)
     formset = ChargeStringFormSet(data=request.POST)
 
+    pdb.set_trace()
     if project_form.is_valid():
-        project_form.save()
-        return redirect(reverse('projectsearch'))
+        project_item = project_form.save()
+        #return redirect(reverse('projectsearch'))
 
-    #save charge strings
-    if formset.is_valid():
-        for cs_form in formset:
-            if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
-                new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
-                    project = new_project)
-                new_charge_string.save()
+        if formset.is_valid():
+            for cs_form in formset:
+                pdb.set_trace()
+                if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
+                    new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
+                        project = project_item)
+                    new_charge_string.save()
+            return redirect(reverse('projectsearch'))
 
-    return render(request,'SEI/edit_project.html',{'form':project_form})
-
-
+    return render(request,'SEI/edit_project.html', context)
         
 
 @login_required
@@ -356,7 +359,7 @@ def calculate_month_expense(project, project_date):
 
 
 @login_required
-def project_resource(request, PWP_num):
+def project_resource(request, PWP_num, project_year):
     """
     Gets the project resources for a given project and year to display in the project view graph
     returns the JSON for d3 chart in
@@ -372,11 +375,12 @@ def project_resource(request, PWP_num):
     resource_names = {}
     #for pm in project_month_list:
     
-    project_expense = ProjectExpense.objects.filter(project=project_item)
-    employee_month = EmployeeMonth.objects.filter(project=project_item)
+    project_expense = ProjectExpense.objects.filter(project=project_item, project_date__year = project_year)
+    employee_month = EmployeeMonth.objects.filter(project=project_item, project_date__year = project_year)
 
     #get all employees assigned for the given date
     for em in employee_month:
+        print(em)
         resource_chart[em.employee.id].append([str(em.project_date), em.time_use])
         resource_names[em.employee.id] = em.employee.first_name + " " + em.employee.last_name
 
@@ -386,12 +390,14 @@ def project_resource(request, PWP_num):
     equipment_cost = 0
     other_cost = 0
     for pe in project_expense:
-        resource_chart[pe.id].append([em.project_date, pe.cost])
+        resource_chart[pe.id].append([str(pe.project_date), pe.cost])
         resource_names[pe.id] = (pe.category, pe.expense_description)
 
     # Store all the 5 kinds of cost in JSON, the key is project_date
     context['resource_allocation'] = [{'measure':value, 'data':resource_chart[key]} for key, value in resource_names.items()]
-    return HttpResponse(json.dumps(context))
+    #context['resource_allocation'] =  json.dumps(resource_allocation, default=decimal_default)
+    return HttpResponse(json.dumps(context, default=decimal_default))
+
 
 @login_required
 def view_employee_list(request, PWP_num, project_date_year, project_date_month):
@@ -958,13 +964,13 @@ def chart_team(request, team_id):
         equipment_cost = 0
         other_cost = 0
         for pe in project_expense:
-            if pe.category == "('T', 'Travel')":
+            if pe.category in ('T', 'Travel'):
                 travel_cost += pe.cost
-            if pe.category == "('S', 'Subcontractor')":
+            if pe.category in ('S', 'Subcontractor'):
                 subcontractor_cost += pe.cost
-            if pe.category == "('E', 'Equipment')":
+            if pe.category in ('E', 'Equipment'):
                 equipment_cost += pe.cost
-            if pe.category == "('O', 'Others')":
+            if pe.category in ('O', 'Others'):
                 other_cost += pe.cost
 
         monthly_cost["month"]=str(month)
@@ -991,9 +997,6 @@ def chart_team(request, team_id):
         resource_allocation.append(monthly_cost)
 
     context["resource_allocation"] = resource_allocation
-    #pdb.set_trace()
-    #context["resource_allocation"] = resource_allocation
-    #print(context)
     return HttpResponse(json.dumps(context, default=decimal_default))
 
 

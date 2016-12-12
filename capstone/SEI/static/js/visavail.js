@@ -45,6 +45,10 @@ function visavailChart() {
   // "curDisplayFirstDataset+maxDisplayDatasets"
   var curDisplayFirstDataset = 0;
 
+  var xaxis_link = null;
+
+  var chart_year = new Date().getFullYear();
+
   // global div for tooltip
   var div = d3.select('#visavailchart').append('div')
   .attr('class', 'tooltip')
@@ -200,7 +204,7 @@ function visavailChart() {
 
       //force data range to current year January - December
       //var parseDate = d3.time.format('%Y-%m-%d');
-      startDate = parseDate.parse("2016-01-01");
+      startDate = parseDate.parse(chart_year + "-01-01");
       endDate = d3.time.year.offset(startDate, 1);
 
       // define scales
@@ -273,11 +277,32 @@ function visavailChart() {
         }
       });
 
+
       // create x axis
       svg.select('#g_axis').append('g')
       .attr('class', 'axis')
-      .call(xAxis);
-
+      .call(xAxis)
+      .selectAll("text")
+        .on('click', function (d){
+            if(xaxis_link != null){
+              xaxis_link(moment(parseDate(d)).format('l'));              
+            }
+        })
+        .on("mouseover", function(d) {
+            d3.select(this).style("font-weight", "bold");
+            div.transition()    
+                .duration(200)    
+                .style("opacity", .9);    
+            div .html("Click here to add" + moment(parseDate(d)).format('l') + "resources")  
+                .style("left", (d3.event.pageX) + "px")   
+                .style("top", (d3.event.pageY - 28) + "px");  
+            })          
+        .on("mouseout", function(d) {   
+            d3.select(this).style("font-weight", "normal");
+            div.transition()    
+                .duration(500)    
+                .style("opacity", 0); 
+        });
 
       // make y groups for different data series
       var g = svg.select('#g_data').selectAll('.g_data')
@@ -436,7 +461,34 @@ function visavailChart() {
       .attr('y', paddingTopHeading + 8.5)
       .text('Resource Allocated')
       .attr('class', 'legend');
+
     });
+}
+
+function redraw(selection) {
+    selection.each(function drawGraph(dataset) {
+
+    rect = rect.data(viewdata);
+    
+  rect.enter().append("rect");
+    
+  rect.transition()
+    .duration(500)
+    .attr("x",function(d,i){ return i*20})
+    .attr("y",function(d) {return 300 - y(d);})
+    .attr("width", 20)
+    .attr("height", y);
+    
+  text = text.data(viewdata);
+    
+  text.enter().append("text");
+  text.transition()
+    .duration(500)
+    .attr("x", function(d,i) { return i*20+8; })
+    .attr("y", 290)
+    .text(String);
+rect.exit().remove();
+});
 }
 
 chart.width = function (_) {
@@ -466,6 +518,18 @@ chart.curDisplayFirstDataset = function (_) {
 chart.emphasizeYearTicks = function (_) {
   if (!arguments.length) return emphasizeYearTicks;
   emphasizeYearTicks = _;
+  return chart;
+};
+
+chart.xaxis_link = function (_) {
+  if (!arguments.length) return xaxis_link;
+  xaxis_link = _;
+  return chart;
+};
+
+chart.chart_year = function (_) {
+  if (!arguments.length) return chart_year;
+  chart_year = _;
   return chart;
 };
 

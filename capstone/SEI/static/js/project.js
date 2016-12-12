@@ -45,23 +45,35 @@ function getBudgetInfo(){
     });
 }
 
-function getResourceAllocationChart(){
+function openResourceAllocation(project_date){
+  var PWP_num=$("#search_input").val().toLowerCase();
+  var parts = project_date.split('/');
+  var month = parts[0];
+  var year = parts[2];
+  console.log(project_date)
+  var url="/SEI/add_resources/"+PWP_num+"/"+year+"/"+month;
+  window.location.replace(url);
+}
+
+function getResourceAllocationChart(year){
     var PWP_num=$("#search_input").val().toLowerCase();
-    var url="resource/"+PWP_num;
-    var dataset = []
+    var url="resource/"+PWP_num+"/"+year;
+    var dataset = [];
+    $( "#visavailchart" ).empty();
+
     $.get(url).done(function(data){
+      var dataset = [];
       var json = JSON.parse(data);
-      dataset=[];
       if (json['resource_allocation'] != null && json['resource_allocation'].length > 0){
         dataset = json['resource_allocation']
       }
-    // draw Visavail.js chart
-    var chart = visavailChart().width(800);
+          // draw Visavail.js chart
+    var chart = visavailChart().xaxis_link(openResourceAllocation).chart_year(year);
     //dataset=[];
-    $( "#visavailchart" ).empty();
     d3.select("#visavailchart")
             .datum(dataset)
             .call(chart);
+
     });
 }
 
@@ -70,7 +82,9 @@ $(function(){
 
         getProjectInfo();
         getBudgetInfo();
-        getResourceAllocationChart();
+        var year=new Date().getFullYear();
+        $("#year").text(year);
+        getResourceAllocationChart(year);
         var PWP_num=$("#search_input").val().toLowerCase();
         var form=$("#editform")
         form.attr('action','/SEI/edit_project/'+PWP_num)
@@ -80,6 +94,36 @@ $(function(){
         $("#reporting").show();
         var repform=$("#reportform")
         repform.attr('action','/SEI/report_project/'+PWP_num)
-    })
-})
+    });
 
+  $("#last_year").click(function(){
+    var last_year = parseInt($("#year").text()) - 1;
+    $("#year").text(last_year);
+    getResourceAllocationChart(last_year);
+  });
+
+    $("#next_year").click(function(){
+    var next_year = parseInt($("#year").text()) + 1;
+    $("#year").text(next_year);
+    getResourceAllocationChart(next_year);
+  });
+
+  function reloadResourceAllocationChart(year){
+      var PWP_num = d3.select("#PWP_num").text();
+      var url="resource/"+PWP_num+"/"+year;
+      var dataset = [];
+      $.get(url).done(function(data){
+        var json = JSON.parse(data);
+        if (json['resource_allocation'] != null && json['resource_allocation'].length > 0){
+          dataset = json['resource_allocation']
+        }
+            // draw Visavail.js chart
+      //var chart = visavailChart().xaxis_link(openResourceAllocation);
+      //dataset=[];
+      d3.select("#visavailchart")
+              .datum(dataset)
+              .call(redraw);
+      });
+  }
+
+})
