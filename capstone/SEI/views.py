@@ -861,7 +861,6 @@ def bulk_upload(request,file_path="/Users/eccco_yao/Desktop/example.csv"):
                     failed_row.append(str(index+1))
     print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
 
-@permission_required('SEI.add_employee')
 def update_salary_history(employee_uid, internal_salary, external_salary):
     employee = get_object_or_404(Employee,employee_uid=employee_uid)
     emp_salary_history = SalaryHistory.objects.filter(employee=employee)
@@ -909,7 +908,6 @@ def employee_validation(row):
         employee_info['position'] = row[4]
     return employee_info
 
-@permission_required('SEI.add_employee')
 def update_or_create_employee(employee):
     """
     update or create a new employee object and save
