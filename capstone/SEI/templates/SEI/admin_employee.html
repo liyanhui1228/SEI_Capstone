@@ -3,67 +3,79 @@
 {% block head %}{% endblock %}
 
 {% block content %}
-                <div class="row">
-                    <div class="col-lg-6 col-lg-offset-3">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Add New Employee</h3>
-                            </div>
-                            <div>
-                            	<div class="panel-body">
-                            		<div class="list-group">
-										<form action="{% url 'adminEmployee' %}" method="post">
-											{{ form.as_p }}
-										<input type="submit" class="btn btn-primary" value="Create">
-										{% csrf_token %}
-										</form>
-                                </div>                                
-                        </div>
-                    </div>
-                </div>
+<div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Add New Employee</h3>
+            </div>
+            <div>
+             <div class="panel-body">
+              <div class="list-group">
+                  <form action="{% url 'adminEmployee' %}" method="post">
+                   {{ form.as_p }}
+                   <input type="submit" class="btn btn-primary" value="Create">
+                   {% csrf_token %}
+               </form>
+           </div>                                
+       </div>
+   </div>
 </div>
-</div>
-	<br />
-	<br />
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>All Employees</h3>
-                            </div>
-                            <div>
-                            	<div class="panel-body">
-                                    <table id="employee_list" class="table table-striped">
-                                      <tr>
-                                        <th>First Name</th>
-                                        <th>Last Name</th>
-                                        <th>Position</th>
-                                        <th>Title</th>                                        
-                                        <th>Internal salary</th>
-                                        <th>External salary</th>
-                                        <th>Team</th>
-                                        <th>Operation</th>
-                                      </tr>
-                                      {% for employee in employees  %}
-                                      <tr>
-                                        <td>{{ employee.first_name }}</td>
-                                        <td>{{ employee.last_name }}</td>
-                                        <td>{{ employee.position }}</td>
-                                        <td>{{ employee.title }}</td>
-                                        <td>{{ employee.internal_salary }}</td>
-                                        <td>{{ employee.external_salary }}</td>
-                                        <td>{{ employee.team.team_name }}</td>
-                                        <td><form action="{% url 'edit_employee' employee_id=employee.id %}"><input type="submit" class="btn btn-primary" value="edit"></input></form></td>
-                                    </tr>
-                                    {% endfor %}
-                                    </table>                                
-                                </div>                                
-                        </div>
-                    </div>
-                </div>
 </div>
 </div>
 
+<div class="row">
+    <div class="col-lg-6 col-lg-offset-3"">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Bulk Upload Employees</h3>
+            </div>
+            <div class="panel-body">
+                <form action="{% url 'bulkUpload' %}">
+                    {{ bulkupload.as_p }}
+                    <input align="right" type="submit" class="btn btn-primary" value="Upload">
+                   {% csrf_token %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>All Employees</h3>
+                </div>
+                <div class="panel-body">
+                    <table id="employee_list" class="table table-striped">
+                      <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Position</th>
+                        <th>Title</th>                                        
+                        <th>Internal salary</th>
+                        <th>External salary</th>
+                        <th>Team</th>
+                        <th>Operation</th>
+                    </tr>
+                    {% for employee in employees  %}
+                    <tr>
+                        <td>{{ employee.first_name }}</td>
+                        <td>{{ employee.last_name }}</td>
+                        <td>{{ employee.position }}</td>
+                        <td>{{ employee.title }}</td>
+                        <td>{{ employee.internal_salary }}</td>
+                        <td>{{ employee.external_salary }}</td>
+                        <td>{{ employee.team.team_name }}</td>
+                        <td><form action="{% url 'edit_employee' employee_id=employee.id %}"><input type="submit" class="btn btn-primary" value="edit"></input></form></td>
+                    </tr>
+                    {% endfor %}
+                </table>                                
+            </div>                                
+        </div>
+    </div>
+</div>
 {% endblock %}
 {% block scripts %}
 {% endblock %}

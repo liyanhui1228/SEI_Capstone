@@ -206,3 +206,10 @@ class ProjectMonthForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ProjectMonthForm, self).clean()
         return cleaned_data
+
+class BulkUploadForm(forms.Form):
+    file = forms.FileField()
+
+    def clean(self):
+        cleaned_data = super(BulkUploadForm, self).clean()
+        return cleaned_data

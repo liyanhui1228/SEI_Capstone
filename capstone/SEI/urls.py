@@ -45,5 +45,5 @@ urlpatterns = [
     url(r'^chart_team/(?P<team_id>\d+)$',SEI.views.chart_team,name="chartTeam"),
     url(r'^bulk_upload$',SEI.views.bulk_upload,name="bulkUpload"),
     url(r'^report_employee/(?P<employee_id>\w+)$', SEI.views.report_employee, name='reportEmployee'),
-    url(r'^report_team/(?P<team_id>\w+)$', SEI.views.report_team, name='reportTeam'),
+    url(r'^report_team/(?P<team_id>\d*)$', SEI.views.report_team, name='reportTeam')
 ]

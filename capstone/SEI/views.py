@@ -108,7 +108,6 @@ def add_project(request):
 @transaction.atomic
 @permission_required('SEI.change_project')
 def edit_project(request, PWP_num):
-    pdb.set_trace()
     if request.method == 'GET':
         project_item = get_object_or_404(Project,PWP_num=PWP_num)
         charge_string = ChargeString.objects.filter(project=project_item)
@@ -127,14 +126,12 @@ def edit_project(request, PWP_num):
     ChargeStringFormSet = modelformset_factory(ChargeString, form = ChargeStringForm)
     formset = ChargeStringFormSet(data=request.POST)
 
-    pdb.set_trace()
     if project_form.is_valid():
         project_item = project_form.save()
         #return redirect(reverse('projectsearch'))
 
         if formset.is_valid():
             for cs_form in formset:
-                pdb.set_trace()
                 if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
                     new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
                         project = project_item)
@@ -380,7 +377,7 @@ def project_resource(request, PWP_num, project_year):
 
     #get all employees assigned for the given date
     for em in employee_month:
-        print(em)
+        #print(em)
         resource_chart[em.employee.id].append([str(em.project_date), em.time_use])
         resource_names[em.employee.id] = em.employee.first_name + " " + em.employee.last_name
 
@@ -477,12 +474,12 @@ def add_employee(employee_chosen, PWP_num, project_date):
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
-    print("success")
+    #print("success")
     return context
 
 @login_required
 def get_employee(request,first_name, last_name):
-    employees=Employee.objects.filter(first_name=first_name, last_name=last_name)
+    employees=Employee.objects.filter(first_name__icontains=first_name, last_name__icontains=last_name)
     employee_list = []
     for emp in employees:
         emp_detail = model_to_dict(emp)
@@ -498,13 +495,13 @@ def get_employee_project(request,employee_id):
     five_month_before = str(five_month_before_date.year) + '-' + str(five_month_before_date.month) + '-01'
     current_month = str(today.year) + '-' + str(today.month) + '-01'
     Tasks=EmployeeMonth.objects.filter(employee=employee,project_date__gt=five_month_before,project_date__lte=current_month)
-    print(len(Tasks))
+    #print(len(Tasks))
     time_sum={}
     projects={}
     for task in Tasks:
-        print(task.project)
+        #print(task.project)
         dateKey=task.project_date
-        print(dateKey)
+        #print(dateKey)
         project={}
         project['PWP_num']=task.project.PWP_num
         project['time_use']=task.time_use
@@ -641,8 +638,7 @@ def employeeview(request, employee_id):
     context = {}
     employee_item = get_object_or_404(Employee, id=employee_id)
     context['employee'] = employee_item
-    form = ReportForm()
-    context['form'] = form
+    context['report'] = ReportForm()
     return render(request, 'SEI/employeeview.html', context)
 
 # @login_required
@@ -775,6 +771,7 @@ def admin_employee(request):
 
     employees = Employee.objects.all()
     context['employees'] = employees
+    context['bulkupload'] = BulkUploadForm()
 
     if request.method == 'GET':
         form = EmployeeForm()
@@ -808,9 +805,8 @@ def search_employee(request):
     #if user_profile.user_role == 'ITADMIN':
     #    return render(request, 'SEI/permission.html')
     context = {}
-    form = ReportForm()
-    context['form'] = form
-    return render(request, 'SEI/employeeview.html')
+    context['report'] = ReportForm()
+    return render(request, 'SEI/employeeview.html', context)
 
 @login_required
 def search_project(request):
@@ -823,7 +819,7 @@ def search_project(request):
 
 @login_required
 def get_team(request,team_name):
-    teams=Team.objects.filter(team_name__contains=team_name)
+    teams=Team.objects.filter(team_name__icontains=team_name)
     team_list = []
     for team in teams:
         team_list.append(model_to_dict(team))
@@ -1021,8 +1017,8 @@ def report_project(request, PWP_num):
         query_start_date = project_item.start_date
     if query_end_date > project_item.end_date:
         query_end_date = project_item.end_date
-    print(query_start_date)
-    print(query_end_date)
+    #print(query_start_date)
+    #print(query_end_date)
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="ProjectReport.csv"'
@@ -1125,8 +1121,8 @@ def report_project(request, PWP_num):
     end_set = EmployeeMonth.objects.filter(project=project_item).filter(project_date__gte=next_date).filter(project_date__lt=end_date)
     filtered_set.append(end_set)
     date_range.append(end_date)
-    print(date_range)
-    print(filtered_set)
+    #print(date_range)
+    #print(filtered_set)
 
     total_FTE = [0.0] * length
     month_expense_list = []
@@ -1345,7 +1341,7 @@ def report_team(request, team_id):
     # date_range.append(next_date)
     end_date = next_date + relativedelta(months=+1)
     date_range.append(end_date)
-    print(date_range)
+    #print(date_range)
 
     for employee_item in employee_list:
         employee_content = [employee_item.employee_uid, employee_item.first_name, employee_item.last_name, employee_item.position, employee_item.title]
