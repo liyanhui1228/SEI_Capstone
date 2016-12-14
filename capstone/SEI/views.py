@@ -841,30 +841,28 @@ def bulk_upload(request):
     if request.method == 'POST':
         form = BulkUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            file_path = request.FILES['file']
-            print(file_path)
+            csvfile = request.FILES['file'].read()
             failed_row = []
             created_row = 0
             updated_row = 0
-            with open(file_path) as csvfile:
-                reader = csv.reader(csvfile, delimiter=',')
-                for index,row in enumerate(reader):
-                    if len(row) != 8:
-                        return "invalid csv format, should be 8 rows"
-                    if row[0]=='uid':
-                        pass
-                    else:
-                        employee_info = employee_validation(row)
-                        if employee_info:
-                            response = update_or_create_employee(employee_info)
-                            if response == 0:
-                                failed_row.append(str(index+1))
-                            elif response == 1:
-                                created_row += 1
-                            else:
-                                updated_row += 1
-                        else:
+            for index,row in enumerate(csvfile):
+                row = row.split(",")
+                if len(row) != 8:
+                    return "invalid csv format, should be 8 rows"
+                if row[0]=='uid':
+                    pass
+                else:
+                    employee_info = employee_validation(row)
+                    if employee_info:
+                        response = update_or_create_employee(employee_info)
+                        if response == 0:
                             failed_row.append(str(index+1))
+                        elif response == 1:
+                            created_row += 1
+                        else:
+                            updated_row += 1
+                    else:
+                        failed_row.append(str(index+1))
             print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
             context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
 
