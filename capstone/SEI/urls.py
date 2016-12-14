@@ -3,47 +3,43 @@ import django.contrib.auth.views
 import SEI.views
 
 urlpatterns = [
+    #System
     url(r'^$', SEI.views.home, name='home'),
     url(r'^login$', django.contrib.auth.views.login, {'template_name':'SEI/login.html'}, name='login'),
-    url(r'^login2$', django.contrib.auth.views.login, {'template_name':'SEI/login2.html'}),
     url(r'^logout$', django.contrib.auth.views.logout_then_login, name='logout'),
-    url(r'^register$', SEI.views.register, name='register'),
-    url(r'^profile/(?P<user_name>\w+)$', SEI.views.profile, name='profile'),
-    url(r'^confirm-registeration/(?P<user_name>\w+)/(?P<token>[\w.-]+)$', SEI.views.confirm_register, name='confirm'),
-    url(r'^edit_profile$', SEI.views.update_profile, name='edit'),
-    url(r'^password_reset$', django.contrib.auth.views.password_reset, name='reset'),
-    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        django.contrib.auth.views.password_reset_confirm, name='password_reset_confirm'),
-    url(r'^password_reset_done$', django.contrib.auth.views.password_reset_done, name='password_reset_done'),
-    url(r'^password_reset_complete$', django.contrib.auth.views.password_reset_complete, name='password_reset_complete'),
-    url(r'^password_change', django.contrib.auth.views.password_change, {'post_change_redirect': '/'}, name='password_change'),
-    url(r'^password_change_done', django.contrib.auth.views.password_change_done, name='password_change_done'),
+    
+    #Project View
     url(r'^add_project', SEI.views.add_project, name='addProject'),
     url(r'^project/(?P<PWP_num>\w+)$', SEI.views.projectview, name='projectview'),
     url(r'^edit_project/(?P<PWP_num>\w+)$', SEI.views.edit_project, name='edit_project'),
     url(r'^project', SEI.views.search_project, name='projectsearch'),
+    url(r'^budget/(?P<PWP_num>\w+)$', SEI.views.budget_view, name='viewBudget'),
+    url(r'^overview/(?P<PWP_num>\w+)$', SEI.views.project_overview, name='viewProject'),
+    url(r'^resource/(?P<PWP_num>\w+)$', SEI.views.project_resource, name='viewProjectResource'),
+    url(r'^report_project/(?P<PWP_num>.*)$', SEI.views.report_project, name="reportProject"),
+    
+    #Admin View
     url(r'^add_resources/(?P<PWP_num>\w+)/(?P<project_year>\d+)/(?P<project_month>\d+)$', SEI.views.add_resources, name='addResources'),
     url(r'^add_employee/(?P<employee_chosen>.*?)$', SEI.views.add_employee, name='addEmployee'),
     url(r'^edit_employee/(?P<employee_id>\d+?)$', SEI.views.edit_employee, name='edit_employee'),
-    url(r'^view_employee_list/(?P<PWP_num>\w+)/(?P<project_date_year>\d+)/(?P<project_date_month>\d+)$', SEI.views.view_employee_list, name='viewEmployeeList'),
-    url(r'^budget/(?P<PWP_num>\w+)$', SEI.views.budget_view, name='viewBudget'),
-    url(r'^overview/(?P<PWP_num>\w+)$', SEI.views.project_overview, name='viewProject'),
+    url(r'^admin_team$', SEI.views.admin_team, name='adminTeam'),
+    url(r'^edit_team/(?P<team_id>\d+)$', SEI.views.edit_team, name='edit_team'),
+    url(r'^admin_employee$', SEI.views.admin_employee, name='adminEmployee'),
+    url(r'^bulk_upload$',SEI.views.bulk_upload,name="bulkUpload"),
+    
+    #Employee view
     url(r'^get_employee/(?P<first_name>.*?)/(?P<last_name>.*?)$',SEI.views.get_employee),
     url(r'^get_employee_project/(?P<employee_id>\d+)$',SEI.views.get_employee_project),
     url(r'^employee/(?P<employee_id>\w+)$', SEI.views.employeeview, name='employeeview'),
     url(r'^employee$', SEI.views.search_employee, name='employeesearch'),
+    url(r'^report_employee/(?P<employee_id>\w+)$', SEI.views.report_employee, name='reportEmployee'),
+    
+    #Team View
     url(r'^team/(?P<team_id>\d+)$', SEI.views.view_team, name='teamview'),
     url(r'^team', SEI.views.search_team, name='teamsearch'),
-    url(r'^admin_team$', SEI.views.admin_team, name='adminTeam'),
-    url(r'^edit_team/(?P<team_id>\d+)$', SEI.views.edit_team, name='edit_team'),
-    url(r'^admin_employee$', SEI.views.admin_employee, name='adminEmployee'),
     url(r'^get_team/(?P<team_name>\w*)$',SEI.views.get_team),
     url(r'^get_employee_allocation/(?P<employee_id>\d+)/(?P<year>\d+)$',SEI.views.get_employee_allocation),
-    url(r'^resource/(?P<PWP_num>\w+)/(?P<project_year>\d+)$', SEI.views.project_resource, name='viewProjectResource'),
     url(r'^chart_team/(?P<team_id>\d+)$',SEI.views.chart_team, name="chart_team"),
-    url(r'^report_project/(?P<PWP_num>.*)$', SEI.views.report_project, name="reportProject"),
-    url(r'^chart_team/(?P<team_id>\d+)$',SEI.views.chart_team,name="chartTeam"),
-    url(r'^bulk_upload$',SEI.views.bulk_upload,name="bulkUpload"),
-    url(r'^report_employee/(?P<employee_id>\w+)$', SEI.views.report_employee, name='reportEmployee'),
-    url(r'^report_team/(?P<team_id>\d*)$', SEI.views.report_team, name='reportTeam')
+    url(r'^report_team/(?P<team_id>\d*)$', SEI.views.report_team, name='reportTeam'),
+    
 ]
