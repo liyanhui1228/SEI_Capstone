@@ -68,6 +68,7 @@ $(document).ready(function () {
   team_id = $("#team_id").val()
   if (team_id != "")
   {
+    $("#header").show();
     $("#team").show();
     $("#reporting").show();
     $("#team_details").show();

@@ -13,13 +13,17 @@ function getEmployeList(){
         var employee_id=employee.id;
         employee_list.append("<li class='list-group-item' id=\""+employee_id+"\">Name:"+employee_name+"\tTeam:"+team_name+"</li>");
       }
-      $('#myModal').modal({show:true});
+      $('#myModal').modal({show:true});  
   });
 }
 
 function show_morris_content(e){
   var employee_id=$(e.target).attr("id");
   var employee_name=$(e.target).text();
+  show_morris(employee_id,employee_name);
+}
+
+function show_morris(id,employee_name){
   $("#header").show()
   $("#employee_name").text(employee_name)
   $("#morris-donut-chart").empty()
@@ -109,6 +113,10 @@ function renderLineChart(data){
 
 function show_d3_content(e){
     var employee_id=$(e.target).attr("id");
+    show_d3(employee_id);
+}
+
+function show_d3(employee_id){
     project_allocation_chart=$("#visavailchart")
     var year=new Date().getFullYear();
     $.get("/SEI/get_employee_allocation/"+employee_id+"/"+year)
@@ -128,16 +136,33 @@ function show_d3_content(e){
           .call(chart);
     });
     $("#project_allocation_chart").show();
-    $("#reportform").attr('action','/SEI/report_employee/'+employee_id);
     $("#reporting").show();
 }
 
-
 $(function(){
-    $("body").on('hidden.bs.modal', '.modal', function () {
+    employee_id = $("#employee_id").val()
+    if (employee_id != "")
+    {
+     employee_name=$("#first_name").val()+" "+$("#last_name").val();
+     show_morris(employee_id,employee_name);
+     show_d3(employee_id);
+    }else{
+      $("body").on('hidden.bs.modal', '.modal', function () {
        removeModal();
-    });
-    $("#search_btn").click(getEmployeList);
-    $("#employee_list").on("click","li",show_d3_content);
-    $("#employee_list").on("click","li",show_morris_content);
+      });
+      $("#search_btn").click(getEmployeList);
+      $("#employee_list").on("click","li",show_d3_content);
+      $("#employee_list").on("click","li",show_morris_content);
+            $("#last_year").click(function(){
+      var last_year = parseInt($("#year").text()) - 1;
+      $("#year").text(last_year);
+        getResourceAllocationChart(last_year);
+      });
+
+      $("#next_year").click(function(){
+      var next_year = parseInt($("#year").text()) + 1;
+      $("#year").text(next_year);
+        getResourceAllocationChart(next_year);
+      });
+    }  
 })
