@@ -852,21 +852,15 @@ def bulk_upload(request):
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)
-        print(uploaded_file_url)
         file_path = uploaded_file_url
-        ##file_path = request.FILES['file']
-        print(file_path)
         failed_row = []
         created_row = 0
         updated_row = 0
         with open(file_path) as csvfile:
-            print("opened")
             reader = csv.reader(csvfile, delimiter=',')
-            print("read")
             for index, row in enumerate(reader):
                 if len(row) != 8:
                     messages.append("invalid csv format, should be 8 rows")
-                    print("no row")
                     return redirect('adminEmployee')
                 if row[0] != 'uid':
                     messages.append("upload files: ")
@@ -882,10 +876,8 @@ def bulk_upload(request):
                             updated_row += 1
                     else:
                         failed_row.append(str(index+1))
-        ##print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
+        print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
         ##context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
-    # print(form.errors)
-    print("success")
     return redirect('adminEmployee')
 
 def update_salary_history(employee_uid, internal_salary, external_salary):
