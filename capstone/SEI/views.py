@@ -26,6 +26,8 @@ import pdb
 from django.utils.dateparse import parse_datetime
 from dateutil.relativedelta import relativedelta
 from django.forms import modelformset_factory
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 
 
 # Reset the percentage_used in employee availability table to 0 at the beginning of every month
@@ -771,7 +773,7 @@ def admin_employee(request):
 
     employees = Employee.objects.all()
     context['employees'] = employees
-    context['bulkupload'] = BulkUploadForm()
+    # context['bulkupload'] = BulkUploadForm()
 
     if request.method == 'GET':
         form = EmployeeForm()
@@ -837,38 +839,54 @@ def bulk_upload(request):
     :param file_path: csv path
     :return: message that indicats if it's successful or not, but how to return ???
     """
+    print("here")
     context = {}
-    if request.method == 'POST':
-        form = BulkUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            file_path = request.FILES['file']
-            print(file_path)
-            failed_row = []
-            created_row = 0
-            updated_row = 0
-            with open(file_path) as csvfile:
-                reader = csv.reader(csvfile, delimiter=',')
-                for index,row in enumerate(reader):
-                    if len(row) != 8:
-                        return "invalid csv format, should be 8 rows"
-                    if row[0]=='uid':
-                        pass
-                    else:
-                        employee_info = employee_validation(row)
-                        if employee_info:
-                            response = update_or_create_employee(employee_info)
-                            if response == 0:
-                                failed_row.append(str(index+1))
-                            elif response == 1:
-                                created_row += 1
-                            else:
-                                updated_row += 1
-                        else:
-                            failed_row.append(str(index+1))
-            print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
-            context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
+    messages = []
+    context['messages'] = messages
+    if request.method == 'POST' and request.FILES['myfile']:
+        # form = BulkUploadForm(request.POST, request.FILES)
+        # if form.is_valid():
+        #     print("there")
 
-    return redirect(reverse('adminEmployee'), context)
+        myfile = request.FILES['myfile']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+        uploaded_file_url = fs.url(filename)
+        print(uploaded_file_url)
+        file_path = uploaded_file_url
+        ##file_path = request.FILES['file']
+        print(file_path)
+        failed_row = []
+        created_row = 0
+        updated_row = 0
+        with open(file_path) as csvfile:
+            print("opened")
+            reader = csv.reader(csvfile, delimiter=',')
+            print("read")
+            for index, row in enumerate(reader):
+                if len(row) != 8:
+                    messages.append("invalid csv format, should be 8 rows")
+                    print("no row")
+                    return redirect('adminEmployee')
+                if row[0] != 'uid':
+                    messages.append("upload files: ")
+                else:
+                    employee_info = employee_validation(row)
+                    if employee_info:
+                        response = update_or_create_employee(employee_info)
+                        if response == 0:
+                            failed_row.append(str(index+1))
+                        elif response == 1:
+                            created_row += 1
+                        else:
+                            updated_row += 1
+                    else:
+                        failed_row.append(str(index+1))
+        ##print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
+        ##context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
+    # print(form.errors)
+    print("success")
+    return redirect('adminEmployee')
 
 def update_salary_history(employee_uid, internal_salary, external_salary):
     employee = get_object_or_404(Employee,employee_uid=employee_uid)
