@@ -828,7 +828,7 @@ def get_team(request,team_name):
 
 @login_required
 @permission_required('SEI.add_employee')
-def bulk_upload(request,file_path="/Users/eccco_yao/Desktop/example.csv"):
+def bulk_upload(request):
     """
     bulk upload the employee information from csv file path
     csv file format:
@@ -839,37 +839,34 @@ def bulk_upload(request,file_path="/Users/eccco_yao/Desktop/example.csv"):
     """
     context = {}
     if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
+        form = BulkUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])
-            return HttpResponseRedirect('/success/url/')
-
-        failed_row = []
-        created_row = 0
-        updated_row = 0
-        with open(file_path) as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
-            for index,row in enumerate(reader):
-                if len(row) != 8:
-                    return "invalid csv format, should be 8 rows"
-                if row[0]=='uid':
-                    pass
-                else:
-                    employee_info = employee_validation(row)
-                    if employee_info:
-                        response = update_or_create_employee(employee_info)
-                        if response == 0:
-                            failed_row.append(str(index+1))
-                        elif response == 1:
-                            created_row += 1
-                        else:
-                            updated_row += 1
+            file_path = request.FILES['file']
+            print(file_path)
+            failed_row = []
+            created_row = 0
+            updated_row = 0
+            with open(file_path) as csvfile:
+                reader = csv.reader(csvfile, delimiter=',')
+                for index,row in enumerate(reader):
+                    if len(row) != 8:
+                        return "invalid csv format, should be 8 rows"
+                    if row[0]=='uid':
+                        pass
                     else:
-                        failed_row.append(str(index+1))
-        print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
-        context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
-    else:
-        context['bulkupload'] = BulkUploadForm()
+                        employee_info = employee_validation(row)
+                        if employee_info:
+                            response = update_or_create_employee(employee_info)
+                            if response == 0:
+                                failed_row.append(str(index+1))
+                            elif response == 1:
+                                created_row += 1
+                            else:
+                                updated_row += 1
+                        else:
+                            failed_row.append(str(index+1))
+            print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
+            context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
 
     return redirect(reverse('adminEmployee'), context)
 
