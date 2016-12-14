@@ -839,7 +839,6 @@ def bulk_upload(request):
     :param file_path: csv path
     :return: message that indicats if it's successful or not, but how to return ???
     """
-    print("here")
     context = {}
     messages = []
     context['messages'] = messages
@@ -850,8 +849,7 @@ def bulk_upload(request):
 
         myfile = request.FILES['myfile']
         fs = FileSystemStorage()
-        filename = fs.save(myfile.name, myfile)
-        uploaded_file_url = fs.url(filename)
+        uploaded_file_url = fs.url(myfile.name)
         file_path = uploaded_file_url
         failed_row = []
         created_row = 0
@@ -862,7 +860,7 @@ def bulk_upload(request):
                 if len(row) != 8:
                     messages.append("invalid csv format, should be 8 rows")
                     return redirect('adminEmployee')
-                if row[0] != 'uid':
+                if row[0] == 'uid':
                     messages.append("upload files: ")
                 else:
                     employee_info = employee_validation(row)
