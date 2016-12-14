@@ -15,7 +15,7 @@ urlpatterns = [
     url(r'^project', SEI.views.search_project, name='projectsearch'),
     url(r'^budget/(?P<PWP_num>\w+)$', SEI.views.budget_view, name='viewBudget'),
     url(r'^overview/(?P<PWP_num>\w+)$', SEI.views.project_overview, name='viewProject'),
-    url(r'^resource/(?P<PWP_num>\w+)$', SEI.views.project_resource, name='viewProjectResource'),
+    url(r'^resource/(?P<PWP_num>\w+)/(?P<project_year>\d+)$', SEI.views.project_resource, name='viewProjectResource'),
     url(r'^report_project/(?P<PWP_num>.*)$', SEI.views.report_project, name="reportProject"),
     
     #Admin View
