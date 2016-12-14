@@ -3,6 +3,7 @@
 {% block head %}{% endblock %}
 
 {% block content %}
+{% load static %}
 <div class="row">
     <div class="col-lg-6 col-lg-offset-3">
         <div class="panel panel-default">
@@ -25,15 +26,15 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-6 col-lg-offset-3"">
+    <div class="col-lg-6 col-lg-offset-3">
         <div class="panel panel-default">
             <div class="panel-heading">
             <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Bulk Upload Employees</h3>
             </div>
             <div class="panel-body">
                 <form enctype="multipart/form-data" method="post" action="{% url 'bulkUpload' %}">
-                    {{ bulkupload.as_p }}
-                    <input align="right" type="submit" class="btn btn-primary" value="Upload">
+                    <input type="file" name="myfile">
+					<button align="right" type="submit" class="btn btn-primary">Upload</button>
                    {% csrf_token %}
                 </form>
                 </div>

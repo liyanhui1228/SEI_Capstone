@@ -26,6 +26,8 @@ import pdb
 from django.utils.dateparse import parse_datetime
 from dateutil.relativedelta import relativedelta
 from django.forms import modelformset_factory
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 
 
 # For solving the decimal is not serializable error when dumping json
@@ -339,7 +341,7 @@ def report_project(request, PWP_num):
             equipment_header_list.append(header)
             others_header_list.append(header)
 
-    print(length)
+    #print(length)
     ##get all employees
     project_month = ProjectMonth.objects.filter(project=project_item).filter(project_date__gte=query_start_date).filter( \
         project_date__lte=query_end_date)
@@ -805,10 +807,8 @@ def search_employee(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
     #if user_profile.user_role == 'ITADMIN':
     #    return render(request, 'SEI/permission.html')
-    context = {}
-    context['report'] = ReportForm()
-    return render(request, 'SEI/employeeview.html', context)
 
+    return render(request, 'SEI/employeeview.html')
 
 """****************** views for team ***************************"""
 
@@ -838,6 +838,15 @@ def view_team(request, team_id):
     context['form'] = form
 
     return render(request, 'SEI/teamview.html', context)
+
+
+@login_required
+def search_team(request):
+    #user_profile = get_object_or_404(Profile, user = request.user)
+    #if user_profile.user_role == 'ITADMIN':
+    #    return render(request, 'SEI/permission.html')
+
+    return render(request, 'SEI/teamview.html')
 
 
 @login_required
@@ -904,56 +913,8 @@ def chart_team(request, team_id):
     context["resource_allocation"] = resource_allocation
     return HttpResponse(json.dumps(context, default=decimal_default))
 
-
-@login_required
-def search_team(request):
-    #user_profile = get_object_or_404(Profile, user = request.user)
-    #if user_profile.user_role == 'ITADMIN':
-    #    return render(request, 'SEI/permission.html')
-
-    return render(request, 'SEI/teamview.html')
-
-
-@login_required
-def get_team(request,team_name):
-    teams=Team.objects.filter(team_name__icontains=team_name)
-    team_list = []
-    for team in teams:
-        team_list.append(model_to_dict(team))
-    team_list_result = json.dumps(team_list, default=decimal_default)
-    return HttpResponse(team_list_result, content_type="application/json")
-
-
 """****************** views for admin ************************"""
 
-# @login_required
-# @transaction.atomic
-@permission_required('SEI.add_team')
-def add_team(request):
-    #user_profile = get_object_or_404(Profile, user = request.user)
-    context = {}
-    messages = []
-    context['messages'] = messages
-    if user_profile.user_role == 'ITADMIN' or user_profile.user_role == 'ADMIN':
-        return render(request, 'SEI/permission.html', context)
-
-    if request.method == 'GET':
-        form = TeamForm()
-        context['form'] = form
-        return render(request, 'SEI/addTeam.html', context)
-
-    form = TeamForm(request.POST)
-    if not form.is_valid():
-        context['form'] = form
-        messages.append("Form contained invalid data")
-        return render(request, 'SEI/addTeam.html', context)
-
-    form.save()
-    messages.append("A new team has been added")
-    return render(request, 'SEI/addTeam.html', context)
-
-# @login_required
-# @transaction.atomic
 @permission_required('SEI.add_team')
 def admin_team(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
@@ -1020,7 +981,6 @@ def edit_employee(request,employee_id):
         return redirect(reverse('search_employee'))
 
 
-
 def admin_employee(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
     context = {}
@@ -1049,6 +1009,17 @@ def admin_employee(request):
         context['form'] = form
 
     return render(request, 'SEI/admin_employee.html', context)
+
+
+@login_required
+def get_team(request,team_name):
+    teams=Team.objects.filter(team_name__icontains=team_name)
+    team_list = []
+    for team in teams:
+        team_list.append(model_to_dict(team))
+    team_list_result = json.dumps(team_list, default=decimal_default)
+    return HttpResponse(team_list_result, content_type="application/json")
+
 
 @login_required
 @permission_required('SEI.add_employee')
@@ -1113,7 +1084,6 @@ def update_salary_history(employee_uid, internal_salary, external_salary):
             new_salary.save()
 
 
-
 def employee_validation(row):
     """
     validate the employee row
@@ -1160,9 +1130,6 @@ def update_or_create_employee(employee):
         else:return 2
     except:
         return 0
-
-
-
 
 
 @login_required
