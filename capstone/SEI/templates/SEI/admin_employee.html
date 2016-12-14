@@ -31,11 +31,11 @@
             <h3 class="panel-title"><i class="fa fa-info-circle fa-fw"></i>Bulk Upload Employees</h3>
             </div>
             <div class="panel-body">
-                <form action="{% url 'bulkUpload' %}">
+                <form enctype="multipart/form-data" method="post" action="{% url 'bulkUpload' %}">
                     {{ bulkupload.as_p }}
                     <input align="right" type="submit" class="btn btn-primary" value="Upload">
                    {% csrf_token %}
-                    </form>
+                </form>
                 </div>
             </div>
         </div>

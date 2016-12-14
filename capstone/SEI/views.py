@@ -828,7 +828,7 @@ def get_team(request,team_name):
 
 @login_required
 @permission_required('SEI.add_employee')
-def bulk_upload(request,file_path="/Users/eccco_yao/Desktop/example.csv"):
+def bulk_upload(request):
     """
     bulk upload the employee information from csv file path
     csv file format:
@@ -839,41 +839,37 @@ def bulk_upload(request,file_path="/Users/eccco_yao/Desktop/example.csv"):
     """
     context = {}
     if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
+        form = BulkUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])
-            return HttpResponseRedirect('/success/url/')
-
-        failed_row = []
-        created_row = 0
-        updated_row = 0
-        with open(file_path) as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
-            for index,row in enumerate(reader):
-                if len(row) != 8:
-                    return "invalid csv format, should be 8 rows"
-                if row[0]=='uid':
-                    pass
-                else:
-                    employee_info = employee_validation(row)
-                    if employee_info:
-                        response = update_or_create_employee(employee_info)
-                        if response == 0:
-                            failed_row.append(str(index+1))
-                        elif response == 1:
-                            created_row += 1
-                        else:
-                            updated_row += 1
+            file_path = request.FILES['file']
+            print(file_path)
+            failed_row = []
+            created_row = 0
+            updated_row = 0
+            with open(file_path) as csvfile:
+                reader = csv.reader(csvfile, delimiter=',')
+                for index,row in enumerate(reader):
+                    if len(row) != 8:
+                        return "invalid csv format, should be 8 rows"
+                    if row[0]=='uid':
+                        pass
                     else:
-                        failed_row.append(str(index+1))
-        print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
-        context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
-    else:
-        context['bulkupload'] = BulkUploadForm()
+                        employee_info = employee_validation(row)
+                        if employee_info:
+                            response = update_or_create_employee(employee_info)
+                            if response == 0:
+                                failed_row.append(str(index+1))
+                            elif response == 1:
+                                created_row += 1
+                            else:
+                                updated_row += 1
+                        else:
+                            failed_row.append(str(index+1))
+            print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
+            context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
 
     return redirect(reverse('adminEmployee'), context)
 
-@permission_required('SEI.add_employee')
 def update_salary_history(employee_uid, internal_salary, external_salary):
     employee = get_object_or_404(Employee,employee_uid=employee_uid)
     emp_salary_history = SalaryHistory.objects.filter(employee=employee)
@@ -921,7 +917,6 @@ def employee_validation(row):
         employee_info['position'] = row[4]
     return employee_info
 
-@permission_required('SEI.add_employee')
 def update_or_create_employee(employee):
     """
     update or create a new employee object and save
@@ -1008,7 +1003,7 @@ def chart_team(request, team_id):
     return HttpResponse(json.dumps(context, default=decimal_default))
 
 
-# @login_required
+@login_required
 def report_project(request, PWP_num):
     context = {}
     messages = []
@@ -1275,11 +1270,90 @@ def report_project(request, PWP_num):
 
     return response
 
-# @login_required
+@login_required
 def report_employee(request, employee_id):
-    pass
+    context = {}
+    messages = []
+    context['messages'] = messages
+    employee_item = get_object_or_404(Employee, id = employee_id)
+    form = ReportForm(request.POST)
 
-# @login_required
+    if not form.is_valid():
+        messages.append("Form contained invalid data")
+        render(request, "SEI/error.html", context)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="EmployeeReport.csv"'
+    writer = csv.writer(response)
+
+    query_start_date = form.cleaned_data['query_start_date']
+    query_end_date = form.cleaned_data['query_end_date']
+
+    project_start_year = query_start_date.year
+    project_start_month = query_start_date.month
+    project_end_year = query_end_date.year
+    project_end_month = query_end_date.month
+    header_list = ['employee uid', 'first name', 'last name', 'position', 'title']
+
+    length = 0
+    if project_start_year == project_end_year:
+        length = length + project_end_month - project_start_month + 1
+        for i in range(0, project_end_month - project_start_month + 1):
+            header = str(project_start_year) + "/" + str(project_start_month + i)
+            header_list.append(header)
+    else:
+        length = length + 12 - project_start_month + 1
+        length = length + (project_end_year - project_start_year - 1) * 12
+        length = length + project_end_month
+        for i in range(0, 12 - project_start_month + 1):
+            header = str(project_start_year) + "/" + str(project_start_month + i)
+            header_list.append(header)
+        for k in range(0, project_end_year - project_start_year - 1):
+            for m in range(0, 12):
+                year = project_start_year + k + 1
+                header = str(year) + "/" + str(m + 1)
+                header_list.append(header)
+        for j in range(0, project_end_month + 1):
+            header = str(project_end_year) + "/" + str(j + 1)
+            header_list.append(header)
+
+    writer.writerow(header_list)
+
+    ##Employee Info
+    employee_list = [employee_item.employee_uid, employee_item.first_name, employee_item.last_name, \
+                    employee_item.position, employee_item.title]
+
+    date_range = []
+    date_range.append(query_start_date)
+    if project_start_month < 12:
+        next_date = date(project_start_year, project_start_month + 1, 1)
+    else:
+        next_date = date(project_start_year + 1, 1, 1)
+
+    date_range.append(next_date)
+
+    if length > 2:
+        for i in range(1, length - 1):
+            temp = next_date + relativedelta(months=+1)
+            next_date = temp
+            date_range.append(next_date)
+
+    end_date = next_date + relativedelta(months=+1)
+    date_range.append(end_date)
+
+    for i in range(0, len(date_range) - 1):
+        employee_month = EmployeeMonth.objects.filter(employee=employee_item).filter(
+            project_date__gte=date_range[i]).filter(project_date__lt=date_range[i + 1])
+        total = 0
+        for item in employee_month:
+            total = total + item.time_use
+        employee_list.append(str(total))
+    writer.writerow(employee_list)
+
+    return response
+
+
+@login_required
 def report_team(request, team_id):
     context = {}
     messages = []
@@ -1353,18 +1427,22 @@ def report_team(request, team_id):
     # date_range.append(next_date)
     end_date = next_date + relativedelta(months=+1)
     date_range.append(end_date)
-    #print(date_range)
 
+    total_FTE = [0.0] * length
     for employee_item in employee_list:
         employee_content = [employee_item.employee_uid, employee_item.first_name, employee_item.last_name, employee_item.position, employee_item.title]
-        for i in range(0, len(date_range)):
+        for i in range(0, len(date_range) - 1):
             employee_month = EmployeeMonth.objects.filter(employee=employee_item).filter(project_date__gte=date_range[i]).filter(project_date__lt=date_range[i + 1])
             total = 0
             for item in employee_month:
                 total = total + item.time_use
             employee_content.append(str(total))
+            total_FTE[i] = total_FTE[i] + total
         writer.writerow(employee_content)
-
+    total_content = ['total in FTE', '', '', '', '']
+    new_total_FTE = [x / 100 for x in total_FTE]
+    total_content.extend(new_total_FTE)
+    writer.writerow(total_content)
     return response
 
 
