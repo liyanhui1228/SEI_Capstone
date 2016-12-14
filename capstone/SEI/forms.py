@@ -67,11 +67,11 @@ class ProjectForm(forms.ModelForm):
         cleaned_data = super(ProjectForm, self).clean()
         return cleaned_data
 
-    def clean_PWP_num(self):
-        PWP_num = self.cleaned_data.get('PWP_num')
-        if Project.objects.filter(PWP_num__exact=PWP_num):
-            raise forms.ValidationError("Project PWP_num has already taken")
-        return PWP_num
+    #def clean_PWP_num(self):
+    #    PWP_num = self.cleaned_data.get('PWP_num')
+    #    if Project.objects.filter(PWP_num__exact=PWP_num):
+    #        raise forms.ValidationError("Project PWP_num has already taken")
+    #    return PWP_num
 
     def clean_end_date(self):
         start_date = self.cleaned_data.get('start_date')

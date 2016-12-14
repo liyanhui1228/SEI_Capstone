@@ -49,6 +49,11 @@ function visavailChart() {
 
   var chart_year = new Date().getFullYear();
 
+  //assumes key same name as category 
+  var ycolors = {};
+
+  var ygroups = [];
+
   // global div for tooltip
   var div = d3.select('#visavailchart').append('div')
   .attr('class', 'tooltip')
@@ -283,26 +288,26 @@ function visavailChart() {
       .attr('class', 'axis')
       .call(xAxis)
       .selectAll("text")
-        .on('click', function (d){
-            if(xaxis_link != null){
-              xaxis_link(moment(parseDate(d)).format('l'));              
-            }
-        })
-        .on("mouseover", function(d) {
-            d3.select(this).style("font-weight", "bold");
-            div.transition()    
-                .duration(200)    
-                .style("opacity", .9);    
-            div .html("Click here to add" + moment(parseDate(d)).format('l') + "resources")  
-                .style("left", (d3.event.pageX) + "px")   
-                .style("top", (d3.event.pageY - 28) + "px");  
-            })          
-        .on("mouseout", function(d) {   
-            d3.select(this).style("font-weight", "normal");
-            div.transition()    
-                .duration(500)    
-                .style("opacity", 0); 
-        });
+      .on('click', function (d){
+        if(xaxis_link != null){
+          xaxis_link(moment(parseDate(d)).format('l'));              
+        }
+      })
+      .on("mouseover", function(d) {
+        d3.select(this).style("font-weight", "bold");
+        div.transition()    
+        .duration(200)    
+        .style("opacity", .9);    
+        div .html("Click here to add" + moment(parseDate(d)).format('l') + "resources")  
+        .style("left", (d3.event.pageX) + "px")   
+        .style("top", (d3.event.pageY - 28) + "px");  
+      })          
+      .on("mouseout", function(d) {   
+        d3.select(this).style("font-weight", "normal");
+        div.transition()    
+        .duration(500)    
+        .style("opacity", 0); 
+      });
 
       // make y groups for different data series
       var g = svg.select('#g_data').selectAll('.g_data')
@@ -465,32 +470,6 @@ function visavailChart() {
     });
 }
 
-function redraw(selection) {
-    selection.each(function drawGraph(dataset) {
-
-    rect = rect.data(viewdata);
-    
-  rect.enter().append("rect");
-    
-  rect.transition()
-    .duration(500)
-    .attr("x",function(d,i){ return i*20})
-    .attr("y",function(d) {return 300 - y(d);})
-    .attr("width", 20)
-    .attr("height", y);
-    
-  text = text.data(viewdata);
-    
-  text.enter().append("text");
-  text.transition()
-    .duration(500)
-    .attr("x", function(d,i) { return i*20+8; })
-    .attr("y", 290)
-    .text(String);
-rect.exit().remove();
-});
-}
-
 chart.width = function (_) {
   if (!arguments.length) return width;
   width = _;
@@ -506,6 +485,20 @@ chart.drawTitle = function (_) {
 chart.maxDisplayDatasets = function (_) {
   if (!arguments.length) return maxDisplayDatasets;
   maxDisplayDatasets = _;
+  
+
+
+  svg.select('#g_axis').append('g')
+  .attr('class', 'axis')
+  .call(xAxis)
+  .selectAll("text")
+  .on('click', function (d){
+    if(xaxis_link != null){
+      xaxis_link(moment(parseDate(d)).format('l'));              
+    }
+  })
+
+
   return chart;
 };
 

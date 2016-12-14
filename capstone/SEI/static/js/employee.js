@@ -109,8 +109,19 @@ function renderLineChart(data){
 
 function show_d3_content(e){
     var employee_id=$(e.target).attr("id");
+    $("#employee_id").val(employee_id);
     project_allocation_chart=$("#visavailchart")
     var year=new Date().getFullYear();
+    $("#year").text(year);
+    getResourceAllocationChart(year);
+    $("#project_allocation_chart").show();
+    $("#reportform").attr('action','/SEI/report_employee/'+employee_id);
+    $("#reporting").show();
+}
+
+function getResourceAllocationChart(year){
+    var employee_id=$("#employee_id").val();
+    project_allocation_chart=$("#visavailchart")
     $.get("/SEI/get_employee_allocation/"+employee_id+"/"+year)
     .done(function(data){
         var json = JSON.parse(data);
@@ -122,16 +133,12 @@ function show_d3_content(e){
         else
           dataset = []
         
-        project_allocation_chart.empty();
+        d3.select("#visavailchart").select("svg").remove();
         d3.select("#visavailchart")
           .datum(dataset)
           .call(chart);
     });
-    $("#project_allocation_chart").show();
-    $("#reportform").attr('action','/SEI/report_employee/'+employee_id);
-    $("#reporting").show();
 }
-
 
 $(function(){
     $("body").on('hidden.bs.modal', '.modal', function () {
@@ -140,4 +147,17 @@ $(function(){
     $("#search_btn").click(getEmployeList);
     $("#employee_list").on("click","li",show_d3_content);
     $("#employee_list").on("click","li",show_morris_content);
+
+      $("#last_year").click(function(){
+    var last_year = parseInt($("#year").text()) - 1;
+    $("#year").text(last_year);
+    getResourceAllocationChart(last_year);
+  });
+
+    $("#next_year").click(function(){
+    var next_year = parseInt($("#year").text()) + 1;
+    $("#year").text(next_year);
+    getResourceAllocationChart(next_year);
+  });
+
 })

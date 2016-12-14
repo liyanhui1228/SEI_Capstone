@@ -59,6 +59,7 @@
       <h1 class="page-header" >
          Employee <small id="employee_name"></small>
       </h1>
+      <input id="employee_id" type="hidden" />
    </div>
 </div>
 <div class="row">
@@ -91,6 +92,15 @@
          </div>
          <div class="panel-body">
             <div id="visavailchart"></div>
+            <div id="pagination" align="center">
+               <button id="last_year" class="btn btn-default" type="button">
+                  <span class="glyphicon glyphicon-chevron-left"></span>
+               </button>
+               <span id="year"></span>
+               <button id="next_year" class="btn btn-default" type="button">
+                  <span class="glyphicon glyphicon-chevron-right"></span>
+               </button>
+            </div>
          </div>
       </div>
    </div>

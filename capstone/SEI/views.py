@@ -113,19 +113,26 @@ def edit_project(request, PWP_num):
     charge_string = ChargeString.objects.filter(project=project_item)
     project_form=ProjectForm(request.POST,instance=project_item)
     ChargeStringFormSet = modelformset_factory(ChargeString, form = ChargeStringForm)
-    formset = ChargeStringFormSet(data=request.POST)
-
+    formset = ChargeStringFormSet(data=request.POST, queryset=charge_string)
+    
     if project_form.is_valid():
         project_item = project_form.save()
         #return redirect(reverse('projectsearch'))
 
-        if formset.is_valid():
-            for cs_form in formset:
-                if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
-                    new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
-                        project = project_item)
-                    new_charge_string.save()
-            return redirect(reverse('projectsearch'))
+    if formset.is_valid():
+        charge_string.delete()
+        for cs_form in formset:
+            if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
+                new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
+                    project = project_item)
+                new_charge_string.save()
+        return redirect(reverse('projectsearch'))
+
+    context={}
+    context['form'] = project_form
+    context['PWP_num']=project_item.PWP_num
+    context['chargestring_formset'] = formset
+    context['message'] = 'save failed'
 
     return render(request,'SEI/edit_project.html', context)
 
