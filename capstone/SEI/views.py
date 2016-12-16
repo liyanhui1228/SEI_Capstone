@@ -28,6 +28,7 @@ from dateutil.relativedelta import relativedelta
 from django.forms import modelformset_factory
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.contrib import messages
 
 
 # For solving the decimal is not serializable error when dumping json
@@ -616,8 +617,6 @@ def view_employee_list(request, PWP_num, project_date_year, project_date_month):
     context['employee_list'] = emp_list_result
     return render(request, "SEI/employee_list.json", context)
 
-@login_required
-@permission_required('SEI.add_project')
 def add_employee(employee_chosen, PWP_num, project_date):
     context = {}
     alert = {}
@@ -657,7 +656,7 @@ def add_employee(employee_chosen, PWP_num, project_date):
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
-    #print("success")
+    print("success!!!!!")
     return context
 
 @login_required
@@ -814,8 +813,10 @@ def search_employee(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
     #if user_profile.user_role == 'ITADMIN':
     #    return render(request, 'SEI/permission.html')
+    context = {}
+    context['report'] = ReportForm()
 
-    return render(request, 'SEI/employeeview.html')
+    return render(request, 'SEI/employeeview.html', context)
 
 """****************** views for team ***************************"""
 
@@ -997,7 +998,6 @@ def admin_employee(request):
 
     employees = Employee.objects.all()
     context['employees'] = employees
-    context['bulkupload'] = BulkUploadForm()
 
     if request.method == 'GET':
         form = EmployeeForm()
@@ -1037,40 +1037,44 @@ def bulk_upload(request):
     uid,first_name,last_name,position,title,internal_salary,external_salary,team_name
     :param request: Request
     :param file_path: csv path
-    :return: message that indicats if it's successful or not, but how to return ???
+    :return:
     """
-    context = {}
-    if request.method == 'POST':
-        form = BulkUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            file_path = request.FILES['file']
-            print(file_path)
-            failed_row = []
-            created_row = 0
-            updated_row = 0
-            with open(file_path) as csvfile:
-                reader = csv.reader(csvfile, delimiter=',')
-                for index,row in enumerate(reader):
-                    if len(row) != 8:
-                        return "invalid csv format, should be 8 rows"
-                    if row[0]=='uid':
-                        pass
-                    else:
-                        employee_info = employee_validation(row)
-                        if employee_info:
-                            response = update_or_create_employee(employee_info)
-                            if response == 0:
-                                failed_row.append(str(index+1))
-                            elif response == 1:
-                                created_row += 1
-                            else:
-                                updated_row += 1
-                        else:
+    if request.method == 'POST' and request.FILES['myfile']:
+        # read the file, and back-up the file to the root.
+        myfile = request.FILES['myfile']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+        uploaded_file_url = fs.url(filename)
+        file_path = uploaded_file_url
+        failed_row = []
+        created_row = 0
+        updated_row = 0
+        with open(file_path) as csvfile:
+            # open the csv file and read one line by one line.
+            reader = csv.reader(csvfile, delimiter=',')
+            for index, row in enumerate(reader):
+                if len(row) != 8:
+                    msg = "invalid csv format, should be 8 rows"
+                    messages.error(request, msg)
+                    return redirect('adminEmployee')
+                if row[0] == 'uid':
+                    pass
+                else:
+                    employee_info = employee_validation(row)
+                    if employee_info:
+                        response = update_or_create_employee(employee_info)
+                        if response == 0:
                             failed_row.append(str(index+1))
-            print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
-            context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
-
-    return redirect(reverse('adminEmployee'), context)
+                        elif response == 1:
+                            created_row += 1
+                        else:
+                            updated_row += 1
+                    else:
+                        failed_row.append(str(index+1))
+        msg = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
+        messages.success(request, msg)
+    #   save all the record and redirect to the home page
+    return redirect('adminEmployee')
 
 def update_salary_history(employee_uid, internal_salary, external_salary):
     employee = get_object_or_404(Employee,employee_uid=employee_uid)

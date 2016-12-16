@@ -37,7 +37,8 @@ function getBudgetInfo(PWP_num){
 }
 
 function openResourceAllocation(project_date,PWP_num){
-  var PWP_num=$("#search_input").val().toLowerCase();
+  //var PWP_num=$("#search_input").val().toLowerCase();
+  PWP_num=$("#PWP_num").text()
   var parts = project_date.split('/');
   var month = parts[0];
   var year = parts[2];
@@ -49,7 +50,6 @@ function getResourceAllocationChart(year,PWP_num){
     //var PWP_num=$("#search_input").val().toLowerCase();
     var url="/SEI/resource/"+PWP_num+"/"+year;
     var dataset = [];
-    $( "#visavailchart" ).empty();
 
     $.get(url).done(function(data){
       var dataset = [];
@@ -60,6 +60,7 @@ function getResourceAllocationChart(year,PWP_num){
           // draw Visavail.js chart
     var chart = visavailChart().xaxis_link(openResourceAllocation).chart_year(year);
     //dataset=[];
+    d3.select("svg").remove();
     d3.select("#visavailchart")
             .datum(dataset)
             .call(chart);
@@ -79,6 +80,7 @@ function renderContent(PWP_num){
     $("#year").text(next_year);
     getResourceAllocationChart(next_year,PWP_num);
   });
+  console.log(PWP_num)
   getProjectInfo(PWP_num);
   getBudgetInfo(PWP_num);
   var year=new Date().getFullYear();
@@ -98,6 +100,7 @@ $(function(){
     
     d3.select("#search_btn").on("click",function(){
       var PWP_num=$("#search_input").val().toLowerCase();
+      console.log(PWP_num)
       renderContent(PWP_num); 
     });
 
@@ -119,8 +122,10 @@ $(function(){
       });
   }
 
-  if($("#PWP_num").val()!=""){
-      renderContent($("#PWP_num").val());
+  if($("#PWP_num_input").val()!=""){
+      renderContent($("#PWP_num_input").val());
   }
 
 })
+
+

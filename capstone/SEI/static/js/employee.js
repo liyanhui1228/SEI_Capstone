@@ -28,7 +28,7 @@ function show_morris(id,employee_name){
   $("#employee_name").text(employee_name)
   $("#morris-donut-chart").empty()
   $("#morris-line-chart").empty()
-  var url="/SEI/get_employee_project/"+employee_id;
+  var url="/SEI/get_employee_project/"+id;
   $.get(url)
    .done(function(data){
       renderDonutChart(data);
@@ -117,7 +117,7 @@ function show_d3_content(e){
 }
 
 function show_d3(employee_id){
-    project_allocation_chart=$("#visavailchart")
+   project_allocation_chart=$("#visavailchart")
     var year=new Date().getFullYear();
     $.get("/SEI/get_employee_allocation/"+employee_id+"/"+year)
     .done(function(data){
@@ -136,8 +136,32 @@ function show_d3(employee_id){
           .call(chart);
     });
     $("#project_allocation_chart").show();
+    $("#reportform").attr("action", "/SEI/report_employee/"+employee_id);
     $("#reporting").show();
 }
+
+// function getResourceAllocationChart(year){
+//     var employee_id=$("#employee_id").val();
+//     project_allocation_chart=$("#visavailchart")
+//     $.get("/SEI/get_employee_allocation/"+employee_id+"/"+year)
+//     .done(function(data){
+//         var json = JSON.parse(data);
+//         var chart = visavailChart().width(800);
+//         dataset=[];
+//         if (json['resource_chart_data'] != null && json['resource_chart_data'].length > 0){
+//           dataset = json['resource_chart_data']
+//         }
+//         else
+//           dataset = []
+        
+//         d3.select("#visavailchart").select("svg").remove();
+//         d3.select("#visavailchart")
+//           .datum(dataset)
+//           .call(chart);
+//     });
+//     $("#project_allocation_chart").show();
+//     $("#reporting").show();
+// }
 
 $(function(){
     employee_id = $("#employee_id").val()
@@ -146,8 +170,9 @@ $(function(){
      employee_name=$("#first_name").val()+" "+$("#last_name").val();
      show_morris(employee_id,employee_name);
      show_d3(employee_id);
-    }else{
-      $("body").on('hidden.bs.modal', '.modal', function () {
+    }
+    
+    $("body").on('hidden.bs.modal', '.modal', function () {
        removeModal();
       });
       $("#search_btn").click(getEmployeList);
@@ -164,5 +189,4 @@ $(function(){
       $("#year").text(next_year);
         getResourceAllocationChart(next_year);
       });
-    }  
 })
