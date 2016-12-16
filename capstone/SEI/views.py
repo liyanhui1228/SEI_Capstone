@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404,render_to_response
 from django.http import Http404, HttpResponse
 from django.core.urlresolvers import reverse
 # Decorator to use built-in authentication system
@@ -11,6 +11,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 import json
 from datetime import date, datetime
+from django.contrib import messages
 import decimal
 from SEI.models import *
 from SEI.forms import *
@@ -147,7 +148,8 @@ def project_overview(request, PWP_num):
     :return: JSON format of project overview
     """
     context = {}
-    project_item = get_object_or_404(Project, PWP_num=PWP_num) 
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    # get the project object by pwp_num
     charge_string = ChargeString.objects.filter(project=project_item)
     context['PWP_num'] = project_item.PWP_num
     context['project_description'] = project_item.project_description
@@ -161,6 +163,7 @@ def project_overview(request, PWP_num):
     context['start_date'] = project_item.start_date
     context['end_date'] = project_item.end_date
     context['charge_string'] = charge_string
+    # get details in project and send back as json format
     return render(request,'SEI/overview.json',context)
 
 
@@ -177,12 +180,14 @@ def budget_view(request, PWP_num):
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
     project_month_list = ProjectMonth.objects.filter(project=project_item)
+    # get project and every project_month in the project
     context['total_budget'] = project_item.project_budget
     total_expense = 0
     total_expense_till_now = 0
 
     resource_allocation = {}
     for pm in project_month_list:
+        # get every project expenses and employee costs by the project object.
         monthly_cost = {}
         employee_month = EmployeeMonth.objects.filter(project=project_item, project_date=pm.project_date)
         monthly_expense = calculate_month_expense(project_item,pm.project_date)
@@ -793,7 +798,7 @@ def add_expense(request,expense_detail):
     add expense_detail for a specific project in category: travel, subcontractor, etc
     :param request: Request
     :param expense_detail: Expense detail in JSON format
-    :return: confirmation page?
+    :return: None
     """
     expense_detail_json = json.load(expense_detail)
     PWP_num = expense_detail_json['PWP_num']
@@ -874,6 +879,7 @@ def chart_team(request, team_id):
 
     resource_allocation = []
     for month in (1,2,3,4,5,6,7,8,9,10,11,12):
+        # we return information for every month in the current year.
         date = datetime.date(year,month,1)
         monthly_cost = {}
         project_month_list = ProjectMonth.objects.filter(project__in=project_set, project_date = date)
