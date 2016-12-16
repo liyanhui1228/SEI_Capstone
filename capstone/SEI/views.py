@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404,render_to_response
 from django.http import Http404, HttpResponse
 from django.core.urlresolvers import reverse
 # Decorator to use built-in authentication system
@@ -11,6 +11,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 import json
 from datetime import date, datetime
+from django.contrib import messages
 import decimal
 from SEI.models import *
 from SEI.forms import *
@@ -146,7 +147,8 @@ def project_overview(request, PWP_num):
     :return: JSON format of project overview
     """
     context = {}
-    project_item = get_object_or_404(Project, PWP_num=PWP_num) 
+    project_item = get_object_or_404(Project, PWP_num=PWP_num)
+    # get the project object by pwp_num
     charge_string = ChargeString.objects.filter(project=project_item)
     context['PWP_num'] = project_item.PWP_num
     context['project_description'] = project_item.project_description
@@ -160,6 +162,7 @@ def project_overview(request, PWP_num):
     context['start_date'] = project_item.start_date
     context['end_date'] = project_item.end_date
     context['charge_string'] = charge_string
+    # get details in project and send back as json format
     return render(request,'SEI/overview.json',context)
 
 
@@ -176,12 +179,14 @@ def budget_view(request, PWP_num):
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
     project_month_list = ProjectMonth.objects.filter(project=project_item)
+    # get project and every project_month in the project
     context['total_budget'] = project_item.project_budget
     total_expense = 0
     total_expense_till_now = 0
 
     resource_allocation = {}
     for pm in project_month_list:
+        # get every project expenses and employee costs by the project object.
         monthly_cost = {}
         employee_month = EmployeeMonth.objects.filter(project=project_item, project_date=pm.project_date)
         monthly_expense = calculate_month_expense(project_item,pm.project_date)
@@ -794,7 +799,7 @@ def add_expense(request,expense_detail):
     add expense_detail for a specific project in category: travel, subcontractor, etc
     :param request: Request
     :param expense_detail: Expense detail in JSON format
-    :return: confirmation page?
+    :return: None
     """
     expense_detail_json = json.load(expense_detail)
     PWP_num = expense_detail_json['PWP_num']
@@ -873,6 +878,7 @@ def chart_team(request, team_id):
 
     resource_allocation = []
     for month in (1,2,3,4,5,6,7,8,9,10,11,12):
+        # we return information for every month in the current year.
         date = datetime.date(year,month,1)
         monthly_cost = {}
         project_month_list = ProjectMonth.objects.filter(project__in=project_set, project_date = date)
@@ -997,7 +1003,6 @@ def admin_employee(request):
 
     employees = Employee.objects.all()
     context['employees'] = employees
-    context['bulkupload'] = BulkUploadForm()
 
     if request.method == 'GET':
         form = EmployeeForm()
@@ -1037,40 +1042,45 @@ def bulk_upload(request):
     uid,first_name,last_name,position,title,internal_salary,external_salary,team_name
     :param request: Request
     :param file_path: csv path
-    :return: message that indicats if it's successful or not, but how to return ???
+    :return:
     """
-    context = {}
-    if request.method == 'POST':
-        form = BulkUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            file_path = request.FILES['file']
-            print(file_path)
-            failed_row = []
-            created_row = 0
-            updated_row = 0
-            with open(file_path) as csvfile:
-                reader = csv.reader(csvfile, delimiter=',')
-                for index,row in enumerate(reader):
-                    if len(row) != 8:
-                        return "invalid csv format, should be 8 rows"
-                    if row[0]=='uid':
-                        pass
-                    else:
-                        employee_info = employee_validation(row)
-                        if employee_info:
-                            response = update_or_create_employee(employee_info)
-                            if response == 0:
-                                failed_row.append(str(index+1))
-                            elif response == 1:
-                                created_row += 1
-                            else:
-                                updated_row += 1
-                        else:
+    if request.method == 'POST' and request.FILES['myfile']:
+        # read the file, and back-up the file to the root.
+        myfile = request.FILES['myfile']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+        uploaded_file_url = fs.url(filename)
+        file_path = uploaded_file_url
+        failed_row = []
+        created_row = 0
+        updated_row = 0
+        with open(file_path) as csvfile:
+            # open the csv file and read one line by one line.
+            reader = csv.reader(csvfile, delimiter=',')
+            for index, row in enumerate(reader):
+                if len(row) != 8:
+                    msg = "invalid csv format, should be 8 rows"
+                    messages.error(request, msg)
+                    return redirect('adminEmployee')
+                if row[0] == 'uid':
+                    pass
+                else:
+                    employee_info = employee_validation(row)
+                    if employee_info:
+                        response = update_or_create_employee(employee_info)
+                        if response == 0:
                             failed_row.append(str(index+1))
-            print ("successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed.")
-            context["message"] = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
+                        elif response == 1:
+                            created_row += 1
+                        else:
+                            updated_row += 1
+                    else:
+                        failed_row.append(str(index+1))
+        msg = "successfully create: " + str(created_row) + " records, update: " + str(updated_row) + " records, the row index: " + ",".join(failed_row) + " failed."
+        messages.success(request, msg)
+    #   save all the record and redirect to the home page
+    return redirect('adminEmployee')
 
-    return redirect(reverse('adminEmployee'), context)
 
 def update_salary_history(employee_uid, internal_salary, external_salary):
     employee = get_object_or_404(Employee,employee_uid=employee_uid)
