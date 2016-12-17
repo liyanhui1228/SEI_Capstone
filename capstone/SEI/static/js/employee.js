@@ -23,6 +23,7 @@ function show_morris_content(e){
   show_morris(employee_id,employee_name);
 }
 
+//show morris js content, including donut and line chart
 function show_morris(id,employee_name){
   $("#header").show()
   $("#employee_name").text(employee_name)
@@ -43,6 +44,7 @@ function removeModal(){
   }
 }
 
+//show current month allocation chart
 function renderDonutChart(data){
   var json=JSON.parse(data)
   var donut_chart=$("#donut_chart")
@@ -66,6 +68,7 @@ function renderDonutChart(data){
     } 
 }
 
+//show trends graph
 function renderLineChart(data){
     var json=JSON.parse(data)
     var line_chart=$("#line_chart");
@@ -116,6 +119,7 @@ function show_d3_content(e){
     show_d3(employee_id);
 }
 
+//shwo d3 content--resource allocation graph
 function show_d3(employee_id){
    project_allocation_chart=$("#visavailchart")
     var year=new Date().getFullYear();
@@ -140,31 +144,11 @@ function show_d3(employee_id){
     $("#reporting").show();
 }
 
-// function getResourceAllocationChart(year){
-//     var employee_id=$("#employee_id").val();
-//     project_allocation_chart=$("#visavailchart")
-//     $.get("/SEI/get_employee_allocation/"+employee_id+"/"+year)
-//     .done(function(data){
-//         var json = JSON.parse(data);
-//         var chart = visavailChart().width(800);
-//         dataset=[];
-//         if (json['resource_chart_data'] != null && json['resource_chart_data'].length > 0){
-//           dataset = json['resource_chart_data']
-//         }
-//         else
-//           dataset = []
-        
-//         d3.select("#visavailchart").select("svg").remove();
-//         d3.select("#visavailchart")
-//           .datum(dataset)
-//           .call(chart);
-//     });
-//     $("#project_allocation_chart").show();
-//     $("#reporting").show();
-// }
 
 $(function(){
     employee_id = $("#employee_id").val()
+    //if employee_id is not empty, then file is directly from backend, 
+    //thus no need to get input from search bar.
     if (employee_id != "")
     {
      employee_name=$("#first_name").val()+" "+$("#last_name").val();
