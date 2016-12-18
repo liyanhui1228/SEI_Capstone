@@ -269,6 +269,12 @@ def search_project(request):
 
 @login_required
 def report_project(request, PWP_num):
+    """
+    report the project given query start date and end date
+    :param request: Request, 
+    :param PWP_num: PWP_num, unique identifier for a project
+    :return: respone generating a CSV file
+    """
     context = {}
     messages = []
     context['messages'] = messages
@@ -288,8 +294,6 @@ def report_project(request, PWP_num):
         query_start_date = project_item.start_date
     if query_end_date > project_item.end_date:
         query_end_date = project_item.end_date
-    #print(query_start_date)
-    #print(query_end_date)
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="ProjectReport.csv"'
@@ -353,8 +357,7 @@ def report_project(request, PWP_num):
             travel_header_list.append(header)
             equipment_header_list.append(header)
             others_header_list.append(header)
-
-    #print(length)
+            
     ##get all employees
     project_month = ProjectMonth.objects.filter(project=project_item).filter(project_date__gte=query_start_date).filter( \
         project_date__lte=query_end_date)
@@ -387,13 +390,10 @@ def report_project(request, PWP_num):
             next_date = temp
             date_range.append(next_date)
 
-    # date_range.append(next_date)
     end_date = next_date + relativedelta(months=+1)
     end_set = EmployeeMonth.objects.filter(project=project_item).filter(project_date__gte=next_date).filter(project_date__lt=end_date)
     filtered_set.append(end_set)
     date_range.append(end_date)
-    #print(date_range)
-    #print(filtered_set)
 
     total_FTE = [0.0] * length
     month_expense_list = []
@@ -825,12 +825,15 @@ def search_employee(request):
 
 """****************** views for team ***************************"""
 
-##@login_required
+@login_required
 def view_team(request, team_id):
-    #user_profile = get_object_or_404(Profile, user = request.user)
+    """
+    view team information, projects the team is working on and employee list in the team
+    :param request: Request
+    :param PWP_num: team_id, unique identifier for a team
+    :return: HTTPS response to render team view
+    """
     context = {}
-    #if user_profile.user_role == 'ITADMIN':
-    #    return render(request, 'SEI/permission.html', context)
 
     if team_id != None:
         team = get_object_or_404(Team, id = team_id)
@@ -928,14 +931,16 @@ def chart_team(request, team_id):
     return HttpResponse(json.dumps(context, default=decimal_default))
 
 """****************** views for admin ************************"""
-
+@login_required
 @permission_required('SEI.add_team')
 def admin_team(request):
-    #user_profile = get_object_or_404(Profile, user = request.user)
+    """
+    add a team
+    :param request: Request
+    :return: HTTPS response to render the result
+    """
     context = {}
     messages = []
-    #if user_profile.user_role == 'ITADMIN' or user_profile.user_role == 'ADMIN':
-    #    return render(request, 'SEI/permission.html', context)
 
     teams = Team.objects.all()
     context['teams'] = teams
@@ -961,7 +966,6 @@ def admin_team(request):
 @login_required
 @permission_required('SEI.change_team')
 def edit_team(request,team_id):
-
     if request.method=='GET':
         team = get_object_or_404(Team,id=team_id)
         form=TeamForm(instance=team)
@@ -1151,6 +1155,12 @@ def update_or_create_employee(employee):
 
 @login_required
 def report_employee(request, employee_id):
+    """
+    report an employee
+    :param request: Request
+    :param employee_id: identifier for an employee
+    :return: response to generate a CSV file
+    """
     context = {}
     messages = []
     context['messages'] = messages
@@ -1234,6 +1244,12 @@ def report_employee(request, employee_id):
 
 @login_required
 def report_team(request, team_id):
+    """
+    report a team
+    :param request: Request
+    :param team_id: unique identifier for a team
+    :return: response to generate a CSV file
+    """
     context = {}
     messages = []
     context['messages'] = messages
@@ -1303,7 +1319,6 @@ def report_team(request, team_id):
             next_date = temp
             date_range.append(next_date)
 
-    # date_range.append(next_date)
     end_date = next_date + relativedelta(months=+1)
     date_range.append(end_date)
 
