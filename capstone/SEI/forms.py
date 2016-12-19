@@ -189,10 +189,15 @@ class EmployeeMonthForm(forms.ModelForm):
     internal_salary = forms.CharField(label='Internal Salary',disabled=True)
     external_salary = forms.CharField(label='External Salary',disabled=True)
     employee_name = forms.CharField(label='Name',disabled=True)
-
+    time_use = forms.CharField(required=False, widget=forms.NumberInput)
+    
     class Meta:
         model = EmployeeMonth
         fields = ('employee','time_use', 'isExternal')
+
+    def __init__(self, *arg, **kwarg):
+        super(EmployeeMonthForm, self).__init__(*arg, **kwarg)
+        self.empty_permitted = False
 
     def clean(self):
         cleaned_data = super(EmployeeMonthForm, self).clean()

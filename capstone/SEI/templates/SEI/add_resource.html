@@ -4,28 +4,62 @@
 {% endblock %}
 {% block head %}
 <script>
-   function showblock(menu){
-     if(menu.selectedIndex==0){
-       var employeeblock=document.getElementById("resource_employee")
-       employeeblock.style.display='block'
-       var resourceblock=document.getElementById("resource_other")
-       resourceblock.style.display='none'
-     }else{
-       var employeeblock=document.getElementById("resource_employee")
-       employeeblock.style.display='none'
-       var resourceblock=document.getElementById("resource_other")
-       resourceblock.style.display='block'
-     }
+ function showblock(menu){
+   if(menu.selectedIndex==0){
+     var employeeblock=document.getElementById("resource_employee")
+     employeeblock.style.display='block'
+     var resourceblock=document.getElementById("resource_other")
+     resourceblock.style.display='none'
+   }else{
+     var employeeblock=document.getElementById("resource_employee")
+     employeeblock.style.display='none'
+     var resourceblock=document.getElementById("resource_other")
+     resourceblock.style.display='block'
    }
+ }
 </script>
 <script>
-   $(function(){
-     var pecount =  0;
-     $(".add_other").click(function(e){
-       e.preventDefault();
-       pecount = pecount + 1;
-       var total_other_forms = parseInt($('#id_otherexpense-TOTAL_FORMS').val()) + 1;
-       $('#id_otherexpense-TOTAL_FORMS').val(total_other_forms);
+function getEmployeList(){      
+  var input=$("#search_input").val().toLowerCase().split(/\s+/g);
+  var first_name=input[0];
+  var last_name=input[1];
+  var url="/SEI/get_employee/"+first_name+"/"+last_name;
+  $.get(url)
+  .done(function(data) {
+      for(var i=0;i<data.length;i++){
+        var employee_list=$("#employee_list");
+        employee=data[i];
+        var employee_name=employee["first_name"]+" "+employee["last_name"];
+        var team_name=employee.team_name;
+        var employee_id=employee.id;
+        employee_list.append("<li class='list-group-item' id=\""+employee_id+"\">Name:"+employee_name+"\tTeam:"+team_name+"</li>");
+      }
+      $('#myModal').modal({show:true});  
+  });
+}
+
+function removeModal(){
+  var employees=$("#employee_list").children("li");
+  for(var i=0;i<employees.length;i++){
+    $(employees[i]).remove();
+  }
+}
+
+
+$(function(){
+    $("body").on('hidden.bs.modal', '.modal', function () {
+       removeModal();
+      });
+      $("#search_btn").click(getEmployeList);
+      $("#employee_list").on("click","li",add_employee);
+
+
+   var pecount =  0;
+   $(".add_other").click(function(e){
+     e.preventDefault();
+     pecount = pecount + 1;
+     var total_other_forms = parseInt($('#id_otherexpense-TOTAL_FORMS').val()) + 1;
+     $('#id_otherexpense-TOTAL_FORMS').val(total_other_forms);
          //clone the form charge string for new input and replace the name
          $("#other_table tr:last").clone(true).find("input, select, textarea").each(function() {
            name = replaceName(pecount, 'name');
@@ -48,122 +82,154 @@
            $('#id_otherexpense-TOTAL_FORMS').val(total_forms);
          });
        });
-   });
-   
-   /* not sure this is actually needed
-   $(function(){
-     var pecount =  0;
-     $(".add_employee").click(function(e){
+ });
+
+//    use for dynamically adding employees
+   function add_employee(e){
+     var pecount =  parseInt($('#id_employeeexpense-TOTAL_FORMS').val());
          e.preventDefault();
          pecount = pecount + 1;
-         var total_other_forms = parseInt($('#id_otherexpense-TOTAL_FORMS').val()) + 1;
-         $('#id_otherexpense-TOTAL_FORMS').val(total_other_forms);
+         var total_employee_forms = parseInt($('#id_employeeexpense-TOTAL_FORMS').val()) + 1;
+         $('#id_employeeexpense-TOTAL_FORMS').val(total_employee_forms);
          //clone the form charge string for new input and replace the name
-         $("#other_table tr:last").clone(true).find("input").each(function() {
-           name = replaceName(pecount, 'name');
-         $(this).val('').attr('id', "id_" + name).attr('name', name);
-           }).end().find("select").each(function() {
-           name = replaceName(pecount, 'name');
-         $(this).val('').attr('id', "id_" + name).attr('name', name);
-           }).end().find("textarea").each(function() {
-           name = replaceName(pecount, 'name');
-         $(this).val('').attr('id', "id_" + name).attr('name', name);
-           }).end().find("label").each(function() { 
-           name = replaceName(pecount, 'for');
-             $(this).val('').attr('for', name);
-           }).end().appendTo("#other_table");
-         var t = document.getElementById('other_table');
-         console.log(t);
-         var removeBtn = '<button id="remove_other' + (pecount - 1) + '" class="btn btn-danger remove_other" >-</button>';
-         var removeButton = $(removeBtn);
-         $( this ).replaceWith(removeButton);
-         $("#pecount").val(pecount);  
-             $('.remove_other').unbind().click(function(e){
-                 e.preventDefault();
-                 var fieldNum = this.id.charAt(this.id.length-1);
-                 $(this).closest('tr').remove();
-                 var total_forms = parseInt($('#id_otherexpense-TOTAL_FORMS').val()) - 1;
-                 $('#id_otherexpense-TOTAL_FORMS').val(total_forms);
-             });
-     });
-   });
-   */
+         $("#employee_table tr:last").clone(true).find("input, select, textarea").each(function() {
+            idArray = $(this).attr('name').split("-");
+            inp = $(this).attr('name').replace(idArray[1], pecount);
+            console.log(inp);
+            $(this).val('').attr('id', "id_" + inp).attr('name', inp);
+            console.log($(this));
+         }).end().find("label").each(function() { 
+            idArray = $(this).attr('name').split("-");
+            inp = $(this).attr('for').replace(idArray[1], pecount);
+           $(this).val('').attr('for', inp);
+         }).end().appendTo("#employee_table");
+
+
+        var employee_id=$(e.target).attr("id");
+        var url="/SEI/get_employee_id/"+employee_id;
+        console.log(url);
+        $.get(url)
+        .done(function(data) {
+          console.log(data);
+        employee = data;
+        var employee_name=employee["first_name"]+" "+employee["last_name"];
+        $("#id_employeeexpense-" + pecount + "-employee").val(employee_id.toString());
+        $("#id_employeeexpense-" + pecount + "-employee_name").val(employee_name);
+        $("#id_employeeexpense-" + pecount + "-internal_salary").val(employee["internal_salary"]);
+        $("#id_employeeexpense-" + pecount + "-external_salary").val(employee["external_salary"]);
+        });
+
+         //var removeBtn = '<button id="remove_employee' + (pecount - 1) + '" class="btn btn-danger remove_employee" >-</button>';
+         //var removeButton = $(removeBtn);
+         //$( this ).replaceWith(removeButton);
+   }
    
    function replaceName(count, tag){
-   idArray = $(this).attr(tag).split("-");
-   name = $(this).attr(tag).replace(idArray[1], count);
-   return name;
+     idArray = $(this).attr(tag).split("-");
+     name = $(this).attr(tag).replace(idArray[1], count);
+     return name;
    }
-</script>
-{% endblock %}
-{% block content %}
-<div class="row" align="center">
+ </script>
+ {% endblock %}
+ {% block content %}
+ <div class="row" align="center">
    <div class="container">
     <h2>Add Resources</h2>
-      <form action="{% url 'addResources' project.PWP_num project_year project_month %}" method="POST">
-         <div class="form-group">
-            <label for="resource" class="col-md-12 control-label"><h4>Select Resource:</h4></label>
-            <div class="col-md-4 col-md-offset-4">
-            </div>
-            <select id="resource" class="form-control" onchange="showblock(this)">
-               <option>Employee</option>
-               <option>Other</option>
-            </select>
-         </div>
-         <div id="resource_employee" style="display:block">
-          <label for="resource" class="col-md-12 control-label">Add Employees:</label>
-          <div class="form-group">
-           {{ employeeexpense.management_form }}
-           <table id='employee_table' class="table table-striped">
-            <thead>
-              <th>Include</th>
-              <th>Employee</th>
-              <th>Time Allocated</th>
-              <th>External?</th>
-              <th>Internal Salary</th>
-              <th>External Salary</th>
-            </thead>
-            {% for empexp in employeeexpense %}
-            <tr>
-              <td><input type="checkbox" name="includeEmp"></td>
-              <td style="display:none">{{empexp.employee}}</td>
-              <td>{{ empexp.employee_name}}</td>
-              <td>{{ empexp.time_use }}</td>
-              <td>{{ empexp.isExternal }}</td>
-              <td>{{ empexp.internal_salary}}</td>
-              <td>{{ empexp.external_salary}}</td>
-            </tr>
-
-            {% endfor %}
-          </table>
-          <button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
-        </div>
+    <form action="{% url 'addResources' project.PWP_num project_year project_month %}" method="POST">
+     <div class="form-group">
+      <label for="resource" class="col-md-12 control-label"><h4>Select Resource:</h4></label>
+      <div class="col-md-4 col-md-offset-4">
       </div>
-         <div id="resource_other" style="display:none">
-            <label for="resource" class="col-md-12 control-label">Add Resouces:</label>
-            <div class="col-md-12">
-               {{ otherexpense.management_form }}
-               <table id='other_table' class="table table-striped">
-                  <thead>
-                     <th>Category</th>
-                     <th>Cost</th>
-                     <th>Description</th>
-                  </thead>
-                  {% for othexp in otherexpense %}
-                  <tr>
-                     <td>{{ othexp.category }}</td>
-                     <td>{{ othexp.cost }}</td>
-                     <td>{{ othexp.expense_description }}</td>
-                     <td><button id="add_other" class="btn add_other" type="button">+</button></td>
-                  </tr>
-                  {% endfor %}
-               </table>
-               <div class="col-md-12">
-                  <button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
-               </div>
-               {% csrf_token %}
-      </form>
+      <select id="resource" class="form-control" onchange="showblock(this)">
+       <option>Employee</option>
+       <option>Other</option>
+     </select>
    </div>
+   <div id="resource_employee" style="display:block">
+    <label for="resource" class="col-md-12 control-label">Add Employees:</label>
+    <div class="row">
+     <div id="custom-search-input">
+      <div class="input-group col-md-12">
+       <input id="search_input" type="text" class="search-query form-control" value="" placeholder="Search with Employee Name" />
+       <span class="input-group-btn">
+        <button id="search_btn" class="btn btn-danger" type="button">
+         <span class=" glyphicon glyphicon-search"></span>
+       </button>
+     </span>
+   </div>
+ </div>
+</div>
+<div id="myModal" class="modal fade" role="dialog">
+ <div class="modal-dialog">
+  <!-- Modal content-->
+  <div class="modal-content">
+   <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4 class="modal-title">Select the Employee</h4>
+  </div>
+  <div class="modal-body">
+    <ul class="list-group" id="employee_list">
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+  </div>
+</div>
+</div>
+</div>
+
+
+
+<div class="form-group">
+ {{ employeeexpense.management_form }}
+ <table id='employee_table' class="table table-striped">
+  <thead>
+    <th>Employee</th>
+    <th>Time Allocated</th>
+    <th>External?</th>
+    <th>Internal Salary</th>
+    <th>External Salary</th>
+  </thead>
+  {% for empexp in employeeexpense %}
+  <tr>
+    <td style="display:none">{{empexp.employee}}</td>
+    <td>{{ empexp.employee_name}}</td>
+    <td>{{ empexp.time_use }}</td>
+    <td>{{ empexp.isExternal }}</td>
+    <td>{{ empexp.internal_salary}}</td>
+    <td>{{ empexp.external_salary}}</td>
+  </tr>
+
+  {% endfor %}
+</table>
+<button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
+</div>
+</div>
+<div id="resource_other" style="display:none">
+  <label for="resource" class="col-md-12 control-label">Add Resouces:</label>
+  <div class="col-md-12">
+   {{ otherexpense.management_form }}
+   <table id='other_table' class="table table-striped">
+    <thead>
+     <th>Category</th>
+     <th>Cost</th>
+     <th>Description</th>
+   </thead>
+   {% for othexp in otherexpense %}
+   <tr>
+     <td>{{ othexp.category }}</td>
+     <td>{{ othexp.cost }}</td>
+     <td>{{ othexp.expense_description }}</td>
+     <td><button id="add_other" class="btn add_other" type="button">+</button></td>
+   </tr>
+   {% endfor %}
+ </table>
+ <div class="col-md-12">
+  <button type="submit" class="btn btn-lg btn-primary btn-block project ">Save</button>
+</div>
+{% csrf_token %}
+</form>
+</div>
 </div>
 <input type="hidden" name="eecount" value="1" />
 <input type="hidden" name="pecount" value="1" />

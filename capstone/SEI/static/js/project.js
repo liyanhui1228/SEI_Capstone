@@ -1,3 +1,4 @@
+//populate project overview from json for a given PWP number
 function getProjectInfo(PWP_num){
     // var PWP_num=$("#search_input").val().toLowerCase();
     var url="/SEI/overview/"+PWP_num;
@@ -24,6 +25,7 @@ function getProjectInfo(PWP_num){
     });
 }
 
+//popuplate budget info from json
 function getBudgetInfo(PWP_num){
     //var PWP_num=$("#search_input").val().toLowerCase();
     var url="/SEI/budget/"+PWP_num;
@@ -36,6 +38,7 @@ function getBudgetInfo(PWP_num){
     });
 }
 
+//function to attach to allocation grid month headers - will open resource page for that month when clicked
 function openResourceAllocation(project_date,PWP_num){
   //var PWP_num=$("#search_input").val().toLowerCase();
   PWP_num=$("#PWP_num").text()
@@ -46,6 +49,8 @@ function openResourceAllocation(project_date,PWP_num){
   window.location.replace(url);
 }
 
+
+//call allocation grid from json
 function getResourceAllocationChart(year,PWP_num){
     //var PWP_num=$("#search_input").val().toLowerCase();
     var url="/SEI/resource/"+PWP_num+"/"+year;
@@ -68,6 +73,7 @@ function getResourceAllocationChart(year,PWP_num){
     });
 }
 
+//
 function renderContent(PWP_num){
   $("#last_year").click(function(){
     var last_year = parseInt($("#year").text()) - 1;
@@ -104,23 +110,6 @@ $(function(){
       renderContent(PWP_num); 
     });
 
-  function reloadResourceAllocationChart(year){
-      var PWP_num = d3.select("#PWP_num").text();
-      var url="resource/"+PWP_num+"/"+year;
-      var dataset = [];
-      $.get(url).done(function(data){
-        var json = JSON.parse(data);
-        if (json['resource_allocation'] != null && json['resource_allocation'].length > 0){
-          dataset = json['resource_allocation']
-        }
-            // draw Visavail.js chart
-      //var chart = visavailChart().xaxis_link(openResourceAllocation);
-      //dataset=[];
-      d3.select("#visavailchart")
-              .datum(dataset)
-              .call(redraw);
-      });
-  }
 
   if($("#PWP_num_input").val()!=""){
       renderContent($("#PWP_num_input").val());

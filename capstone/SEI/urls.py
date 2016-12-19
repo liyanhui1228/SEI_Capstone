@@ -20,7 +20,7 @@ urlpatterns = [
     
     #Admin View
     url(r'^add_resources/(?P<PWP_num>\w+)/(?P<project_year>\d+)/(?P<project_month>\d+)$', SEI.views.add_resources, name='addResources'),
-    url(r'^add_employee/(?P<employee_chosen>.*?)$', SEI.views.add_employee, name='addEmployee'),
+    url(r'^add_employee/(?P<employee_chosen>.*?)$', SEI.views.add_employee, name='adminEmployee'),
     url(r'^edit_employee/(?P<employee_id>\d+?)$', SEI.views.edit_employee, name='edit_employee'),
     url(r'^admin_team$', SEI.views.admin_team, name='adminTeam'),
     url(r'^edit_team/(?P<team_id>\d+)$', SEI.views.edit_team, name='edit_team'),
@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^bulk_upload$',SEI.views.bulk_upload,name="bulkUpload"),
     
     #Employee view
+    url(r'^get_employee_id/(?P<employee_id>.*?)$',SEI.views.get_employee_id),
     url(r'^get_employee/(?P<first_name>.*?)/(?P<last_name>.*?)$',SEI.views.get_employee),
     url(r'^get_employee_project/(?P<employee_id>\d+)$',SEI.views.get_employee_project),
     url(r'^employee/(?P<employee_id>\w+)$', SEI.views.employeeview, name='employeeview'),

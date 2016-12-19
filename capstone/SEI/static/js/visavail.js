@@ -127,24 +127,6 @@ function visavailChart() {
               throw new Error('Date/time format not recognized. Pick between \'YYYY-MM-DD\' or ' +
                 '\'YYYY-MM-DD HH:MM:SS\'.');
             }
-/*
-            if(d1[2] == null){
-                d1[2] = d3.time.second.offset(d1[0], d.interval_s);              
-            }
-            if (!definedBlocks) {
-              d1[2] = d3.time.second.offset(d1[0], d.interval_s);
-            } else {
-              if (parseDateRegEx.test(d1[2])) {
-                // d1[2] is date without time data
-                d1[2] = parseDate.parse(d1[2]);
-              } else if (parseDateTimeRegEx.test(d1[2])) {
-                // d1[2] is date with time data
-                d1[2] = parseDateTime.parse(d1[2]);
-              } else {
-                throw new Error('Date/time format not recognized. Pick between \'YYYY-MM-DD\' or ' +
-                    '\'YYYY-MM-DD HH:MM:SS\'.');
-              }
-            }*/
           }
         });
       });
@@ -155,21 +137,6 @@ function visavailChart() {
         var dataLength = series.data.length;
         series.data.forEach(function (d, i) {
           if (i !== 0 && i < dataLength) {
-            /*if (d[1] === tmpData[tmpData.length - 1][1]) {
-              // the value has not changed since the last date
-              if (definedBlocks) {
-                if (tmpData[tmpData.length - 1][2].getTime() === d[0].getTime()) {
-                  // end of old and start of new block are the same
-                  tmpData[tmpData.length - 1][2] = d[2];
-                  tmpData[tmpData.length - 1][3] = 1;
-                } else {
-                  tmpData.push(d);
-                }
-              } else {
-                tmpData[tmpData.length - 1][2] = d[2];
-                tmpData[tmpData.length - 1][3] = 1;
-              }
-            } else {*/
               // the value has changed since the last date
               d[3] = 0;
               if (!definedBlocks) {
@@ -177,7 +144,6 @@ function visavailChart() {
                 tmpData[tmpData.length - 1][2] = d[0];
               }
               tmpData.push(d);
-            //}
           } else if (i === 0) {
             d[3] = 0;
             tmpData.push(d);
@@ -190,26 +156,10 @@ function visavailChart() {
       var startDate = 0;
       var endDate = 0;
 
-/*
-      //select dates based on dataset
-      dataset.forEach(function (series, seriesI) {
-        if (series.disp_data.length>0) {
-          if (startDate === 0) {
-            startDate = series.disp_data[0][0];
-            endDate = series.disp_data[series.disp_data.length - 1][2];
-          } else {
-            if (series.disp_data[0][0] < startDate) {
-              startDate = series.disp_data[0][0];
-            }
-            if (series.disp_data[series.disp_data.length - 1][2] > endDate) {
-              endDate = series.disp_data[series.disp_data.length - 1][2];
-            }
-          }
-        }
-      });
-      */
 
       //force data range to current year January - December
+      //can change range here specifiying project start and end dates instead
+      //recommend making as attributes passed into grid or as part of the json data in that case
       //var parseDate = d3.time.format('%Y-%m-%d');
       startDate = parseDate.parse(chart_year + "-01-01");
       endDate = d3.time.year.offset(startDate, 1);
@@ -356,20 +306,9 @@ function visavailChart() {
             output = '<i class="fa fa-fw fa-times tooltip_has_no_data"></i>';
           }
           if (isDateOnlyFormat) {
-                //if (d[2] > d3.time.second.offset(d[0], 86400)) {
-                //  return output + moment(parseDate(d[0])).format('l')
-                //      + ' - ' + moment(parseDate(d[2])).format('l');
-                //}
                 return output + moment(parseDate(d[0])).format('l');
               } else {
-                //if (d[2] > d3.time.second.offset(d[0], 86400)) {
-                //  return output + moment(parseDateTime(d[0])).format('l') + ' '
-                 //     + moment(parseDateTime(d[0])).format('LTS'); //+ ' - '
-                      //+ moment(parseDateTime(d[2])).format('l') + ' '
-                      //+ moment(parseDateTime(d[2])).format('LTS');
-                //}
                 return output + moment(parseDateTime(d[0])).format('LTS'); 
-                //+ ' - ' + moment(parseDateTime(d[2])).format('LTS');
               }
             })
         .style('left', function () {

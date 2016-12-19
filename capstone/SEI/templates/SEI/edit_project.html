@@ -1,104 +1,105 @@
 {% extends 'SEI/base.html' %}
 {% block title %}<title>Modify Project</title>{% endblock %}
 {% block head %}
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script>
     $(function() {
         $( "#id_start_date" ).datepicker({
-      changeMonth: true,
-      changeYear: true
+          changeMonth: true,
+          changeYear: true
+      });
+
+        $( "#id_end_date" ).datepicker({
+          changeMonth: true,
+          changeYear: true
+      });
+
     });
 
-    $( "#id_end_date" ).datepicker({
-      changeMonth: true,
-      changeYear: true
-    });
-  
-    });
 
-
-$(function(){
-    var cscount =  parseInt($('#id_form-TOTAL_FORMS').val());
-    $(".add_charge_string").click(function(e){
-        e.preventDefault();
-        cscount = cscount + 1;
-        var total_forms = parseInt($('#id_form-TOTAL_FORMS').val()) + 1;
-        $('#id_form-TOTAL_FORMS').val(total_forms);
+    $(function(){
+        var cscount =  parseInt($('#id_form-TOTAL_FORMS').val());
+        $(".add_charge_string").click(function(e){
+            e.preventDefault();
+            cscount = cscount + 1;
+            var total_forms = parseInt($('#id_form-TOTAL_FORMS').val()) + 1;
+            $('#id_form-TOTAL_FORMS').val(total_forms);
         //clone the form charge string for new input and replace the name
         var name = "form-" + cscount + "-charge_string";
         $("#form_table tr:last").clone(true).find("input").each(function() {
             idArray = $(this).attr('name').split("-");
             inp = $(this).attr('name').replace(idArray[1], cscount);
-          $(this).val('').attr('id', "id_" + inp).attr('name', inp);
+            $(this).val('').attr('id', "id_" + inp).attr('name', inp);
         }).end().find("label").each(function() { $(this).val('').attr('for', "id"+name);
-          }).end().appendTo("table");
+    }).end().appendTo("#form_table");
         var removeBtn = '<button id="remove_charge_string' + (cscount - 1) + '" class="btn btn-danger remove_charge_string" >-</button>';
         var t2 = "#id_form-" + cscount + "-id";
-        console.log(t2);
-        console.log($(t2));
         idval = parseInt(cscount) + 1;
-        console.log(idval);
-        console.log($(t2).val())
         $(t2).val(idval);
-        console.log($(t2).val())
         var removeButton = $(removeBtn);
         $( this ).replaceWith(removeButton);
         $("#cscount").val(cscount);  
-            $('.remove_charge_string').unbind().click(function(e){
-                e.preventDefault();
-                var fieldNum = this.id.charAt(this.id.length-1);
-                $(this).closest('tr').remove();
-                var total_forms = parseInt($('#id_form-TOTAL_FORMS').val()) - 1;
-                $('#id_form-TOTAL_FORMS').val(total_forms);
-            });
+        $('.remove_charge_string').unbind().click(function(e){
+            e.preventDefault();
+            var fieldNum = this.id.charAt(this.id.length-1);
+            $(this).closest('tr').remove();
+            var total_forms = parseInt($('#id_form-TOTAL_FORMS').val()) - 1;
+            $('#id_form-TOTAL_FORMS').val(total_forms);
+        });
     });
 
-    $('.remove_charge_string').unbind().click(function(e){
-    e.preventDefault();
-    var fieldNum = this.id.charAt(this.id.length-1);
-    $(this).closest('tr').remove();
-    var total_forms = parseInt($('#id_form-TOTAL_FORMS').val()) - 1;
-    $('#id_form-TOTAL_FORMS').val(total_forms);
-});
+        $('.remove_charge_string').unbind().click(function(e){
+            e.preventDefault();
+            var fieldNum = this.id.charAt(this.id.length-1);
+            $(this).closest('tr').remove();
+            var total_forms = parseInt($('#id_form-TOTAL_FORMS').val()) - 1;
+            $('#id_form-TOTAL_FORMS').val(total_forms);
+        });
 
-});
+    });
 
-    </script>
+</script>
 {% endblock %}
 
 {% block content %}
 <div class="row" align="center">
     <p>
-    <form action="{% url 'edit_project' form.PWP_num.value %}" method="POST" class="form-group">
-{{ chargestring_formset.management_form }}
-    <table id='form_table'>
-    {% for field in form %}
-    <tr><td>{{ field.label_tag }}</td><td>{{ field }}</td><td>{{ field.errors }}</td></tr>
-    {% endfor %}
-{% for chargestring_form in chargestring_formset %}
-<tr>
-<td>{{ chargestring_form.id }}{{ chargestring_form.charge_string.label_tag }}</td>
-  <td>{{ chargestring_form.charge_string }}
-{% if not forloop.last %}
-  <button id="remove_charge_string" class="btn btn-danger remove_charge_string" type="button">-</button>
-{% else %}
-  <button id="add_charge_string" class="btn add_charge_string" type="button">+</button>
-{% endif %}
-</td></tr>
+        <form action="{% url 'edit_project' form.PWP_num.value %}" method="POST" class="form-group">
+            {{ chargestring_formset.management_form }}
+            <table >
+                {% for field in form %}
+                <tr><td>{{ field.label_tag }}</td><td>{{ field }}</td><td>{{ field.errors }}</td><td></td></tr>
+                {% endfor %}
+            </table>
+            <br/>
 
-{% endfor %}
-    </table>
+            <table id='form_table'>
+                <tr>
+                <th><span>Charge String:</span></th>
+                    <th>Check to Delete</th>
+                </tr>
+                {% for chargestring_form in chargestring_formset %}
+                <tr>{{ chargestring_form.id }}
+                  <td>{{ chargestring_form.charge_string }}</td>
+                  <td>{% if chargestring_form.instance.pk %}{{ chargestring_form.DELETE }}{% endif %}
+                    {% if forloop.last %}
+                    <button id="add_charge_string" class="btn add_charge_string" type="button">+</button>
+                    {% endif %}
+                </td></tr>
 
-    <input type="hidden" name="cscount" value="1" />
+                {% endfor %}
+            </table>
 
-    <input class="btn btn-lg btn-primary btn-block project " type="submit" value="Save" />
-    {% csrf_token %}
-    </form>
+            <input type="hidden" name="cscount" value="1" />
+
+            <input class="btn btn-lg btn-primary btn-block project " type="submit" value="Save" />
+            {% csrf_token %}
+        </form>
     </p>
-  </div>
+</div>
 {% endblock %}
 
-        {% block scripts %}
-        {% endblock %}    
+{% block scripts %}
+{% endblock %}    

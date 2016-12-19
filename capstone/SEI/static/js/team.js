@@ -1,3 +1,4 @@
+//on search retrieve a list of teams that match criteria
 function getTeamList(){
   var team_name=$("#search_input").val().toLowerCase();
   var url="/SEI/get_team/"+team_name;
@@ -17,6 +18,7 @@ function getTeamList(){
   });
 }
 
+//reload page for selected team
 function showContent(e, team_id){
   if (!team_id)
     team_id=$(e.target).attr("id");
@@ -27,9 +29,9 @@ function showContent(e, team_id){
 function redirectProject(e){
   PWP_num=$(this).find('td:first').text();
 
-
 }
 
+//handlers for events
 $(function(){
   $("#search_btn").click(getTeamList);
 
@@ -40,13 +42,14 @@ $(function(){
   })
 
 
-//code to call stackedbarchart if we decide to use
+//code to call stackedbarchart
 function getChart(){
   team_id = $("#team_id").val()
   if (team_id != ""){
     var urlChart="/SEI/chart_team/"+team_id
     $.get(urlChart).done(function(data){
       var json = JSON.parse(data);
+      //specify categories
       var chart = stackedBarChart().ygroups(["person", "subcontractor", "travel", "equipment"]);
       dataset=[];
       if (json['resource_allocation'] != null && json['resource_allocation'].length > 0){
@@ -63,6 +66,7 @@ function getChart(){
   }
 }
 
+//when page is ready show all sections and get team id to call grid and display
 $(document).ready(function () {
  // code here
   team_id = $("#team_id").val()

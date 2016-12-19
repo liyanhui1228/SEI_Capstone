@@ -51,7 +51,8 @@ var yAxis = d3.svg.axis()
   .tickSize(-width, 0, 0)
   .tickFormat(d3.format("$,"))
 
-
+//use month short name for x axis
+//since moment uses array position need to subtract 1 for correct month
 var xAxis = d3.svg.axis()
   .scale(x)
   .orient("bottom")
@@ -169,6 +170,7 @@ svg.select('#g_title')
 });
 }
 
+//argument to pass in y groups to be defined in the legend
 chart.ygroups = function (_) {
   if (!arguments.length) return ygroups;
   ygroups = _;

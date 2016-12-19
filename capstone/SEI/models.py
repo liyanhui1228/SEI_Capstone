@@ -52,7 +52,7 @@ class Project(models.Model):
     PWP_num = models.CharField(max_length=20)
     project_description = models.CharField(max_length=200, default="", blank=True)
     project_budget = models.DecimalField(max_digits=8, decimal_places=2)
-    is_internal = models.BooleanField(default=True)
+    is_internal = models.BooleanField(default=False)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, default=None, blank=True, null=True)
     client_name = models.CharField(max_length=200, default="", blank=True)
     start_date = models.DateField()

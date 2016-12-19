@@ -25,12 +25,13 @@ import csv
 from django.utils.encoding import smart_str
 import pdb
 from django.utils.dateparse import parse_datetime
+
 from dateutil.relativedelta import relativedelta
 from django.forms import modelformset_factory
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.contrib import messages
-
+from decimal import *
 
 # For solving the decimal is not serializable error when dumping json
 def decimal_default(obj):
@@ -46,6 +47,13 @@ def home(request):
 """*****************views for project **********************"""
 @login_required
 def projectview(request, PWP_num):
+    """
+    view an existing project in the system. will return project information and report form
+    the data itself is loaded from json calls based on PWP_num 
+    :param request: Request
+    :param PWP_num: PWP_num,unique identifier for a project
+    :return: render project viewt html
+    """
     #if no project passed in, show search bar only
     if PWP_num == '':
         return render(request, 'SEI/projectview.html')
@@ -61,13 +69,14 @@ def projectview(request, PWP_num):
 @transaction.atomic
 @permission_required('SEI.add_project')
 def add_project(request):
+    """
+    Create a new project and add to the system 
+    :param request: Request
+    :return: render project viewt html
+    """
     context = {}
 
-    #TO DO uncomment once user admin is working
-    #profile_item = get_object_or_404(Profile, user=request.user)
-    #if profile_item.user_role == 'NM':
-    #    return render(request, 'SEI/permission.html', context)
-
+    #formset is used to allow multiple dynamic add/remove of charge string forms
     ChargeStringFormSet = formset_factory(ChargeStringForm)
     if request.method == "GET":
         form = ProjectForm()
@@ -79,12 +88,13 @@ def add_project(request):
     form = ProjectForm(request.POST)
     formset = ChargeStringFormSet(data=request.POST)
 
+    #save project
     if not form.is_valid():
         return render(request, 'SEI/project.html', context)
 
     new_project = form.save()
 
-    #save charge strings
+    #save charge strings only if value provided not blank
     if formset.is_valid():
         for cs_form in formset:
             if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
@@ -99,11 +109,20 @@ def add_project(request):
 @transaction.atomic
 @permission_required('SEI.change_project')
 def edit_project(request, PWP_num):
+    """
+    Edit an existing project in the system 
+    :param request: Request
+    :param PWP_num: unique project number
+    :return: render project viewt html
+    """
+
+    #if GET first display page, retrieve object first from project then charge string
+    #return to context
     if request.method == 'GET':
         project_item = get_object_or_404(Project,PWP_num=PWP_num)
         charge_string = ChargeString.objects.filter(project=project_item)
         project_form = ProjectForm(instance=project_item)
-        ChargeStringFormSet = modelformset_factory(ChargeString, form = ChargeStringForm)
+        ChargeStringFormSet = modelformset_factory(ChargeString, form = ChargeStringForm, can_delete=True)
         formset = ChargeStringFormSet(queryset=charge_string)
         context={}
         context['form'] = project_form
@@ -111,32 +130,39 @@ def edit_project(request, PWP_num):
         context['chargestring_formset'] = formset
         return render(request, 'SEI/edit_project.html', context)
     
+    
+    #on save read data from post
     project_item = get_object_or_404(Project,PWP_num=PWP_num)
     charge_string = ChargeString.objects.filter(project=project_item)
     project_form=ProjectForm(request.POST,instance=project_item)
-    ChargeStringFormSet = modelformset_factory(ChargeString, form = ChargeStringForm)
+    ChargeStringFormSet = modelformset_factory(ChargeString, form = ChargeStringForm, can_delete=True)
     formset = ChargeStringFormSet(data=request.POST, queryset=charge_string)
     
-    if project_form.is_valid():
-        project_item = project_form.save()
-        #return redirect(reverse('projectsearch'))
+    #if not valid return data to edit page
+    if not project_form.is_valid() and not formset.is_valid():
+        context={}
+        context['form'] = project_form
+        context['PWP_num']=project_item.PWP_num
+        context['chargestring_formset'] = formset
+        context['message'] = 'save failed'
+        return render(request,'SEI/edit_project.html', context)
+    else:
+        #otherwise save project if changes
+        if project_form.is_valid():
+            project_item = project_form.save()
+            #return redirect(reverse('projectsearch'))
 
-    if formset.is_valid():
-        charge_string.delete()
-        for cs_form in formset:
-            if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
-                new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
-                    project = project_item)
-                new_charge_string.save()
+        #save charge strings if changes
+        if formset.is_valid():
+            charge_string.delete()
+            for cs_form in formset:
+                if cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '' and not cs_form.cleaned_data['DELETE']:
+                    new_charge_string = ChargeString(charge_string=cs_form.cleaned_data['charge_string'],\
+                        project = project_item)
+                    new_charge_string.save()
+
+        #redirect to project view page
         return redirect(reverse('projectview',kwargs={'PWP_num':project_item.PWP_num}))
-
-    context={}
-    context['form'] = project_form
-    context['PWP_num']=project_item.PWP_num
-    context['chargestring_formset'] = formset
-    context['message'] = 'save failed'
-
-    return render(request,'SEI/edit_project.html', context)
 
 
 @login_required
@@ -227,11 +253,9 @@ def project_resource(request, PWP_num, project_year):
     """
     context = {}
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
-    #project_month_list = ProjectMonth.objects.filter(project=project_item, project_date__year = 2016)
 
     resource_chart = collections.defaultdict(list)
     resource_names = {}
-    #for pm in project_month_list:
     
     project_expense = ProjectExpense.objects.filter(project=project_item, project_date__year = project_year)
     employee_month = EmployeeMonth.objects.filter(project=project_item, project_date__year = project_year)
@@ -259,10 +283,13 @@ def project_resource(request, PWP_num, project_year):
 
 @login_required
 def search_project(request):
-    #user_profile = get_object_or_404(Profile, user = request.user)
-    #if user_profile.user_role == 'ITADMIN':
-    #   return render(request, 'SEI/permission.html')
+    """
+    Renders the project page with search bar only
+    :param request: Request, 
+    :return: render project view html
+    """
     context = {}
+    #return report form but will only be visible once PWP_num is searched
     context['report'] = ReportForm()
     return render(request, 'SEI/projectview.html', context)
 
@@ -623,12 +650,15 @@ def view_employee_list(request, PWP_num, project_date_year, project_date_month):
     return render(request, "SEI/employee_list.json", context)
 
 def add_employee(employee_chosen, PWP_num, project_date):
+    """
+    function to add employee as resource to a project
+    :param request: employee_chosen is the employee to be added
+    :param request: PWP_num is the project to add to
+    :param request: project_date is the project month to employee for
+    """
     context = {}
     alert = {}
     detail = {} # The alert details
-    #PWP_num = employee_chosen_json['PWP_num']
-    #emp_chosen_list = employee_chosen_json['emp_chosen_list']
-    #project_date = employee_chosen_json['project_date']
     emp_detail = employee_chosen
     project_item = get_object_or_404(Project, PWP_num=PWP_num)
     project_month, created = ProjectMonth.objects.get_or_create(project=project_item, project_date=project_date)
@@ -639,6 +669,7 @@ def add_employee(employee_chosen, PWP_num, project_date):
     is_external = emp_detail['isExternal']
     emp = emp_detail['employee']
     rate = emp.external_salary if is_external else emp.internal_salary
+    print(time_to_use)
     month_cost = float(time_to_use)/100*float(rate)
 
     # Insert a new record to EmployeeMonth
@@ -653,7 +684,7 @@ def add_employee(employee_chosen, PWP_num, project_date):
 
     # Update the percentage_used in EmployeeAvailability, if over 100%, send back the alert, alert is null means no alert
     emp_availability, created = EmployeeAvailability.objects.get_or_create(employee=emp, date=project_date)
-    emp_availability.percentage_used += time_to_use
+    emp_availability.percentage_used += Decimal(time_to_use)
     if(emp_availability.percentage_used >= 100):
         emp_availability.is_available = 0
         detail[emp.id] = emp_availability.percentage_used
@@ -661,7 +692,7 @@ def add_employee(employee_chosen, PWP_num, project_date):
     alert['alert'] = detail
     alert = json.dumps(alert, default=decimal_default)
     context['alert'] = alert
-    print("success!!!!!")
+    #print("success!!!!!")
     return context
 
 @login_required
@@ -674,6 +705,16 @@ def get_employee(request,first_name, last_name):
         employee_list.append(emp_detail)
     emp_list_result = json.dumps(employee_list, default=decimal_default)
     return HttpResponse(emp_list_result, content_type="application/json")
+
+@login_required
+def get_employee_id(request,employee_id):
+    employee=get_object_or_404(Employee,id=employee_id)
+    emp_detail = model_to_dict(employee)
+    #emp_detail['internal_salary'] = emp.team.team_name
+    #emp_detail['external_salary'] = emp.team.team_name
+    emp_list_result = json.dumps(emp_detail, default=decimal_default)
+    return HttpResponse(emp_list_result, content_type="application/json")
+
 
 def get_employee_project(request,employee_id):
     today = datetime.datetime.today()
@@ -722,9 +763,119 @@ def get_employee_allocation(request,employee_id,year):
 
     return HttpResponse(json.dumps(context))
 
+
+@login_required
+@permission_required('SEI.add_projectmonth')
+def open_resources(request, PWP_num, project_year, project_month):
+    """
+    Open resources can be called in place of add resources on java script
+    this will check if a project month exists to determine whether it should add or edit resources
+    :param request: Request
+    :param PWP_num: unique project number
+    :param project_year: year of project to add resource for
+    :param project_month: month of project to add resource for
+    :return: render project viewt html
+    """
+    project_item = get_object_or_404(Project, PWP_num = PWP_num)
+    project_date = str(project_year) + '-' + str(project_month) + '-01'
+    project_month_item = ProjectMonth.filter(project_date = project_date, project = project_item)
+    if project_month_item != None:
+        return redirect(reverse('addResources',kwargs={'PWP_num':PWP_num, 'project_year':project_year, 'project_month':project_month}))
+    else:
+        return redirect(reverse('editResources',kwargs={'PWP_num':PWP_num, 'project_year':project_year, 'project_month':project_month}))
+
 @login_required
 @permission_required('SEI.add_projectmonth')
 def add_resources(request, PWP_num, project_year, project_month):
+    """
+    Add resources to an existing project in the system 
+    :param request: Request
+    :param PWP_num: unique project number
+    :param project_year: year of project to add resource for
+    :param project_month: month of project to add resource for
+    :return: render project viewt html
+    """
+    context = {}
+    messages = []
+    context['messages'] = messages
+    project_item = get_object_or_404(Project, PWP_num = PWP_num)
+    project_team_emp = Employee.objects.filter(team = project_item.team)
+    project_date = str(project_year) + '-' + str(project_month) + '-01'
+
+    ProjectExpenseFormSet = formset_factory(ProjectExpenseForm)
+    EmployeeMonthFormSet = formset_factory(EmployeeMonthForm,extra=0)
+
+    if request.method == "GET":
+
+
+        initial=[]
+        for index, emp in enumerate(project_team_emp):
+            emp_name = emp.first_name + ' ' + emp.last_name
+            initial.append({'employee': emp, 'internal_salary': emp.internal_salary, 'external_salary': emp.external_salary, 'employee_name': emp_name})
+        otherexpense = ProjectExpenseFormSet(prefix="otherexpense")
+        employeeexpense = EmployeeMonthFormSet(prefix="employeeexpense",initial=initial)
+
+        context['otherexpense'] = otherexpense
+        context['employeeexpense'] = employeeexpense
+        context['project'] = project_item
+        context['project_year'] = project_year
+        context['project_month'] = project_month
+        return render(request, 'SEI/add_resource.html', context)
+
+    if request.method == "POST":
+
+        initial=[]
+        for index, emp in enumerate(project_team_emp):
+            emp_name = emp.first_name + ' ' + emp.last_name
+            initial.append({'employee': emp, 'internal_salary': emp.internal_salary, 'external_salary': emp.external_salary, 'employee_name': emp_name})
+
+        otherexpense = ProjectExpenseFormSet(request.POST, prefix="otherexpense")
+        employeeexpense = EmployeeMonthFormSet(request.POST, prefix="employeeexpense",initial=initial)
+
+        if otherexpense.is_valid():
+            for othexp in otherexpense:
+                #if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
+                if othexp.is_valid() and 'cost' in othexp.cleaned_data and 'category' in othexp.cleaned_data:
+                    new_project_expense = ProjectExpense(project_date = project_date,
+                                     cost=othexp.cleaned_data['cost'],
+                                     expense_description=othexp.cleaned_data['expense_description'],
+                                     category=othexp.cleaned_data['category'],
+                                     project=project_item)
+                    new_project_expense.save()
+
+        
+        if employeeexpense.is_valid():
+            pdb.set_trace()
+            for empexp in employeeexpense:
+                #if 'charge_string' in cs_form.cleaned_data and cs_form.cleaned_data['charge_string'] != '':
+                if empexp.is_valid() and 'time_use' in empexp.cleaned_data and empexp.cleaned_data['time_use'] != '':
+                    add_employee(empexp.cleaned_data, PWP_num, project_date)
+        else:
+            print(employeeexpense.errors)
+
+        context['otherexpense'] = otherexpense
+        context['employeeexpense'] = employeeexpense
+        context['project'] = project_item
+        context['project_year'] = project_year
+        context['project_month'] = project_month
+
+        #project_month_item = ProjectMonth(project_date = project_date, project=project_item)
+        #project_month_item.save()
+        messages.append("Expense has been saved")
+    return render(request, 'SEI/add_resource.html', context)
+
+
+@login_required
+@permission_required('SEI.add_projectmonth')
+def edit_resources(request, PWP_num, project_year, project_month):
+    """
+    Edit resources to an existing project in the system 
+    :param request: Request
+    :param PWP_num: unique project number
+    :param project_year: year of project to add resource for
+    :param project_month: month of project to add resource for
+    :return: render project viewt html
+    """
     context = {}
     messages = []
     context['messages'] = messages
@@ -786,8 +937,8 @@ def add_resources(request, PWP_num, project_year, project_month):
         context['project_year'] = project_year
         context['project_month'] = project_month
 
-        #project_month_item.add(new_project_expense)
-        #project_month_item.save()
+        project_month_item = ProjectMonth(project_date = project_date, project=project_item)
+        project_month_item.save()
         messages.append("Expense has been saved")
     return render(request, 'SEI/add_resource.html', context)
 
@@ -815,9 +966,11 @@ def add_expense(request,expense_detail):
 
 @login_required
 def search_employee(request):
-    #user_profile = get_object_or_404(Profile, user = request.user)
-    #if user_profile.user_role == 'ITADMIN':
-    #    return render(request, 'SEI/permission.html')
+    """
+    Renders the employee page with search bar only
+    :param request: Request, 
+    :return: render project view html
+    """
     context = {}
     context['report'] = ReportForm()
 
@@ -858,10 +1011,11 @@ def view_team(request, team_id):
 
 @login_required
 def search_team(request):
-    #user_profile = get_object_or_404(Profile, user = request.user)
-    #if user_profile.user_role == 'ITADMIN':
-    #    return render(request, 'SEI/permission.html')
-
+    """
+    Renders the tema page with search bar only
+    :param request: Request, 
+    :return: render project view html
+    """
     return render(request, 'SEI/teamview.html')
 
 
@@ -996,8 +1150,7 @@ def edit_employee(request,employee_id):
         return render(request,'SEI/edit_employee.html',context)
     else:
         form.save()
-        return redirect(reverse('search_employee'))
-
+        return redirect(reverse('adminEmployee'))
 
 def admin_employee(request):
     #user_profile = get_object_or_404(Profile, user = request.user)
